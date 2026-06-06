@@ -1,0 +1,469 @@
+⚠ Blocked cross-origin request to Next.js dev resource /_next/webpack-hmr from "127.0.0.1".
+Cross-origin access to Next.js dev resources is blocked by default for safety.
+
+To allow this host in development, add it to "allowedDevOrigins" in next.config.js and restart the dev server:
+
+// next.config.js
+module.exports = {
+  allowedDevOrigins: ['127.0.0.1'],
+}
+
+Read more: https://nextjs.org/docs/app/api-reference/config/next-config-js/allowedDevOrigins
+⚠ Fast Refresh had to perform a full reload when ./src/app/page.tsx changed. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
+⚠ Fast Refresh had to perform a full reload when ./src/app/page.tsx changed. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
+⨯ ./src/app/page.tsx:35:15
+Unterminated string constant
+  [90m33 |[0m     id: [32m"mission_001"[0m,
+  [90m34 |[0m     title: [32m"?釉붾윭 ?먮뒗 媛쒖씤 臾쇰퀝 ?ъ슜?섍린"[0m,
+[31m[1m>[0m [90m35 |[0m     category: [32m"?쇳쉶?⑺뭹 以꾩씠湲?,[0m
+  [90m   |[0m               [31m[1m^^^^^^^^^^^^^^^^^^^^^[0m
+  [90m36 |[0m [32m    description:[0m
+  [90m37 |[0m [32m      "[0m?ㅻ뒛 ?섎（ ?쇳쉶?⑹뻐 ????釉붾윭??媛쒖씤 臾쇰퀝???ъ슜?대낫?몄슂.",
+  [90m38 |[0m [32m    difficulty: 2,[0m
+
+Parsing ecmascript source code failed
+
+Import traces:
+  Client Component Browser:
+    ./src/app/page.tsx [Client Component Browser]
+    ./src/app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/page.tsx [Client Component SSR]
+    ./src/app/page.tsx [Server Component]
+
+
+[browser] ./src/app/page.tsx:35:15
+Unterminated string constant
+  33 |     id: "mission_001",
+  34 |     title: "?釉붾윭 ?먮뒗 媛쒖씤 臾쇰퀝 ?ъ슜?섍린",
+> 35 |     category: "?쇳쉶?⑺뭹 以꾩씠湲?,
+     |               ^^^^^^^^^^^^^^^^^^^^^
+  36 |     description:
+  37 |       "?ㅻ뒛 ?섎（ ?쇳쉶?⑹뻐 ????釉붾윭??媛쒖씤 臾쇰퀝???ъ슜?대낫?몄슂.",
+  38 |     difficulty: 2,
+
+Parsing ecmascript source code failed
+
+Import traces:
+  Client Component Browser:
+    ./src/app/page.tsx [Client Component Browser]
+    ./src/app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/page.tsx [Client Component SSR]
+    ./src/app/page.tsx [Server Component] 
+[browser] ./src/app/page.tsx:35:15
+Unterminated string constant
+  33 |     id: "mission_001",
+  34 |     title: "?釉붾윭 ?먮뒗 媛쒖씤 臾쇰퀝 ?ъ슜?섍린",
+> 35 |     category: "?쇳쉶?⑺뭹 以꾩씠湲?,
+     |               ^^^^^^^^^^^^^^^^^^^^^
+  36 |     description:
+  37 |       "?ㅻ뒛 ?섎（ ?쇳쉶?⑹뻐 ????釉붾윭??媛쒖씤 臾쇰퀝???ъ슜?대낫?몄슂.",
+  38 |     difficulty: 2,
+
+Parsing ecmascript source code failed
+
+Import traces:
+  Client Component Browser:
+    ./src/app/page.tsx [Client Component Browser]
+    ./src/app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/page.tsx [Client Component SSR]
+    ./src/app/page.tsx [Server Component] 
+[browser] ./src/app/page.tsx:35:15
+Unterminated string constant
+  33 |     id: "mission_001",
+  34 |     title: "?釉붾윭 ?먮뒗 媛쒖씤 臾쇰퀝 ?ъ슜?섍린",
+> 35 |     category: "?쇳쉶?⑺뭹 以꾩씠湲?,
+     |               ^^^^^^^^^^^^^^^^^^^^^
+  36 |     description:
+  37 |       "?ㅻ뒛 ?섎（ ?쇳쉶?⑹뻐 ????釉붾윭??媛쒖씤 臾쇰퀝???ъ슜?대낫?몄슂.",
+  38 |     difficulty: 2,
+
+Parsing ecmascript source code failed
+
+Import traces:
+  Client Component Browser:
+    ./src/app/page.tsx [Client Component Browser]
+    ./src/app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/page.tsx [Client Component SSR]
+    ./src/app/page.tsx [Server Component] 
+[browser] ./src/app/page.tsx:35:15
+Unterminated string constant
+  33 |     id: "mission_001",
+  34 |     title: "?釉붾윭 ?먮뒗 媛쒖씤 臾쇰퀝 ?ъ슜?섍린",
+> 35 |     category: "?쇳쉶?⑺뭹 以꾩씠湲?,
+     |               ^^^^^^^^^^^^^^^^^^^^^
+  36 |     description:
+  37 |       "?ㅻ뒛 ?섎（ ?쇳쉶?⑹뻐 ????釉붾윭??媛쒖씤 臾쇰퀝???ъ슜?대낫?몄슂.",
+  38 |     difficulty: 2,
+
+Parsing ecmascript source code failed
+
+Import traces:
+  Client Component Browser:
+    ./src/app/page.tsx [Client Component Browser]
+    ./src/app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/page.tsx [Client Component SSR]
+    ./src/app/page.tsx [Server Component] 
+[browser] ./src/app/page.tsx:35:15
+Unterminated string constant
+  33 |     id: "mission_001",
+  34 |     title: "?釉붾윭 ?먮뒗 媛쒖씤 臾쇰퀝 ?ъ슜?섍린",
+> 35 |     category: "?쇳쉶?⑺뭹 以꾩씠湲?,
+     |               ^^^^^^^^^^^^^^^^^^^^^
+  36 |     description:
+  37 |       "?ㅻ뒛 ?섎（ ?쇳쉶?⑹뻐 ????釉붾윭??媛쒖씤 臾쇰퀝???ъ슜?대낫?몄슂.",
+  38 |     difficulty: 2,
+
+Parsing ecmascript source code failed
+
+Import traces:
+  Client Component Browser:
+    ./src/app/page.tsx [Client Component Browser]
+    ./src/app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/page.tsx [Client Component SSR]
+    ./src/app/page.tsx [Server Component] 
+⨯ ./src/app/page.tsx:35:15
+Unterminated string constant
+  [90m33 |[0m     id: [32m"mission_001"[0m,
+  [90m34 |[0m     title: [32m"?釉붾윭 ?먮뒗 媛쒖씤 臾쇰퀝 ?ъ슜?섍린"[0m,
+[31m[1m>[0m [90m35 |[0m     category: [32m"?쇳쉶?⑺뭹 以꾩씠湲?,[0m
+  [90m   |[0m               [31m[1m^^^^^^^^^^^^^^^^^^^^^[0m
+  [90m36 |[0m [32m    description:[0m
+  [90m37 |[0m [32m      "[0m?ㅻ뒛 ?섎（ ?쇳쉶?⑹뻐 ????釉붾윭??媛쒖씤 臾쇰퀝???ъ슜?대낫?몄슂.",
+  [90m38 |[0m [32m    difficulty: 2,[0m
+
+Parsing ecmascript source code failed
+
+Import traces:
+  Client Component Browser:
+    ./src/app/page.tsx [Client Component Browser]
+    ./src/app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/page.tsx [Client Component SSR]
+    ./src/app/page.tsx [Server Component]
+
+
+⨯ ./src/app/page.tsx:35:15
+Unterminated string constant
+  [90m33 |[0m     id: [32m"mission_001"[0m,
+  [90m34 |[0m     title: [32m"?釉붾윭 ?먮뒗 媛쒖씤 臾쇰퀝 ?ъ슜?섍린"[0m,
+[31m[1m>[0m [90m35 |[0m     category: [32m"?쇳쉶?⑺뭹 以꾩씠湲?,[0m
+  [90m   |[0m               [31m[1m^^^^^^^^^^^^^^^^^^^^^[0m
+  [90m36 |[0m [32m    description:[0m
+  [90m37 |[0m [32m      "[0m?ㅻ뒛 ?섎（ ?쇳쉶?⑹뻐 ????釉붾윭??媛쒖씤 臾쇰퀝???ъ슜?대낫?몄슂.",
+  [90m38 |[0m [32m    difficulty: 2,[0m
+
+Parsing ecmascript source code failed
+
+Import traces:
+  Client Component Browser:
+    ./src/app/page.tsx [Client Component Browser]
+    ./src/app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/page.tsx [Client Component SSR]
+    ./src/app/page.tsx [Server Component]
+
+
+[browser] ./src/app/page.tsx:35:15
+Unterminated string constant
+  33 |     id: "mission_001",
+  34 |     title: "?釉붾윭 ?먮뒗 媛쒖씤 臾쇰퀝 ?ъ슜?섍린",
+> 35 |     category: "?쇳쉶?⑺뭹 以꾩씠湲?,
+     |               ^^^^^^^^^^^^^^^^^^^^^
+  36 |     description:
+  37 |       "?ㅻ뒛 ?섎（ ?쇳쉶?⑹뻐 ????釉붾윭??媛쒖씤 臾쇰퀝???ъ슜?대낫?몄슂.",
+  38 |     difficulty: 2,
+
+Parsing ecmascript source code failed
+
+Import traces:
+  Client Component Browser:
+    ./src/app/page.tsx [Client Component Browser]
+    ./src/app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/page.tsx [Client Component SSR]
+    ./src/app/page.tsx [Server Component] 
+[browser] ./src/app/page.tsx:35:15
+Unterminated string constant
+  33 |     id: "mission_001",
+  34 |     title: "?釉붾윭 ?먮뒗 媛쒖씤 臾쇰퀝 ?ъ슜?섍린",
+> 35 |     category: "?쇳쉶?⑺뭹 以꾩씠湲?,
+     |               ^^^^^^^^^^^^^^^^^^^^^
+  36 |     description:
+  37 |       "?ㅻ뒛 ?섎（ ?쇳쉶?⑹뻐 ????釉붾윭??媛쒖씤 臾쇰퀝???ъ슜?대낫?몄슂.",
+  38 |     difficulty: 2,
+
+Parsing ecmascript source code failed
+
+Import traces:
+  Client Component Browser:
+    ./src/app/page.tsx [Client Component Browser]
+    ./src/app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/page.tsx [Client Component SSR]
+    ./src/app/page.tsx [Server Component] 
+[browser] Uncaught Error: ./src/app/page.tsx:35:15
+Unterminated string constant
+  33 |     id: "mission_001",
+  34 |     title: "?釉붾윭 ?먮뒗 媛쒖씤 臾쇰퀝 ?ъ슜?섍린",
+> 35 |     category: "?쇳쉶?⑺뭹 以꾩씠湲?,
+     |               ^^^^^^^^^^^^^^^^^^^^^
+  36 |     description:
+  37 |       "?ㅻ뒛 ?섎（ ?쇳쉶?⑹뻐 ????釉붾윭??媛쒖씤 臾쇰퀝???ъ슜?대낫?몄슂.",
+  38 |     difficulty: 2,
+
+Parsing ecmascript source code failed
+
+Import traces:
+  Client Component Browser:
+    ./src/app/page.tsx [Client Component Browser]
+    ./src/app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/page.tsx [Client Component SSR]
+    ./src/app/page.tsx [Server Component]
+
+
+    at <unknown> (Error: ./src/app/page.tsx:35:15)
+    at <unknown> (Error: (./src/app/page.tsx:35:15)
+[browser] ./src/app/page.tsx:35:15
+Unterminated string constant
+  33 |     id: "mission_001",
+  34 |     title: "?釉붾윭 ?먮뒗 媛쒖씤 臾쇰퀝 ?ъ슜?섍린",
+> 35 |     category: "?쇳쉶?⑺뭹 以꾩씠湲?,
+     |               ^^^^^^^^^^^^^^^^^^^^^
+  36 |     description:
+  37 |       "?ㅻ뒛 ?섎（ ?쇳쉶?⑹뻐 ????釉붾윭??媛쒖씤 臾쇰퀝???ъ슜?대낫?몄슂.",
+  38 |     difficulty: 2,
+
+Parsing ecmascript source code failed
+
+Import traces:
+  Client Component Browser:
+    ./src/app/page.tsx [Client Component Browser]
+    ./src/app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/page.tsx [Client Component SSR]
+    ./src/app/page.tsx [Server Component] 
+[browser] ./src/app/page.tsx:35:15
+Unterminated string constant
+  33 |     id: "mission_001",
+  34 |     title: "?釉붾윭 ?먮뒗 媛쒖씤 臾쇰퀝 ?ъ슜?섍린",
+> 35 |     category: "?쇳쉶?⑺뭹 以꾩씠湲?,
+     |               ^^^^^^^^^^^^^^^^^^^^^
+  36 |     description:
+  37 |       "?ㅻ뒛 ?섎（ ?쇳쉶?⑹뻐 ????釉붾윭??媛쒖씤 臾쇰퀝???ъ슜?대낫?몄슂.",
+  38 |     difficulty: 2,
+
+Parsing ecmascript source code failed
+
+Import traces:
+  Client Component Browser:
+    ./src/app/page.tsx [Client Component Browser]
+    ./src/app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/page.tsx [Client Component SSR]
+    ./src/app/page.tsx [Server Component] 
+[browser] ./src/app/page.tsx:35:15
+Unterminated string constant
+  33 |     id: "mission_001",
+  34 |     title: "?釉붾윭 ?먮뒗 媛쒖씤 臾쇰퀝 ?ъ슜?섍린",
+> 35 |     category: "?쇳쉶?⑺뭹 以꾩씠湲?,
+     |               ^^^^^^^^^^^^^^^^^^^^^
+  36 |     description:
+  37 |       "?ㅻ뒛 ?섎（ ?쇳쉶?⑹뻐 ????釉붾윭??媛쒖씤 臾쇰퀝???ъ슜?대낫?몄슂.",
+  38 |     difficulty: 2,
+
+Parsing ecmascript source code failed
+
+Import traces:
+  Client Component Browser:
+    ./src/app/page.tsx [Client Component Browser]
+    ./src/app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/page.tsx [Client Component SSR]
+    ./src/app/page.tsx [Server Component] 
+[browser] ./src/app/page.tsx:35:15
+Unterminated string constant
+  33 |     id: "mission_001",
+  34 |     title: "?釉붾윭 ?먮뒗 媛쒖씤 臾쇰퀝 ?ъ슜?섍린",
+> 35 |     category: "?쇳쉶?⑺뭹 以꾩씠湲?,
+     |               ^^^^^^^^^^^^^^^^^^^^^
+  36 |     description:
+  37 |       "?ㅻ뒛 ?섎（ ?쇳쉶?⑹뻐 ????釉붾윭??媛쒖씤 臾쇰퀝???ъ슜?대낫?몄슂.",
+  38 |     difficulty: 2,
+
+Parsing ecmascript source code failed
+
+Import traces:
+  Client Component Browser:
+    ./src/app/page.tsx [Client Component Browser]
+    ./src/app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/page.tsx [Client Component SSR]
+    ./src/app/page.tsx [Server Component] 
+[browser] ./src/app/page.tsx:35:15
+Unterminated string constant
+  33 |     id: "mission_001",
+  34 |     title: "?釉붾윭 ?먮뒗 媛쒖씤 臾쇰퀝 ?ъ슜?섍린",
+> 35 |     category: "?쇳쉶?⑺뭹 以꾩씠湲?,
+     |               ^^^^^^^^^^^^^^^^^^^^^
+  36 |     description:
+  37 |       "?ㅻ뒛 ?섎（ ?쇳쉶?⑹뻐 ????釉붾윭??媛쒖씤 臾쇰퀝???ъ슜?대낫?몄슂.",
+  38 |     difficulty: 2,
+
+Parsing ecmascript source code failed
+
+Import traces:
+  Client Component Browser:
+    ./src/app/page.tsx [Client Component Browser]
+    ./src/app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/page.tsx [Client Component SSR]
+    ./src/app/page.tsx [Server Component] 
+⨯ ./src/app/page.tsx:35:15
+Unterminated string constant
+  [90m33 |[0m     id: [32m"mission_001"[0m,
+  [90m34 |[0m     title: [32m"?釉붾윭 ?먮뒗 媛쒖씤 臾쇰퀝 ?ъ슜?섍린"[0m,
+[31m[1m>[0m [90m35 |[0m     category: [32m"?쇳쉶?⑺뭹 以꾩씠湲?,[0m
+  [90m   |[0m               [31m[1m^^^^^^^^^^^^^^^^^^^^^[0m
+  [90m36 |[0m [32m    description:[0m
+  [90m37 |[0m [32m      "[0m?ㅻ뒛 ?섎（ ?쇳쉶?⑹뻐 ????釉붾윭??媛쒖씤 臾쇰퀝???ъ슜?대낫?몄슂.",
+  [90m38 |[0m [32m    difficulty: 2,[0m
+
+Parsing ecmascript source code failed
+
+Import traces:
+  Client Component Browser:
+    ./src/app/page.tsx [Client Component Browser]
+    ./src/app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/page.tsx [Client Component SSR]
+    ./src/app/page.tsx [Server Component]
+
+
+[browser] ./src/app/page.tsx:35:15
+Unterminated string constant
+  33 |     id: "mission_001",
+  34 |     title: "?釉붾윭 ?먮뒗 媛쒖씤 臾쇰퀝 ?ъ슜?섍린",
+> 35 |     category: "?쇳쉶?⑺뭹 以꾩씠湲?,
+     |               ^^^^^^^^^^^^^^^^^^^^^
+  36 |     description:
+  37 |       "?ㅻ뒛 ?섎（ ?쇳쉶?⑹뻐 ????釉붾윭??媛쒖씤 臾쇰퀝???ъ슜?대낫?몄슂.",
+  38 |     difficulty: 2,
+
+Parsing ecmascript source code failed
+
+Import traces:
+  Client Component Browser:
+    ./src/app/page.tsx [Client Component Browser]
+    ./src/app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/page.tsx [Client Component SSR]
+    ./src/app/page.tsx [Server Component] 
+[browser] Uncaught Error: ./src/app/page.tsx:35:15
+Unterminated string constant
+  33 |     id: "mission_001",
+  34 |     title: "?釉붾윭 ?먮뒗 媛쒖씤 臾쇰퀝 ?ъ슜?섍린",
+> 35 |     category: "?쇳쉶?⑺뭹 以꾩씠湲?,
+     |               ^^^^^^^^^^^^^^^^^^^^^
+  36 |     description:
+  37 |       "?ㅻ뒛 ?섎（ ?쇳쉶?⑹뻐 ????釉붾윭??媛쒖씤 臾쇰퀝???ъ슜?대낫?몄슂.",
+  38 |     difficulty: 2,
+
+Parsing ecmascript source code failed
+
+Import traces:
+  Client Component Browser:
+    ./src/app/page.tsx [Client Component Browser]
+    ./src/app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/page.tsx [Client Component SSR]
+    ./src/app/page.tsx [Server Component]
+
+
+    at <unknown> (Error: ./src/app/page.tsx:35:15)
+    at <unknown> (Error: (./src/app/page.tsx:35:15)
+[browser] ./src/app/page.tsx:35:15
+Unterminated string constant
+  33 |     id: "mission_001",
+  34 |     title: "?釉붾윭 ?먮뒗 媛쒖씤 臾쇰퀝 ?ъ슜?섍린",
+> 35 |     category: "?쇳쉶?⑺뭹 以꾩씠湲?,
+     |               ^^^^^^^^^^^^^^^^^^^^^
+  36 |     description:
+  37 |       "?ㅻ뒛 ?섎（ ?쇳쉶?⑹뻐 ????釉붾윭??媛쒖씤 臾쇰퀝???ъ슜?대낫?몄슂.",
+  38 |     difficulty: 2,
+
+Parsing ecmascript source code failed
+
+Import traces:
+  Client Component Browser:
+    ./src/app/page.tsx [Client Component Browser]
+    ./src/app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/page.tsx [Client Component SSR]
+    ./src/app/page.tsx [Server Component] 
+[browser] ./src/app/page.tsx:35:15
+Unterminated string constant
+  33 |     id: "mission_001",
+  34 |     title: "?釉붾윭 ?먮뒗 媛쒖씤 臾쇰퀝 ?ъ슜?섍린",
+> 35 |     category: "?쇳쉶?⑺뭹 以꾩씠湲?,
+     |               ^^^^^^^^^^^^^^^^^^^^^
+  36 |     description:
+  37 |       "?ㅻ뒛 ?섎（ ?쇳쉶?⑹뻐 ????釉붾윭??媛쒖씤 臾쇰퀝???ъ슜?대낫?몄슂.",
+  38 |     difficulty: 2,
+
+Parsing ecmascript source code failed
+
+Import traces:
+  Client Component Browser:
+    ./src/app/page.tsx [Client Component Browser]
+    ./src/app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/page.tsx [Client Component SSR]
+    ./src/app/page.tsx [Server Component] 
+[browser] ./src/app/page.tsx:35:15
+Unterminated string constant
+  33 |     id: "mission_001",
+  34 |     title: "?釉붾윭 ?먮뒗 媛쒖씤 臾쇰퀝 ?ъ슜?섍린",
+> 35 |     category: "?쇳쉶?⑺뭹 以꾩씠湲?,
+     |               ^^^^^^^^^^^^^^^^^^^^^
+  36 |     description:
+  37 |       "?ㅻ뒛 ?섎（ ?쇳쉶?⑹뻐 ????釉붾윭??媛쒖씤 臾쇰퀝???ъ슜?대낫?몄슂.",
+  38 |     difficulty: 2,
+
+Parsing ecmascript source code failed
+
+Import traces:
+  Client Component Browser:
+    ./src/app/page.tsx [Client Component Browser]
+    ./src/app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/page.tsx [Client Component SSR]
+    ./src/app/page.tsx [Server Component] 
