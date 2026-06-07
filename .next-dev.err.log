@@ -467,3 +467,149 @@ Import traces:
   Client Component SSR:
     ./src/app/page.tsx [Client Component SSR]
     ./src/app/page.tsx [Server Component] 
+⚠ Fast Refresh had to perform a full reload when ./src/app/page.tsx changed. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
+⚠ Fast Refresh had to perform a full reload when ./src/app/page.tsx changed. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
+⚠ Fast Refresh had to perform a full reload when ./src/app/page.tsx changed. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
+⚠ Fast Refresh had to perform a full reload when ./src/app/page.tsx changed. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
+[browser] Uncaught ReferenceError: hasCheckedInToday is not defined
+    at SimpleHomeScreen (src/app/page.tsx:837:27)
+    at Home (src/app/page.tsx:1806:70)
+  835 |                 type="button"
+  836 |                 onClick={onToggleCheckin}
+> 837 |                 disabled={hasCheckedInToday}
+      |                           ^
+  838 |                 className="rounded-full bg-[#2c6a41] px-4 py-2 text-sm font-black text-wh...
+  839 |               >
+  840 |                 {checkin.open ? "닫기" : "체크인"}
+[browser] Uncaught ReferenceError: hasCheckedInToday is not defined
+    at SimpleHomeScreen (src/app/page.tsx:843:27)
+    at Home (src/app/page.tsx:1816:11)
+  841 |                 type="button"
+  842 |                 onClick={onToggleCheckin}
+> 843 |                 disabled={hasCheckedInToday}
+      |                           ^
+  844 |                 className="rounded-full bg-[#2c6a41] px-4 py-2 text-sm font-black text-wh...
+  845 |               >
+  846 |                 {checkin.open ? "닫기" : "체크인"}
+[browser] Uncaught ReferenceError: totalDebt is not defined
+    at Home (src/app/page.tsx:1916:37)
+  1914 |   const grossRepaidDebt = baseRepaidDebt + totalContribution;
+  1915 |   const repaidDebt = Math.max(0, grossRepaidDebt - dailyCheckin.addedDebt);
+> 1916 |   const remainingDebt = Math.max(0, totalDebt - repaidDebt);
+       |                                     ^
+  1917 |   const repaidEcoMoney = Math.max(0, totalContribution - dailyCheckin.addedDebt);
+  1918 |   const debtProgress = Math.max(
+  1919 |     0,
+⨯ ReferenceError: totalDebt is not defined
+    at Home (src\app\page.tsx:1963:37)
+  1961 |   const grossRepaidDebt = baseRepaidDebt + totalContribution;
+  1962 |   const repaidDebt = Math.max(0, grossRepaidDebt - dailyCheckin.addedDebt);
+> 1963 |   const remainingDebt = Math.max(0, totalDebt - repaidDebt);
+       |                                     ^
+  1964 |   const repaidEcoMoney = Math.max(0, totalContribution - dailyCheckin.addedDebt);
+  1965 |   const debtProgress = Math.max(
+  1966 |     0, {
+  digest: '3837179656'
+}
+⚠ Fast Refresh had to perform a full reload due to a runtime error.
+⚠ Fast Refresh had to perform a full reload due to a runtime error.
+[browser] Uncaught ReferenceError: totalDebt is not defined
+    at Home (src/app/page.tsx:1963:37)
+    at Set.forEach (<anonymous>)
+  1961 |   const grossRepaidDebt = baseRepaidDebt + totalContribution;
+  1962 |   const repaidDebt = Math.max(0, grossRepaidDebt - dailyCheckin.addedDebt);
+> 1963 |   const remainingDebt = Math.max(0, totalDebt - repaidDebt);
+       |                                     ^
+  1964 |   const repaidEcoMoney = Math.max(0, totalContribution - dailyCheckin.addedDebt);
+  1965 |   const debtProgress = Math.max(
+  1966 |     0,
+⨯ ReferenceError: totalDebt is not defined
+    at Home (src\app\page.tsx:1963:37)
+  1961 |   const grossRepaidDebt = baseRepaidDebt + totalContribution;
+  1962 |   const repaidDebt = Math.max(0, grossRepaidDebt - dailyCheckin.addedDebt);
+> 1963 |   const remainingDebt = Math.max(0, totalDebt - repaidDebt);
+       |                                     ^
+  1964 |   const repaidEcoMoney = Math.max(0, totalContribution - dailyCheckin.addedDebt);
+  1965 |   const debtProgress = Math.max(
+  1966 |     0, {
+  digest: '3837179656'
+}
+[browser] Uncaught ReferenceError: totalDebt is not defined
+    at Home (src/app/page.tsx:1963:37)
+  1961 |   const grossRepaidDebt = baseRepaidDebt + totalContribution;
+  1962 |   const repaidDebt = Math.max(0, grossRepaidDebt - dailyCheckin.addedDebt);
+> 1963 |   const remainingDebt = Math.max(0, totalDebt - repaidDebt);
+       |                                     ^
+  1964 |   const repaidEcoMoney = Math.max(0, totalContribution - dailyCheckin.addedDebt);
+  1965 |   const debtProgress = Math.max(
+  1966 |     0,
+⨯ ReferenceError: totalDebt is not defined
+    at Home (src\app\page.tsx:2093:37)
+  2091 |   const grossRepaidDebt = baseRepaidDebt + totalContribution;
+  2092 |   const repaidDebt = Math.max(0, grossRepaidDebt - dailyCheckin.addedDebt);
+> 2093 |   const remainingDebt = Math.max(0, totalDebt - repaidDebt);
+       |                                     ^
+  2094 |   const repaidEcoMoney = Math.max(0, totalContribution - dailyCheckin.addedDebt);
+  2095 |   const debtProgress = Math.max(
+  2096 |     0, {
+  digest: '1731729709'
+}
+⚠ Fast Refresh had to perform a full reload due to a runtime error.
+⚠ Fast Refresh had to perform a full reload due to a runtime error.
+⨯ ReferenceError: totalDebt is not defined
+    at Home (src\app\page.tsx:2093:37)
+  2091 |   const grossRepaidDebt = baseRepaidDebt + totalContribution;
+  2092 |   const repaidDebt = Math.max(0, grossRepaidDebt - dailyCheckin.addedDebt);
+> 2093 |   const remainingDebt = Math.max(0, totalDebt - repaidDebt);
+       |                                     ^
+  2094 |   const repaidEcoMoney = Math.max(0, totalContribution - dailyCheckin.addedDebt);
+  2095 |   const debtProgress = Math.max(
+  2096 |     0, {
+  digest: '1731729709'
+}
+⚠ Fast Refresh had to perform a full reload due to a runtime error.
+⚠ Fast Refresh had to perform a full reload due to a runtime error.
+[browser] Uncaught ReferenceError: totalDebt is not defined
+    at Home (src/app/page.tsx:2093:37)
+  2091 |   const grossRepaidDebt = baseRepaidDebt + totalContribution;
+  2092 |   const repaidDebt = Math.max(0, grossRepaidDebt - dailyCheckin.addedDebt);
+> 2093 |   const remainingDebt = Math.max(0, totalDebt - repaidDebt);
+       |                                     ^
+  2094 |   const repaidEcoMoney = Math.max(0, totalContribution - dailyCheckin.addedDebt);
+  2095 |   const debtProgress = Math.max(
+  2096 |     0,
+⨯ ReferenceError: totalDebt is not defined
+    at Home (src\app\page.tsx:2096:37)
+  2094 |   const grossRepaidDebt = baseRepaidDebt + totalContribution;
+  2095 |   const repaidDebt = Math.max(0, grossRepaidDebt - dailyCheckin.addedDebt);
+> 2096 |   const remainingDebt = Math.max(0, totalDebt - repaidDebt);
+       |                                     ^
+  2097 |   const repaidEcoMoney = Math.max(0, totalContribution - dailyCheckin.addedDebt);
+  2098 |   const debtProgress = Math.max(
+  2099 |     0, {
+  digest: '1731729709'
+}
+⨯ ReferenceError: totalDebt is not defined
+    at Home (src\app\page.tsx:2096:37)
+  2094 |   const grossRepaidDebt = baseRepaidDebt + totalContribution;
+  2095 |   const repaidDebt = Math.max(0, grossRepaidDebt - dailyCheckin.addedDebt);
+> 2096 |   const remainingDebt = Math.max(0, totalDebt - repaidDebt);
+       |                                     ^
+  2097 |   const repaidEcoMoney = Math.max(0, totalContribution - dailyCheckin.addedDebt);
+  2098 |   const debtProgress = Math.max(
+  2099 |     0, {
+  digest: '1731729709'
+}
+⚠ Fast Refresh had to perform a full reload due to a runtime error.
+⚠ Fast Refresh had to perform a full reload due to a runtime error.
+[browser] Uncaught ReferenceError: totalDebt is not defined
+    at Home (src/app/page.tsx:2096:37)
+  2094 |   const grossRepaidDebt = baseRepaidDebt + totalContribution;
+  2095 |   const repaidDebt = Math.max(0, grossRepaidDebt - dailyCheckin.addedDebt);
+> 2096 |   const remainingDebt = Math.max(0, totalDebt - repaidDebt);
+       |                                     ^
+  2097 |   const repaidEcoMoney = Math.max(0, totalContribution - dailyCheckin.addedDebt);
+  2098 |   const debtProgress = Math.max(
+  2099 |     0,
+⚠ Fast Refresh had to perform a full reload due to a runtime error.
+⚠ Fast Refresh had to perform a full reload due to a runtime error.
