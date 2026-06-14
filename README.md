@@ -22,7 +22,7 @@ Open [http://localhost:3000](http://localhost:3000).
 ## Environment variables
 
 Copy `.env.local.example` to `.env.local` and fill in the Firebase and Kakao
-keys.
+keys. If you want AI mission generation, also add your OpenAI server key.
 
 ```bash
 copy .env.local.example .env.local
@@ -42,12 +42,38 @@ copy .env.local.example .env.local
 3. Put it in `NEXT_PUBLIC_KAKAO_MAP_APP_KEY`.
 4. Add local and production domains in Kakao Developers.
 
+## OpenAI mission setup
+
+1. Create an API key in the OpenAI dashboard.
+2. Put it in `OPENAI_API_KEY` inside `.env.local`.
+3. Optionally change `OPENAI_MISSION_MODEL`.
+4. Call `GET /api/daily-mission` to test the server-side AI mission generator.
+
+## Trash bin map API setup
+
+1. Use the public data endpoint `15149274/v1/uddi:e57109ed-829a-487a-8e13-da157116f1cb`.
+2. Create or copy your 공공데이터포털 service key.
+3. Put it in `ODCLOUD_TRASH_BIN_API_KEY` inside `.env.local`.
+4. The app calls `GET /api/trash-bins` on the server and renders markers on Kakao Map.
+
 ## Scripts
 
 - `npm run dev`
 - `npm run build`
 - `npm run lint`
 - `npm run typecheck`
+
+## Daily mission mock setup
+
+- Daily mission types: `src/types/mission.ts`
+- Dummy mission data: `src/lib/mock-daily-missions.ts`
+- Rule-based selector: `src/lib/daily-mission-selector.ts`
+- OpenAI mission generator: `src/lib/mission-ai.ts`
+- API endpoint: `src/app/api/daily-mission/route.ts`
+- Preview screen: `src/app/page.tsx`
+
+This project currently uses mock mission data first so an AI API can be added
+later without changing the UI contract.
 
 ## Notes
 

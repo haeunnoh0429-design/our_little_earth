@@ -613,3 +613,2649 @@ Import traces:
   2099 |     0,
 ⚠ Fast Refresh had to perform a full reload due to a runtime error.
 ⚠ Fast Refresh had to perform a full reload due to a runtime error.
+⨯ ./src/app/page.tsx:228:9
+Unterminated string constant
+  [90m226 |[0m   {
+  [90m227 |[0m     id: [32m"mission-4"[0m,
+[31m[1m>[0m [90m228 |[0m     title: [32m"湲됱떇 ?붾컲 以꾩씠湲?,[0m
+  [90m    |[0m         [31m[1m^^^^^^^^^^^^^^^^^^^^^^^[0m
+  [90m229 |[0m [32m    description: "[0m癒뱀쓣 留뚰겮留?諛쏄퀬 ?④린吏 ?딆? ?앺뙋 ?ъ쭊怨??꾧린瑜??④꺼蹂댁꽭??",
+  [90m230 |[0m [32m    ecoReward: 60,[0m
+  [90m231 |[0m [32m    debtReduction: 150,[0m
+
+Parsing ecmascript source code failed
+
+Import traces:
+  Client Component Browser:
+    ./src/app/page.tsx [Client Component Browser]
+    ./src/app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/page.tsx [Client Component SSR]
+    ./src/app/page.tsx [Server Component]
+
+
+[browser] ./src/app/page.tsx:228:9
+Unterminated string constant
+  226 |   {
+  227 |     id: "mission-4",
+> 228 |     title: "湲됱떇 ?붾컲 以꾩씠湲?,
+      |         ^^^^^^^^^^^^^^^^^^^^^^^
+  229 |     description: "癒뱀쓣 留뚰겮留?諛쏄퀬 ?④린吏 ?딆? ?앺뙋 ?ъ쭊怨??꾧린瑜??④꺼蹂댁꽭??",
+  230 |     ecoReward: 60,
+  231 |     debtReduction: 150,
+
+Parsing ecmascript source code failed
+
+Import traces:
+  Client Component Browser:
+    ./src/app/page.tsx [Client Component Browser]
+    ./src/app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/page.tsx [Client Component SSR]
+    ./src/app/page.tsx [Server Component] 
+[browser] Uncaught Error: ./src/app/page.tsx:228:9
+Unterminated string constant
+  226 |   {
+  227 |     id: "mission-4",
+> 228 |     title: "湲됱떇 ?붾컲 以꾩씠湲?,
+      |         ^^^^^^^^^^^^^^^^^^^^^^^
+  229 |     description: "癒뱀쓣 留뚰겮留?諛쏄퀬 ?④린吏 ?딆? ?앺뙋 ?ъ쭊怨??꾧린瑜??④꺼蹂댁꽭??",
+  230 |     ecoReward: 60,
+  231 |     debtReduction: 150,
+
+Parsing ecmascript source code failed
+
+Import traces:
+  Client Component Browser:
+    ./src/app/page.tsx [Client Component Browser]
+    ./src/app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/page.tsx [Client Component SSR]
+    ./src/app/page.tsx [Server Component]
+
+
+    at <unknown> (Error: ./src/app/page.tsx:228:9)
+    at <unknown> (Error: (./src/app/page.tsx:228:9)
+[browser] ./src/app/page.tsx:228:9
+Unterminated string constant
+  226 |   {
+  227 |     id: "mission-4",
+> 228 |     title: "湲됱떇 ?붾컲 以꾩씠湲?,
+      |         ^^^^^^^^^^^^^^^^^^^^^^^
+  229 |     description: "癒뱀쓣 留뚰겮留?諛쏄퀬 ?④린吏 ?딆? ?앺뙋 ?ъ쭊怨??꾧린瑜??④꺼蹂댁꽭??",
+  230 |     ecoReward: 60,
+  231 |     debtReduction: 150,
+
+Parsing ecmascript source code failed
+
+Import traces:
+  Client Component Browser:
+    ./src/app/page.tsx [Client Component Browser]
+    ./src/app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/page.tsx [Client Component SSR]
+    ./src/app/page.tsx [Server Component] 
+⨯ ./src/app/page.tsx:228:9
+Unterminated string constant
+  [90m226 |[0m   {
+  [90m227 |[0m     id: [32m"mission-4"[0m,
+[31m[1m>[0m [90m228 |[0m     title: [32m"湲됱떇 ?붾컲 以꾩씠湲?,[0m
+  [90m    |[0m         [31m[1m^^^^^^^^^^^^^^^^^^^^^^^[0m
+  [90m229 |[0m [32m    description: "[0m癒뱀쓣 留뚰겮留?諛쏄퀬 ?④린吏 ?딆? ?앺뙋 ?ъ쭊怨??꾧린瑜??④꺼蹂댁꽭??",
+  [90m230 |[0m [32m    ecoReward: 60,[0m
+  [90m231 |[0m [32m    debtReduction: 150,[0m
+
+Parsing ecmascript source code failed
+
+Import traces:
+  Client Component Browser:
+    ./src/app/page.tsx [Client Component Browser]
+    ./src/app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/page.tsx [Client Component SSR]
+    ./src/app/page.tsx [Server Component]
+
+
+[browser] ./src/app/page.tsx:228:9
+Unterminated string constant
+  226 |   {
+  227 |     id: "mission-4",
+> 228 |     title: "湲됱떇 ?붾컲 以꾩씠湲?,
+      |         ^^^^^^^^^^^^^^^^^^^^^^^
+  229 |     description: "癒뱀쓣 留뚰겮留?諛쏄퀬 ?④린吏 ?딆? ?앺뙋 ?ъ쭊怨??꾧린瑜??④꺼蹂댁꽭??",
+  230 |     ecoReward: 60,
+  231 |     debtReduction: 150,
+
+Parsing ecmascript source code failed
+
+Import traces:
+  Client Component Browser:
+    ./src/app/page.tsx [Client Component Browser]
+    ./src/app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/page.tsx [Client Component SSR]
+    ./src/app/page.tsx [Server Component] 
+⨯ ./src/app/page.tsx:228:9
+Unterminated string constant
+  [90m226 |[0m   {
+  [90m227 |[0m     id: [32m"mission-4"[0m,
+[31m[1m>[0m [90m228 |[0m     title: [32m"湲됱떇 ?붾컲 以꾩씠湲?,[0m
+  [90m    |[0m         [31m[1m^^^^^^^^^^^^^^^^^^^^^^^[0m
+  [90m229 |[0m [32m    description: "[0m癒뱀쓣 留뚰겮留?諛쏄퀬 ?④린吏 ?딆? ?앺뙋 ?ъ쭊怨??꾧린瑜??④꺼蹂댁꽭??",
+  [90m230 |[0m [32m    ecoReward: 60,[0m
+  [90m231 |[0m [32m    debtReduction: 150,[0m
+
+Parsing ecmascript source code failed
+
+Import traces:
+  Client Component Browser:
+    ./src/app/page.tsx [Client Component Browser]
+    ./src/app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/page.tsx [Client Component SSR]
+    ./src/app/page.tsx [Server Component]
+
+
+[browser] ./src/app/page.tsx:228:9
+Unterminated string constant
+  226 |   {
+  227 |     id: "mission-4",
+> 228 |     title: "湲됱떇 ?붾컲 以꾩씠湲?,
+      |         ^^^^^^^^^^^^^^^^^^^^^^^
+  229 |     description: "癒뱀쓣 留뚰겮留?諛쏄퀬 ?④린吏 ?딆? ?앺뙋 ?ъ쭊怨??꾧린瑜??④꺼蹂댁꽭??",
+  230 |     ecoReward: 60,
+  231 |     debtReduction: 150,
+
+Parsing ecmascript source code failed
+
+Import traces:
+  Client Component Browser:
+    ./src/app/page.tsx [Client Component Browser]
+    ./src/app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/page.tsx [Client Component SSR]
+    ./src/app/page.tsx [Server Component] 
+[browser] Uncaught Error: ./src/app/page.tsx:228:9
+Unterminated string constant
+  226 |   {
+  227 |     id: "mission-4",
+> 228 |     title: "湲됱떇 ?붾컲 以꾩씠湲?,
+      |         ^^^^^^^^^^^^^^^^^^^^^^^
+  229 |     description: "癒뱀쓣 留뚰겮留?諛쏄퀬 ?④린吏 ?딆? ?앺뙋 ?ъ쭊怨??꾧린瑜??④꺼蹂댁꽭??",
+  230 |     ecoReward: 60,
+  231 |     debtReduction: 150,
+
+Parsing ecmascript source code failed
+
+Import traces:
+  Client Component Browser:
+    ./src/app/page.tsx [Client Component Browser]
+    ./src/app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/page.tsx [Client Component SSR]
+    ./src/app/page.tsx [Server Component]
+
+
+    at <unknown> (Error: ./src/app/page.tsx:228:9)
+    at <unknown> (Error: (./src/app/page.tsx:228:9)
+[browser] ./src/app/page.tsx:228:9
+Unterminated string constant
+  226 |   {
+  227 |     id: "mission-4",
+> 228 |     title: "湲됱떇 ?붾컲 以꾩씠湲?,
+      |         ^^^^^^^^^^^^^^^^^^^^^^^
+  229 |     description: "癒뱀쓣 留뚰겮留?諛쏄퀬 ?④린吏 ?딆? ?앺뙋 ?ъ쭊怨??꾧린瑜??④꺼蹂댁꽭??",
+  230 |     ecoReward: 60,
+  231 |     debtReduction: 150,
+
+Parsing ecmascript source code failed
+
+Import traces:
+  Client Component Browser:
+    ./src/app/page.tsx [Client Component Browser]
+    ./src/app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/page.tsx [Client Component SSR]
+    ./src/app/page.tsx [Server Component] 
+[browser] ./src/app/page.tsx:228:9
+Unterminated string constant
+  226 |   {
+  227 |     id: "mission-4",
+> 228 |     title: "湲됱떇 ?붾컲 以꾩씠湲?,
+      |         ^^^^^^^^^^^^^^^^^^^^^^^
+  229 |     description: "癒뱀쓣 留뚰겮留?諛쏄퀬 ?④린吏 ?딆? ?앺뙋 ?ъ쭊怨??꾧린瑜??④꺼蹂댁꽭??",
+  230 |     ecoReward: 60,
+  231 |     debtReduction: 150,
+
+Parsing ecmascript source code failed
+
+Import traces:
+  Client Component Browser:
+    ./src/app/page.tsx [Client Component Browser]
+    ./src/app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/page.tsx [Client Component SSR]
+    ./src/app/page.tsx [Server Component] 
+[browser] ./src/app/page.tsx:228:9
+Unterminated string constant
+  226 |   {
+  227 |     id: "mission-4",
+> 228 |     title: "湲됱떇 ?붾컲 以꾩씠湲?,
+      |         ^^^^^^^^^^^^^^^^^^^^^^^
+  229 |     description: "癒뱀쓣 留뚰겮留?諛쏄퀬 ?④린吏 ?딆? ?앺뙋 ?ъ쭊怨??꾧린瑜??④꺼蹂댁꽭??",
+  230 |     ecoReward: 60,
+  231 |     debtReduction: 150,
+
+Parsing ecmascript source code failed
+
+Import traces:
+  Client Component Browser:
+    ./src/app/page.tsx [Client Component Browser]
+    ./src/app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/page.tsx [Client Component SSR]
+    ./src/app/page.tsx [Server Component] 
+⚠ Fast Refresh had to perform a full reload due to a runtime error.
+⚠ Fast Refresh had to perform a full reload when ./node_modules/next/dist/shared/lib/router/router.js changed. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
+⚠ Fast Refresh had to perform a full reload due to a runtime error.
+⚠ Fast Refresh had to perform a full reload due to a runtime error.
+⚠ Fast Refresh had to perform a full reload when ./node_modules/next/dist/shared/lib/router/router.js changed. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
+⚠ Fast Refresh had to perform a full reload due to a runtime error.
+⨯ ./src/app/page.tsx:1422:30
+Expected '</', got 'jsx text'
+  [90m1420 |[0m                       </>
+  [90m1421 |[0m                     ) : [36mnull[0m}
+[31m[1m>[0m [90m1422 |[0m                       </span>
+  [90m     |[0m                              [31m[1m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+[31m[1m>[0m [90m1423 |[0m                       <span className=[32m"rounded-full bg-white px-3 py-1 text-[#8b6422]"[0m>
+  [90m     |[0m [31m[1m^^^^^^^^^^^^^^^^^^^^^^[0m
+  [90m1424 |[0m                         {challenge.durationDays}일 챌린지
+  [90m1425 |[0m                       </span>
+  [90m1426 |[0m                       <span className=[32m"rounded-full bg-white px-3 py-1 text-[#8b6422]"[0m>
+
+Parsing ecmascript source code failed
+
+Import traces:
+  Client Component Browser:
+    ./src/app/page.tsx [Client Component Browser]
+    ./src/app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/page.tsx [Client Component SSR]
+    ./src/app/page.tsx [Server Component]
+
+
+⨯ ./src/app/page.tsx:1422:30
+Expected '</', got 'jsx text'
+  [90m1420 |[0m                       </>
+  [90m1421 |[0m                     ) : [36mnull[0m}
+[31m[1m>[0m [90m1422 |[0m                       </span>
+  [90m     |[0m                              [31m[1m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+[31m[1m>[0m [90m1423 |[0m                       <span className=[32m"rounded-full bg-white px-3 py-1 text-[#8b6422]"[0m>
+  [90m     |[0m [31m[1m^^^^^^^^^^^^^^^^^^^^^^[0m
+  [90m1424 |[0m                         {challenge.durationDays}일 챌린지
+  [90m1425 |[0m                       </span>
+  [90m1426 |[0m                       <span className=[32m"rounded-full bg-white px-3 py-1 text-[#8b6422]"[0m>
+
+Parsing ecmascript source code failed
+
+Import traces:
+  Client Component Browser:
+    ./src/app/page.tsx [Client Component Browser]
+    ./src/app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/page.tsx [Client Component SSR]
+    ./src/app/page.tsx [Server Component]
+
+
+⨯ ./src/app/page.tsx:1422:30
+Expected '</', got 'jsx text'
+  [90m1420 |[0m                       </>
+  [90m1421 |[0m                     ) : [36mnull[0m}
+[31m[1m>[0m [90m1422 |[0m                       </span>
+  [90m     |[0m                              [31m[1m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+[31m[1m>[0m [90m1423 |[0m                       <span className=[32m"rounded-full bg-white px-3 py-1 text-[#8b6422]"[0m>
+  [90m     |[0m [31m[1m^^^^^^^^^^^^^^^^^^^^^^[0m
+  [90m1424 |[0m                         {challenge.durationDays}일 챌린지
+  [90m1425 |[0m                       </span>
+  [90m1426 |[0m                       <span className=[32m"rounded-full bg-white px-3 py-1 text-[#8b6422]"[0m>
+
+Parsing ecmascript source code failed
+
+Import traces:
+  Client Component Browser:
+    ./src/app/page.tsx [Client Component Browser]
+    ./src/app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/page.tsx [Client Component SSR]
+    ./src/app/page.tsx [Server Component]
+
+
+⨯ ./src/app/page.tsx:1422:30
+Expected '</', got 'jsx text'
+  [90m1420 |[0m                       </>
+  [90m1421 |[0m                     ) : [36mnull[0m}
+[31m[1m>[0m [90m1422 |[0m                       </span>
+  [90m     |[0m                              [31m[1m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+[31m[1m>[0m [90m1423 |[0m                       <span className=[32m"rounded-full bg-white px-3 py-1 text-[#8b6422]"[0m>
+  [90m     |[0m [31m[1m^^^^^^^^^^^^^^^^^^^^^^[0m
+  [90m1424 |[0m                         {challenge.durationDays}일 챌린지
+  [90m1425 |[0m                       </span>
+  [90m1426 |[0m                       <span className=[32m"rounded-full bg-white px-3 py-1 text-[#8b6422]"[0m>
+
+Parsing ecmascript source code failed
+
+Import traces:
+  Client Component Browser:
+    ./src/app/page.tsx [Client Component Browser]
+    ./src/app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/page.tsx [Client Component SSR]
+    ./src/app/page.tsx [Server Component]
+
+
+[browser] ./src/app/page.tsx:1422:30
+Expected '</', got 'jsx text'
+  1420 |                       </>
+  1421 |                     ) : null}
+> 1422 |                       </span>
+       |                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 1423 |                       <span className="rounded-full bg-white px-3 py-1 text-[#8b6422]">
+       | ^^^^^^^^^^^^^^^^^^^^^^
+  1424 |                         {challenge.durationDays}일 챌린지
+  1425 |                       </span>
+  1426 |                       <span className="rounded-full bg-white px-3 py-1 text-[#8b6422]">
+
+Parsing ecmascript source code failed
+
+Import traces:
+  Client Component Browser:
+    ./src/app/page.tsx [Client Component Browser]
+    ./src/app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/page.tsx [Client Component SSR]
+    ./src/app/page.tsx [Server Component] 
+⨯ ./src/app/page.tsx:1422:30
+Expected '</', got 'jsx text'
+  [90m1420 |[0m                       </>
+  [90m1421 |[0m                     ) : [36mnull[0m}
+[31m[1m>[0m [90m1422 |[0m                       </span>
+  [90m     |[0m                              [31m[1m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+[31m[1m>[0m [90m1423 |[0m                       <span className=[32m"rounded-full bg-white px-3 py-1 text-[#8b6422]"[0m>
+  [90m     |[0m [31m[1m^^^^^^^^^^^^^^^^^^^^^^[0m
+  [90m1424 |[0m                         {challenge.durationDays}일 챌린지
+  [90m1425 |[0m                       </span>
+  [90m1426 |[0m                       <span className=[32m"rounded-full bg-white px-3 py-1 text-[#8b6422]"[0m>
+
+Parsing ecmascript source code failed
+
+Import traces:
+  Client Component Browser:
+    ./src/app/page.tsx [Client Component Browser]
+    ./src/app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/page.tsx [Client Component SSR]
+    ./src/app/page.tsx [Server Component]
+
+
+⨯ ./src/app/page.tsx:1422:30
+Expected '</', got 'jsx text'
+  [90m1420 |[0m                       </>
+  [90m1421 |[0m                     ) : [36mnull[0m}
+[31m[1m>[0m [90m1422 |[0m                       </span>
+  [90m     |[0m                              [31m[1m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+[31m[1m>[0m [90m1423 |[0m                       <span className=[32m"rounded-full bg-white px-3 py-1 text-[#8b6422]"[0m>
+  [90m     |[0m [31m[1m^^^^^^^^^^^^^^^^^^^^^^[0m
+  [90m1424 |[0m                         {challenge.durationDays}일 챌린지
+  [90m1425 |[0m                       </span>
+  [90m1426 |[0m                       <span className=[32m"rounded-full bg-white px-3 py-1 text-[#8b6422]"[0m>
+
+Parsing ecmascript source code failed
+
+Import traces:
+  Client Component Browser:
+    ./src/app/page.tsx [Client Component Browser]
+    ./src/app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/page.tsx [Client Component SSR]
+    ./src/app/page.tsx [Server Component]
+
+
+⨯ ./src/app/page.tsx:1422:30
+Expected '</', got 'jsx text'
+  [90m1420 |[0m                       </>
+  [90m1421 |[0m                     ) : [36mnull[0m}
+[31m[1m>[0m [90m1422 |[0m                       </span>
+  [90m     |[0m                              [31m[1m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+[31m[1m>[0m [90m1423 |[0m                       <span className=[32m"rounded-full bg-white px-3 py-1 text-[#8b6422]"[0m>
+  [90m     |[0m [31m[1m^^^^^^^^^^^^^^^^^^^^^^[0m
+  [90m1424 |[0m                         {challenge.durationDays}일 챌린지
+  [90m1425 |[0m                       </span>
+  [90m1426 |[0m                       <span className=[32m"rounded-full bg-white px-3 py-1 text-[#8b6422]"[0m>
+
+Parsing ecmascript source code failed
+
+Import traces:
+  Client Component Browser:
+    ./src/app/page.tsx [Client Component Browser]
+    ./src/app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/page.tsx [Client Component SSR]
+    ./src/app/page.tsx [Server Component]
+
+
+⨯ ./src/app/page.tsx:1422:30
+Expected '</', got 'jsx text'
+  [90m1420 |[0m                       </>
+  [90m1421 |[0m                     ) : [36mnull[0m}
+[31m[1m>[0m [90m1422 |[0m                       </span>
+  [90m     |[0m                              [31m[1m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+[31m[1m>[0m [90m1423 |[0m                       <span className=[32m"rounded-full bg-white px-3 py-1 text-[#8b6422]"[0m>
+  [90m     |[0m [31m[1m^^^^^^^^^^^^^^^^^^^^^^[0m
+  [90m1424 |[0m                         {challenge.durationDays}일 챌린지
+  [90m1425 |[0m                       </span>
+  [90m1426 |[0m                       <span className=[32m"rounded-full bg-white px-3 py-1 text-[#8b6422]"[0m>
+
+Parsing ecmascript source code failed
+
+Import traces:
+  Client Component Browser:
+    ./src/app/page.tsx [Client Component Browser]
+    ./src/app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/page.tsx [Client Component SSR]
+    ./src/app/page.tsx [Server Component]
+
+
+⨯ ./src/app/page.tsx:1422:30
+Expected '</', got 'jsx text'
+  [90m1420 |[0m                       </>
+  [90m1421 |[0m                     ) : [36mnull[0m}
+[31m[1m>[0m [90m1422 |[0m                       </span>
+  [90m     |[0m                              [31m[1m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+[31m[1m>[0m [90m1423 |[0m                       <span className=[32m"rounded-full bg-white px-3 py-1 text-[#8b6422]"[0m>
+  [90m     |[0m [31m[1m^^^^^^^^^^^^^^^^^^^^^^[0m
+  [90m1424 |[0m                         {challenge.durationDays}일 챌린지
+  [90m1425 |[0m                       </span>
+  [90m1426 |[0m                       <span className=[32m"rounded-full bg-white px-3 py-1 text-[#8b6422]"[0m>
+
+Parsing ecmascript source code failed
+
+Import traces:
+  Client Component Browser:
+    ./src/app/page.tsx [Client Component Browser]
+    ./src/app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/page.tsx [Client Component SSR]
+    ./src/app/page.tsx [Server Component]
+
+
+⨯ ./src/app/page.tsx:1422:30
+Expected '</', got 'jsx text'
+  [90m1420 |[0m                       </>
+  [90m1421 |[0m                     ) : [36mnull[0m}
+[31m[1m>[0m [90m1422 |[0m                       </span>
+  [90m     |[0m                              [31m[1m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+[31m[1m>[0m [90m1423 |[0m                       <span className=[32m"rounded-full bg-white px-3 py-1 text-[#8b6422]"[0m>
+  [90m     |[0m [31m[1m^^^^^^^^^^^^^^^^^^^^^^[0m
+  [90m1424 |[0m                         {challenge.durationDays}일 챌린지
+  [90m1425 |[0m                       </span>
+  [90m1426 |[0m                       <span className=[32m"rounded-full bg-white px-3 py-1 text-[#8b6422]"[0m>
+
+Parsing ecmascript source code failed
+
+Import traces:
+  Client Component Browser:
+    ./src/app/page.tsx [Client Component Browser]
+    ./src/app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/page.tsx [Client Component SSR]
+    ./src/app/page.tsx [Server Component]
+
+
+⨯ ./src/app/page.tsx:1422:30
+Expected '</', got 'jsx text'
+  [90m1420 |[0m                       </>
+  [90m1421 |[0m                     ) : [36mnull[0m}
+[31m[1m>[0m [90m1422 |[0m                       </span>
+  [90m     |[0m                              [31m[1m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+[31m[1m>[0m [90m1423 |[0m                       <span className=[32m"rounded-full bg-white px-3 py-1 text-[#8b6422]"[0m>
+  [90m     |[0m [31m[1m^^^^^^^^^^^^^^^^^^^^^^[0m
+  [90m1424 |[0m                         {challenge.durationDays}일 챌린지
+  [90m1425 |[0m                       </span>
+  [90m1426 |[0m                       <span className=[32m"rounded-full bg-white px-3 py-1 text-[#8b6422]"[0m>
+
+Parsing ecmascript source code failed
+
+Import traces:
+  Client Component Browser:
+    ./src/app/page.tsx [Client Component Browser]
+    ./src/app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/page.tsx [Client Component SSR]
+    ./src/app/page.tsx [Server Component]
+
+
+[browser] Uncaught Error: ./src/app/page.tsx:1422:30
+Expected '</', got 'jsx text'
+  1420 |                       </>
+  1421 |                     ) : null}
+> 1422 |                       </span>
+       |                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 1423 |                       <span className="rounded-full bg-white px-3 py-1 text-[#8b6422]">
+       | ^^^^^^^^^^^^^^^^^^^^^^
+  1424 |                         {challenge.durationDays}일 챌린지
+  1425 |                       </span>
+  1426 |                       <span className="rounded-full bg-white px-3 py-1 text-[#8b6422]">
+
+Parsing ecmascript source code failed
+
+Import traces:
+  Client Component Browser:
+    ./src/app/page.tsx [Client Component Browser]
+    ./src/app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/page.tsx [Client Component SSR]
+    ./src/app/page.tsx [Server Component]
+
+
+    at <unknown> (Error: ./src/app/page.tsx:1422:30)
+    at <unknown> (Error: (./src/app/page.tsx:1422:30)
+[browser] Uncaught Error: ./src/app/page.tsx:1422:30
+Expected '</', got 'jsx text'
+  1420 |                       </>
+  1421 |                     ) : null}
+> 1422 |                       </span>
+       |                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 1423 |                       <span className="rounded-full bg-white px-3 py-1 text-[#8b6422]">
+       | ^^^^^^^^^^^^^^^^^^^^^^
+  1424 |                         {challenge.durationDays}일 챌린지
+  1425 |                       </span>
+  1426 |                       <span className="rounded-full bg-white px-3 py-1 text-[#8b6422]">
+
+Parsing ecmascript source code failed
+
+Import traces:
+  Client Component Browser:
+    ./src/app/page.tsx [Client Component Browser]
+    ./src/app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/page.tsx [Client Component SSR]
+    ./src/app/page.tsx [Server Component]
+
+
+    at <unknown> (Error: ./src/app/page.tsx:1422:30)
+    at <unknown> (Error: (./src/app/page.tsx:1422:30)
+[browser] ./src/app/page.tsx:1422:30
+Expected '</', got 'jsx text'
+  1420 |                       </>
+  1421 |                     ) : null}
+> 1422 |                       </span>
+       |                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 1423 |                       <span className="rounded-full bg-white px-3 py-1 text-[#8b6422]">
+       | ^^^^^^^^^^^^^^^^^^^^^^
+  1424 |                         {challenge.durationDays}일 챌린지
+  1425 |                       </span>
+  1426 |                       <span className="rounded-full bg-white px-3 py-1 text-[#8b6422]">
+
+Parsing ecmascript source code failed
+
+Import traces:
+  Client Component Browser:
+    ./src/app/page.tsx [Client Component Browser]
+    ./src/app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/page.tsx [Client Component SSR]
+    ./src/app/page.tsx [Server Component] 
+[browser] ./src/app/page.tsx:1422:30
+Expected '</', got 'jsx text'
+  1420 |                       </>
+  1421 |                     ) : null}
+> 1422 |                       </span>
+       |                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 1423 |                       <span className="rounded-full bg-white px-3 py-1 text-[#8b6422]">
+       | ^^^^^^^^^^^^^^^^^^^^^^
+  1424 |                         {challenge.durationDays}일 챌린지
+  1425 |                       </span>
+  1426 |                       <span className="rounded-full bg-white px-3 py-1 text-[#8b6422]">
+
+Parsing ecmascript source code failed
+
+Import traces:
+  Client Component Browser:
+    ./src/app/page.tsx [Client Component Browser]
+    ./src/app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/page.tsx [Client Component SSR]
+    ./src/app/page.tsx [Server Component] 
+[browser] ./src/app/page.tsx:1422:30
+Expected '</', got 'jsx text'
+  1420 |                       </>
+  1421 |                     ) : null}
+> 1422 |                       </span>
+       |                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 1423 |                       <span className="rounded-full bg-white px-3 py-1 text-[#8b6422]">
+       | ^^^^^^^^^^^^^^^^^^^^^^
+  1424 |                         {challenge.durationDays}일 챌린지
+  1425 |                       </span>
+  1426 |                       <span className="rounded-full bg-white px-3 py-1 text-[#8b6422]">
+
+Parsing ecmascript source code failed
+
+Import traces:
+  Client Component Browser:
+    ./src/app/page.tsx [Client Component Browser]
+    ./src/app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/page.tsx [Client Component SSR]
+    ./src/app/page.tsx [Server Component] 
+[browser] ./src/app/page.tsx:1422:30
+Expected '</', got 'jsx text'
+  1420 |                       </>
+  1421 |                     ) : null}
+> 1422 |                       </span>
+       |                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 1423 |                       <span className="rounded-full bg-white px-3 py-1 text-[#8b6422]">
+       | ^^^^^^^^^^^^^^^^^^^^^^
+  1424 |                         {challenge.durationDays}일 챌린지
+  1425 |                       </span>
+  1426 |                       <span className="rounded-full bg-white px-3 py-1 text-[#8b6422]">
+
+Parsing ecmascript source code failed
+
+Import traces:
+  Client Component Browser:
+    ./src/app/page.tsx [Client Component Browser]
+    ./src/app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/page.tsx [Client Component SSR]
+    ./src/app/page.tsx [Server Component] 
+[browser] Uncaught Error: ./src/app/page.tsx:1422:30
+Expected '</', got 'jsx text'
+  1420 |                       </>
+  1421 |                     ) : null}
+> 1422 |                       </span>
+       |                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 1423 |                       <span className="rounded-full bg-white px-3 py-1 text-[#8b6422]">
+       | ^^^^^^^^^^^^^^^^^^^^^^
+  1424 |                         {challenge.durationDays}일 챌린지
+  1425 |                       </span>
+  1426 |                       <span className="rounded-full bg-white px-3 py-1 text-[#8b6422]">
+
+Parsing ecmascript source code failed
+
+Import traces:
+  Client Component Browser:
+    ./src/app/page.tsx [Client Component Browser]
+    ./src/app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/page.tsx [Client Component SSR]
+    ./src/app/page.tsx [Server Component]
+
+
+    at <unknown> (Error: ./src/app/page.tsx:1422:30)
+    at <unknown> (Error: (./src/app/page.tsx:1422:30)
+[browser] ./src/app/page.tsx:1422:30
+Expected '</', got 'jsx text'
+  1420 |                       </>
+  1421 |                     ) : null}
+> 1422 |                       </span>
+       |                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 1423 |                       <span className="rounded-full bg-white px-3 py-1 text-[#8b6422]">
+       | ^^^^^^^^^^^^^^^^^^^^^^
+  1424 |                         {challenge.durationDays}일 챌린지
+  1425 |                       </span>
+  1426 |                       <span className="rounded-full bg-white px-3 py-1 text-[#8b6422]">
+
+Parsing ecmascript source code failed
+
+Import traces:
+  Client Component Browser:
+    ./src/app/page.tsx [Client Component Browser]
+    ./src/app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/page.tsx [Client Component SSR]
+    ./src/app/page.tsx [Server Component] 
+[browser] ./src/app/page.tsx:1422:30
+Expected '</', got 'jsx text'
+  1420 |                       </>
+  1421 |                     ) : null}
+> 1422 |                       </span>
+       |                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 1423 |                       <span className="rounded-full bg-white px-3 py-1 text-[#8b6422]">
+       | ^^^^^^^^^^^^^^^^^^^^^^
+  1424 |                         {challenge.durationDays}일 챌린지
+  1425 |                       </span>
+  1426 |                       <span className="rounded-full bg-white px-3 py-1 text-[#8b6422]">
+
+Parsing ecmascript source code failed
+
+Import traces:
+  Client Component Browser:
+    ./src/app/page.tsx [Client Component Browser]
+    ./src/app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/page.tsx [Client Component SSR]
+    ./src/app/page.tsx [Server Component] 
+[browser] ./src/app/page.tsx:1422:30
+Expected '</', got 'jsx text'
+  1420 |                       </>
+  1421 |                     ) : null}
+> 1422 |                       </span>
+       |                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 1423 |                       <span className="rounded-full bg-white px-3 py-1 text-[#8b6422]">
+       | ^^^^^^^^^^^^^^^^^^^^^^
+  1424 |                         {challenge.durationDays}일 챌린지
+  1425 |                       </span>
+  1426 |                       <span className="rounded-full bg-white px-3 py-1 text-[#8b6422]">
+
+Parsing ecmascript source code failed
+
+Import traces:
+  Client Component Browser:
+    ./src/app/page.tsx [Client Component Browser]
+    ./src/app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/page.tsx [Client Component SSR]
+    ./src/app/page.tsx [Server Component] 
+[browser] ./src/app/page.tsx:1422:30
+Expected '</', got 'jsx text'
+  1420 |                       </>
+  1421 |                     ) : null}
+> 1422 |                       </span>
+       |                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 1423 |                       <span className="rounded-full bg-white px-3 py-1 text-[#8b6422]">
+       | ^^^^^^^^^^^^^^^^^^^^^^
+  1424 |                         {challenge.durationDays}일 챌린지
+  1425 |                       </span>
+  1426 |                       <span className="rounded-full bg-white px-3 py-1 text-[#8b6422]">
+
+Parsing ecmascript source code failed
+
+Import traces:
+  Client Component Browser:
+    ./src/app/page.tsx [Client Component Browser]
+    ./src/app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/page.tsx [Client Component SSR]
+    ./src/app/page.tsx [Server Component] 
+[browser] ./src/app/page.tsx:1422:30
+Expected '</', got 'jsx text'
+  1420 |                       </>
+  1421 |                     ) : null}
+> 1422 |                       </span>
+       |                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 1423 |                       <span className="rounded-full bg-white px-3 py-1 text-[#8b6422]">
+       | ^^^^^^^^^^^^^^^^^^^^^^
+  1424 |                         {challenge.durationDays}일 챌린지
+  1425 |                       </span>
+  1426 |                       <span className="rounded-full bg-white px-3 py-1 text-[#8b6422]">
+
+Parsing ecmascript source code failed
+
+Import traces:
+  Client Component Browser:
+    ./src/app/page.tsx [Client Component Browser]
+    ./src/app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/page.tsx [Client Component SSR]
+    ./src/app/page.tsx [Server Component] 
+[browser] ./src/app/page.tsx:1422:30
+Expected '</', got 'jsx text'
+  1420 |                       </>
+  1421 |                     ) : null}
+> 1422 |                       </span>
+       |                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 1423 |                       <span className="rounded-full bg-white px-3 py-1 text-[#8b6422]">
+       | ^^^^^^^^^^^^^^^^^^^^^^
+  1424 |                         {challenge.durationDays}일 챌린지
+  1425 |                       </span>
+  1426 |                       <span className="rounded-full bg-white px-3 py-1 text-[#8b6422]">
+
+Parsing ecmascript source code failed
+
+Import traces:
+  Client Component Browser:
+    ./src/app/page.tsx [Client Component Browser]
+    ./src/app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/page.tsx [Client Component SSR]
+    ./src/app/page.tsx [Server Component] 
+[browser] ./src/app/page.tsx:1422:30
+Expected '</', got 'jsx text'
+  1420 |                       </>
+  1421 |                     ) : null}
+> 1422 |                       </span>
+       |                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 1423 |                       <span className="rounded-full bg-white px-3 py-1 text-[#8b6422]">
+       | ^^^^^^^^^^^^^^^^^^^^^^
+  1424 |                         {challenge.durationDays}일 챌린지
+  1425 |                       </span>
+  1426 |                       <span className="rounded-full bg-white px-3 py-1 text-[#8b6422]">
+
+Parsing ecmascript source code failed
+
+Import traces:
+  Client Component Browser:
+    ./src/app/page.tsx [Client Component Browser]
+    ./src/app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/page.tsx [Client Component SSR]
+    ./src/app/page.tsx [Server Component] 
+[browser] Uncaught Error: ./src/app/page.tsx:1422:30
+Expected '</', got 'jsx text'
+  1420 |                       </>
+  1421 |                     ) : null}
+> 1422 |                       </span>
+       |                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 1423 |                       <span className="rounded-full bg-white px-3 py-1 text-[#8b6422]">
+       | ^^^^^^^^^^^^^^^^^^^^^^
+  1424 |                         {challenge.durationDays}일 챌린지
+  1425 |                       </span>
+  1426 |                       <span className="rounded-full bg-white px-3 py-1 text-[#8b6422]">
+
+Parsing ecmascript source code failed
+
+Import traces:
+  Client Component Browser:
+    ./src/app/page.tsx [Client Component Browser]
+    ./src/app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/page.tsx [Client Component SSR]
+    ./src/app/page.tsx [Server Component]
+
+
+    at <unknown> (Error: ./src/app/page.tsx:1422:30)
+    at <unknown> (Error: (./src/app/page.tsx:1422:30)
+[browser] ./src/app/page.tsx:1422:30
+Expected '</', got 'jsx text'
+  1420 |                       </>
+  1421 |                     ) : null}
+> 1422 |                       </span>
+       |                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 1423 |                       <span className="rounded-full bg-white px-3 py-1 text-[#8b6422]">
+       | ^^^^^^^^^^^^^^^^^^^^^^
+  1424 |                         {challenge.durationDays}일 챌린지
+  1425 |                       </span>
+  1426 |                       <span className="rounded-full bg-white px-3 py-1 text-[#8b6422]">
+
+Parsing ecmascript source code failed
+
+Import traces:
+  Client Component Browser:
+    ./src/app/page.tsx [Client Component Browser]
+    ./src/app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/page.tsx [Client Component SSR]
+    ./src/app/page.tsx [Server Component] 
+[browser] ./src/app/page.tsx:1422:30
+Expected '</', got 'jsx text'
+  1420 |                       </>
+  1421 |                     ) : null}
+> 1422 |                       </span>
+       |                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 1423 |                       <span className="rounded-full bg-white px-3 py-1 text-[#8b6422]">
+       | ^^^^^^^^^^^^^^^^^^^^^^
+  1424 |                         {challenge.durationDays}일 챌린지
+  1425 |                       </span>
+  1426 |                       <span className="rounded-full bg-white px-3 py-1 text-[#8b6422]">
+
+Parsing ecmascript source code failed
+
+Import traces:
+  Client Component Browser:
+    ./src/app/page.tsx [Client Component Browser]
+    ./src/app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/page.tsx [Client Component SSR]
+    ./src/app/page.tsx [Server Component] 
+[browser] ./src/app/page.tsx:1422:30
+Expected '</', got 'jsx text'
+  1420 |                       </>
+  1421 |                     ) : null}
+> 1422 |                       </span>
+       |                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 1423 |                       <span className="rounded-full bg-white px-3 py-1 text-[#8b6422]">
+       | ^^^^^^^^^^^^^^^^^^^^^^
+  1424 |                         {challenge.durationDays}일 챌린지
+  1425 |                       </span>
+  1426 |                       <span className="rounded-full bg-white px-3 py-1 text-[#8b6422]">
+
+Parsing ecmascript source code failed
+
+Import traces:
+  Client Component Browser:
+    ./src/app/page.tsx [Client Component Browser]
+    ./src/app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/page.tsx [Client Component SSR]
+    ./src/app/page.tsx [Server Component] 
+[browser] ./src/app/page.tsx:1422:30
+Expected '</', got 'jsx text'
+  1420 |                       </>
+  1421 |                     ) : null}
+> 1422 |                       </span>
+       |                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 1423 |                       <span className="rounded-full bg-white px-3 py-1 text-[#8b6422]">
+       | ^^^^^^^^^^^^^^^^^^^^^^
+  1424 |                         {challenge.durationDays}일 챌린지
+  1425 |                       </span>
+  1426 |                       <span className="rounded-full bg-white px-3 py-1 text-[#8b6422]">
+
+Parsing ecmascript source code failed
+
+Import traces:
+  Client Component Browser:
+    ./src/app/page.tsx [Client Component Browser]
+    ./src/app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/page.tsx [Client Component SSR]
+    ./src/app/page.tsx [Server Component] 
+[browser] ./src/app/page.tsx:1422:30
+Expected '</', got 'jsx text'
+  1420 |                       </>
+  1421 |                     ) : null}
+> 1422 |                       </span>
+       |                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 1423 |                       <span className="rounded-full bg-white px-3 py-1 text-[#8b6422]">
+       | ^^^^^^^^^^^^^^^^^^^^^^
+  1424 |                         {challenge.durationDays}일 챌린지
+  1425 |                       </span>
+  1426 |                       <span className="rounded-full bg-white px-3 py-1 text-[#8b6422]">
+
+Parsing ecmascript source code failed
+
+Import traces:
+  Client Component Browser:
+    ./src/app/page.tsx [Client Component Browser]
+    ./src/app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/page.tsx [Client Component SSR]
+    ./src/app/page.tsx [Server Component] 
+[browser] ./src/app/page.tsx:1422:30
+Expected '</', got 'jsx text'
+  1420 |                       </>
+  1421 |                     ) : null}
+> 1422 |                       </span>
+       |                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 1423 |                       <span className="rounded-full bg-white px-3 py-1 text-[#8b6422]">
+       | ^^^^^^^^^^^^^^^^^^^^^^
+  1424 |                         {challenge.durationDays}일 챌린지
+  1425 |                       </span>
+  1426 |                       <span className="rounded-full bg-white px-3 py-1 text-[#8b6422]">
+
+Parsing ecmascript source code failed
+
+Import traces:
+  Client Component Browser:
+    ./src/app/page.tsx [Client Component Browser]
+    ./src/app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/page.tsx [Client Component SSR]
+    ./src/app/page.tsx [Server Component] 
+[browser] ./src/app/page.tsx:1422:30
+Expected '</', got 'jsx text'
+  1420 |                       </>
+  1421 |                     ) : null}
+> 1422 |                       </span>
+       |                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 1423 |                       <span className="rounded-full bg-white px-3 py-1 text-[#8b6422]">
+       | ^^^^^^^^^^^^^^^^^^^^^^
+  1424 |                         {challenge.durationDays}일 챌린지
+  1425 |                       </span>
+  1426 |                       <span className="rounded-full bg-white px-3 py-1 text-[#8b6422]">
+
+Parsing ecmascript source code failed
+
+Import traces:
+  Client Component Browser:
+    ./src/app/page.tsx [Client Component Browser]
+    ./src/app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/page.tsx [Client Component SSR]
+    ./src/app/page.tsx [Server Component] 
+[browser] ./src/app/page.tsx:1422:30
+Expected '</', got 'jsx text'
+  1420 |                       </>
+  1421 |                     ) : null}
+> 1422 |                       </span>
+       |                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 1423 |                       <span className="rounded-full bg-white px-3 py-1 text-[#8b6422]">
+       | ^^^^^^^^^^^^^^^^^^^^^^
+  1424 |                         {challenge.durationDays}일 챌린지
+  1425 |                       </span>
+  1426 |                       <span className="rounded-full bg-white px-3 py-1 text-[#8b6422]">
+
+Parsing ecmascript source code failed
+
+Import traces:
+  Client Component Browser:
+    ./src/app/page.tsx [Client Component Browser]
+    ./src/app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/page.tsx [Client Component SSR]
+    ./src/app/page.tsx [Server Component] 
+[browser] ./src/app/page.tsx:1422:30
+Expected '</', got 'jsx text'
+  1420 |                       </>
+  1421 |                     ) : null}
+> 1422 |                       </span>
+       |                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 1423 |                       <span className="rounded-full bg-white px-3 py-1 text-[#8b6422]">
+       | ^^^^^^^^^^^^^^^^^^^^^^
+  1424 |                         {challenge.durationDays}일 챌린지
+  1425 |                       </span>
+  1426 |                       <span className="rounded-full bg-white px-3 py-1 text-[#8b6422]">
+
+Parsing ecmascript source code failed
+
+Import traces:
+  Client Component Browser:
+    ./src/app/page.tsx [Client Component Browser]
+    ./src/app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/page.tsx [Client Component SSR]
+    ./src/app/page.tsx [Server Component] 
+[browser] ./src/app/page.tsx:1422:30
+Expected '</', got 'jsx text'
+  1420 |                       </>
+  1421 |                     ) : null}
+> 1422 |                       </span>
+       |                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 1423 |                       <span className="rounded-full bg-white px-3 py-1 text-[#8b6422]">
+       | ^^^^^^^^^^^^^^^^^^^^^^
+  1424 |                         {challenge.durationDays}일 챌린지
+  1425 |                       </span>
+  1426 |                       <span className="rounded-full bg-white px-3 py-1 text-[#8b6422]">
+
+Parsing ecmascript source code failed
+
+Import traces:
+  Client Component Browser:
+    ./src/app/page.tsx [Client Component Browser]
+    ./src/app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/page.tsx [Client Component SSR]
+    ./src/app/page.tsx [Server Component] 
+[browser] ./src/app/page.tsx:1422:30
+Expected '</', got 'jsx text'
+  1420 |                       </>
+  1421 |                     ) : null}
+> 1422 |                       </span>
+       |                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 1423 |                       <span className="rounded-full bg-white px-3 py-1 text-[#8b6422]">
+       | ^^^^^^^^^^^^^^^^^^^^^^
+  1424 |                         {challenge.durationDays}일 챌린지
+  1425 |                       </span>
+  1426 |                       <span className="rounded-full bg-white px-3 py-1 text-[#8b6422]">
+
+Parsing ecmascript source code failed
+
+Import traces:
+  Client Component Browser:
+    ./src/app/page.tsx [Client Component Browser]
+    ./src/app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/page.tsx [Client Component SSR]
+    ./src/app/page.tsx [Server Component] 
+[browser] ./src/app/page.tsx:1422:30
+Expected '</', got 'jsx text'
+  1420 |                       </>
+  1421 |                     ) : null}
+> 1422 |                       </span>
+       |                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 1423 |                       <span className="rounded-full bg-white px-3 py-1 text-[#8b6422]">
+       | ^^^^^^^^^^^^^^^^^^^^^^
+  1424 |                         {challenge.durationDays}일 챌린지
+  1425 |                       </span>
+  1426 |                       <span className="rounded-full bg-white px-3 py-1 text-[#8b6422]">
+
+Parsing ecmascript source code failed
+
+Import traces:
+  Client Component Browser:
+    ./src/app/page.tsx [Client Component Browser]
+    ./src/app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/page.tsx [Client Component SSR]
+    ./src/app/page.tsx [Server Component] 
+[browser] ./src/app/page.tsx:1422:30
+Expected '</', got 'jsx text'
+  1420 |                       </>
+  1421 |                     ) : null}
+> 1422 |                       </span>
+       |                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 1423 |                       <span className="rounded-full bg-white px-3 py-1 text-[#8b6422]">
+       | ^^^^^^^^^^^^^^^^^^^^^^
+  1424 |                         {challenge.durationDays}일 챌린지
+  1425 |                       </span>
+  1426 |                       <span className="rounded-full bg-white px-3 py-1 text-[#8b6422]">
+
+Parsing ecmascript source code failed
+
+Import traces:
+  Client Component Browser:
+    ./src/app/page.tsx [Client Component Browser]
+    ./src/app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/page.tsx [Client Component SSR]
+    ./src/app/page.tsx [Server Component] 
+[browser] ./src/app/page.tsx:1422:30
+Expected '</', got 'jsx text'
+  1420 |                       </>
+  1421 |                     ) : null}
+> 1422 |                       </span>
+       |                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 1423 |                       <span className="rounded-full bg-white px-3 py-1 text-[#8b6422]">
+       | ^^^^^^^^^^^^^^^^^^^^^^
+  1424 |                         {challenge.durationDays}일 챌린지
+  1425 |                       </span>
+  1426 |                       <span className="rounded-full bg-white px-3 py-1 text-[#8b6422]">
+
+Parsing ecmascript source code failed
+
+Import traces:
+  Client Component Browser:
+    ./src/app/page.tsx [Client Component Browser]
+    ./src/app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/page.tsx [Client Component SSR]
+    ./src/app/page.tsx [Server Component] 
+[browser] ./src/app/page.tsx:1422:30
+Expected '</', got 'jsx text'
+  1420 |                       </>
+  1421 |                     ) : null}
+> 1422 |                       </span>
+       |                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 1423 |                       <span className="rounded-full bg-white px-3 py-1 text-[#8b6422]">
+       | ^^^^^^^^^^^^^^^^^^^^^^
+  1424 |                         {challenge.durationDays}일 챌린지
+  1425 |                       </span>
+  1426 |                       <span className="rounded-full bg-white px-3 py-1 text-[#8b6422]">
+
+Parsing ecmascript source code failed
+
+Import traces:
+  Client Component Browser:
+    ./src/app/page.tsx [Client Component Browser]
+    ./src/app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/page.tsx [Client Component SSR]
+    ./src/app/page.tsx [Server Component] 
+[browser] ./src/app/page.tsx:1422:30
+Expected '</', got 'jsx text'
+  1420 |                       </>
+  1421 |                     ) : null}
+> 1422 |                       </span>
+       |                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 1423 |                       <span className="rounded-full bg-white px-3 py-1 text-[#8b6422]">
+       | ^^^^^^^^^^^^^^^^^^^^^^
+  1424 |                         {challenge.durationDays}일 챌린지
+  1425 |                       </span>
+  1426 |                       <span className="rounded-full bg-white px-3 py-1 text-[#8b6422]">
+
+Parsing ecmascript source code failed
+
+Import traces:
+  Client Component Browser:
+    ./src/app/page.tsx [Client Component Browser]
+    ./src/app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/page.tsx [Client Component SSR]
+    ./src/app/page.tsx [Server Component] 
+[browser] ./src/app/page.tsx:1422:30
+Expected '</', got 'jsx text'
+  1420 |                       </>
+  1421 |                     ) : null}
+> 1422 |                       </span>
+       |                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 1423 |                       <span className="rounded-full bg-white px-3 py-1 text-[#8b6422]">
+       | ^^^^^^^^^^^^^^^^^^^^^^
+  1424 |                         {challenge.durationDays}일 챌린지
+  1425 |                       </span>
+  1426 |                       <span className="rounded-full bg-white px-3 py-1 text-[#8b6422]">
+
+Parsing ecmascript source code failed
+
+Import traces:
+  Client Component Browser:
+    ./src/app/page.tsx [Client Component Browser]
+    ./src/app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/page.tsx [Client Component SSR]
+    ./src/app/page.tsx [Server Component] 
+[browser] ./src/app/page.tsx:1422:30
+Expected '</', got 'jsx text'
+  1420 |                       </>
+  1421 |                     ) : null}
+> 1422 |                       </span>
+       |                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 1423 |                       <span className="rounded-full bg-white px-3 py-1 text-[#8b6422]">
+       | ^^^^^^^^^^^^^^^^^^^^^^
+  1424 |                         {challenge.durationDays}일 챌린지
+  1425 |                       </span>
+  1426 |                       <span className="rounded-full bg-white px-3 py-1 text-[#8b6422]">
+
+Parsing ecmascript source code failed
+
+Import traces:
+  Client Component Browser:
+    ./src/app/page.tsx [Client Component Browser]
+    ./src/app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/page.tsx [Client Component SSR]
+    ./src/app/page.tsx [Server Component] 
+[browser] ./src/app/page.tsx:1422:30
+Expected '</', got 'jsx text'
+  1420 |                       </>
+  1421 |                     ) : null}
+> 1422 |                       </span>
+       |                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 1423 |                       <span className="rounded-full bg-white px-3 py-1 text-[#8b6422]">
+       | ^^^^^^^^^^^^^^^^^^^^^^
+  1424 |                         {challenge.durationDays}일 챌린지
+  1425 |                       </span>
+  1426 |                       <span className="rounded-full bg-white px-3 py-1 text-[#8b6422]">
+
+Parsing ecmascript source code failed
+
+Import traces:
+  Client Component Browser:
+    ./src/app/page.tsx [Client Component Browser]
+    ./src/app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/page.tsx [Client Component SSR]
+    ./src/app/page.tsx [Server Component] 
+[browser] ./src/app/page.tsx:1422:30
+Expected '</', got 'jsx text'
+  1420 |                       </>
+  1421 |                     ) : null}
+> 1422 |                       </span>
+       |                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 1423 |                       <span className="rounded-full bg-white px-3 py-1 text-[#8b6422]">
+       | ^^^^^^^^^^^^^^^^^^^^^^
+  1424 |                         {challenge.durationDays}일 챌린지
+  1425 |                       </span>
+  1426 |                       <span className="rounded-full bg-white px-3 py-1 text-[#8b6422]">
+
+Parsing ecmascript source code failed
+
+Import traces:
+  Client Component Browser:
+    ./src/app/page.tsx [Client Component Browser]
+    ./src/app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/page.tsx [Client Component SSR]
+    ./src/app/page.tsx [Server Component] 
+[browser] ./src/app/page.tsx:1422:30
+Expected '</', got 'jsx text'
+  1420 |                       </>
+  1421 |                     ) : null}
+> 1422 |                       </span>
+       |                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 1423 |                       <span className="rounded-full bg-white px-3 py-1 text-[#8b6422]">
+       | ^^^^^^^^^^^^^^^^^^^^^^
+  1424 |                         {challenge.durationDays}일 챌린지
+  1425 |                       </span>
+  1426 |                       <span className="rounded-full bg-white px-3 py-1 text-[#8b6422]">
+
+Parsing ecmascript source code failed
+
+Import traces:
+  Client Component Browser:
+    ./src/app/page.tsx [Client Component Browser]
+    ./src/app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/page.tsx [Client Component SSR]
+    ./src/app/page.tsx [Server Component] 
+[browser] ./src/app/page.tsx:1422:30
+Expected '</', got 'jsx text'
+  1420 |                       </>
+  1421 |                     ) : null}
+> 1422 |                       </span>
+       |                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 1423 |                       <span className="rounded-full bg-white px-3 py-1 text-[#8b6422]">
+       | ^^^^^^^^^^^^^^^^^^^^^^
+  1424 |                         {challenge.durationDays}일 챌린지
+  1425 |                       </span>
+  1426 |                       <span className="rounded-full bg-white px-3 py-1 text-[#8b6422]">
+
+Parsing ecmascript source code failed
+
+Import traces:
+  Client Component Browser:
+    ./src/app/page.tsx [Client Component Browser]
+    ./src/app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/page.tsx [Client Component SSR]
+    ./src/app/page.tsx [Server Component] 
+[browser] ./src/app/page.tsx:1422:30
+Expected '</', got 'jsx text'
+  1420 |                       </>
+  1421 |                     ) : null}
+> 1422 |                       </span>
+       |                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 1423 |                       <span className="rounded-full bg-white px-3 py-1 text-[#8b6422]">
+       | ^^^^^^^^^^^^^^^^^^^^^^
+  1424 |                         {challenge.durationDays}일 챌린지
+  1425 |                       </span>
+  1426 |                       <span className="rounded-full bg-white px-3 py-1 text-[#8b6422]">
+
+Parsing ecmascript source code failed
+
+Import traces:
+  Client Component Browser:
+    ./src/app/page.tsx [Client Component Browser]
+    ./src/app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/page.tsx [Client Component SSR]
+    ./src/app/page.tsx [Server Component] 
+[browser] ./src/app/page.tsx:1422:30
+Expected '</', got 'jsx text'
+  1420 |                       </>
+  1421 |                     ) : null}
+> 1422 |                       </span>
+       |                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 1423 |                       <span className="rounded-full bg-white px-3 py-1 text-[#8b6422]">
+       | ^^^^^^^^^^^^^^^^^^^^^^
+  1424 |                         {challenge.durationDays}일 챌린지
+  1425 |                       </span>
+  1426 |                       <span className="rounded-full bg-white px-3 py-1 text-[#8b6422]">
+
+Parsing ecmascript source code failed
+
+Import traces:
+  Client Component Browser:
+    ./src/app/page.tsx [Client Component Browser]
+    ./src/app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/page.tsx [Client Component SSR]
+    ./src/app/page.tsx [Server Component] 
+[browser] ./src/app/page.tsx:1422:30
+Expected '</', got 'jsx text'
+  1420 |                       </>
+  1421 |                     ) : null}
+> 1422 |                       </span>
+       |                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 1423 |                       <span className="rounded-full bg-white px-3 py-1 text-[#8b6422]">
+       | ^^^^^^^^^^^^^^^^^^^^^^
+  1424 |                         {challenge.durationDays}일 챌린지
+  1425 |                       </span>
+  1426 |                       <span className="rounded-full bg-white px-3 py-1 text-[#8b6422]">
+
+Parsing ecmascript source code failed
+
+Import traces:
+  Client Component Browser:
+    ./src/app/page.tsx [Client Component Browser]
+    ./src/app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/page.tsx [Client Component SSR]
+    ./src/app/page.tsx [Server Component] 
+[browser] ./src/app/page.tsx:1422:30
+Expected '</', got 'jsx text'
+  1420 |                       </>
+  1421 |                     ) : null}
+> 1422 |                       </span>
+       |                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 1423 |                       <span className="rounded-full bg-white px-3 py-1 text-[#8b6422]">
+       | ^^^^^^^^^^^^^^^^^^^^^^
+  1424 |                         {challenge.durationDays}일 챌린지
+  1425 |                       </span>
+  1426 |                       <span className="rounded-full bg-white px-3 py-1 text-[#8b6422]">
+
+Parsing ecmascript source code failed
+
+Import traces:
+  Client Component Browser:
+    ./src/app/page.tsx [Client Component Browser]
+    ./src/app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/page.tsx [Client Component SSR]
+    ./src/app/page.tsx [Server Component] 
+[browser] ./src/app/page.tsx:1422:30
+Expected '</', got 'jsx text'
+  1420 |                       </>
+  1421 |                     ) : null}
+> 1422 |                       </span>
+       |                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 1423 |                       <span className="rounded-full bg-white px-3 py-1 text-[#8b6422]">
+       | ^^^^^^^^^^^^^^^^^^^^^^
+  1424 |                         {challenge.durationDays}일 챌린지
+  1425 |                       </span>
+  1426 |                       <span className="rounded-full bg-white px-3 py-1 text-[#8b6422]">
+
+Parsing ecmascript source code failed
+
+Import traces:
+  Client Component Browser:
+    ./src/app/page.tsx [Client Component Browser]
+    ./src/app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/page.tsx [Client Component SSR]
+    ./src/app/page.tsx [Server Component] 
+[browser] ./src/app/page.tsx:1422:30
+Expected '</', got 'jsx text'
+  1420 |                       </>
+  1421 |                     ) : null}
+> 1422 |                       </span>
+       |                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 1423 |                       <span className="rounded-full bg-white px-3 py-1 text-[#8b6422]">
+       | ^^^^^^^^^^^^^^^^^^^^^^
+  1424 |                         {challenge.durationDays}일 챌린지
+  1425 |                       </span>
+  1426 |                       <span className="rounded-full bg-white px-3 py-1 text-[#8b6422]">
+
+Parsing ecmascript source code failed
+
+Import traces:
+  Client Component Browser:
+    ./src/app/page.tsx [Client Component Browser]
+    ./src/app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/page.tsx [Client Component SSR]
+    ./src/app/page.tsx [Server Component] 
+[browser] ./src/app/page.tsx:1422:30
+Expected '</', got 'jsx text'
+  1420 |                       </>
+  1421 |                     ) : null}
+> 1422 |                       </span>
+       |                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 1423 |                       <span className="rounded-full bg-white px-3 py-1 text-[#8b6422]">
+       | ^^^^^^^^^^^^^^^^^^^^^^
+  1424 |                         {challenge.durationDays}일 챌린지
+  1425 |                       </span>
+  1426 |                       <span className="rounded-full bg-white px-3 py-1 text-[#8b6422]">
+
+Parsing ecmascript source code failed
+
+Import traces:
+  Client Component Browser:
+    ./src/app/page.tsx [Client Component Browser]
+    ./src/app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/page.tsx [Client Component SSR]
+    ./src/app/page.tsx [Server Component] 
+[browser] ./src/app/page.tsx:1422:30
+Expected '</', got 'jsx text'
+  1420 |                       </>
+  1421 |                     ) : null}
+> 1422 |                       </span>
+       |                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 1423 |                       <span className="rounded-full bg-white px-3 py-1 text-[#8b6422]">
+       | ^^^^^^^^^^^^^^^^^^^^^^
+  1424 |                         {challenge.durationDays}일 챌린지
+  1425 |                       </span>
+  1426 |                       <span className="rounded-full bg-white px-3 py-1 text-[#8b6422]">
+
+Parsing ecmascript source code failed
+
+Import traces:
+  Client Component Browser:
+    ./src/app/page.tsx [Client Component Browser]
+    ./src/app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/page.tsx [Client Component SSR]
+    ./src/app/page.tsx [Server Component] 
+[browser] ./src/app/page.tsx:1422:30
+Expected '</', got 'jsx text'
+  1420 |                       </>
+  1421 |                     ) : null}
+> 1422 |                       </span>
+       |                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 1423 |                       <span className="rounded-full bg-white px-3 py-1 text-[#8b6422]">
+       | ^^^^^^^^^^^^^^^^^^^^^^
+  1424 |                         {challenge.durationDays}일 챌린지
+  1425 |                       </span>
+  1426 |                       <span className="rounded-full bg-white px-3 py-1 text-[#8b6422]">
+
+Parsing ecmascript source code failed
+
+Import traces:
+  Client Component Browser:
+    ./src/app/page.tsx [Client Component Browser]
+    ./src/app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/page.tsx [Client Component SSR]
+    ./src/app/page.tsx [Server Component] 
+[browser] ./src/app/page.tsx:1422:30
+Expected '</', got 'jsx text'
+  1420 |                       </>
+  1421 |                     ) : null}
+> 1422 |                       </span>
+       |                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 1423 |                       <span className="rounded-full bg-white px-3 py-1 text-[#8b6422]">
+       | ^^^^^^^^^^^^^^^^^^^^^^
+  1424 |                         {challenge.durationDays}일 챌린지
+  1425 |                       </span>
+  1426 |                       <span className="rounded-full bg-white px-3 py-1 text-[#8b6422]">
+
+Parsing ecmascript source code failed
+
+Import traces:
+  Client Component Browser:
+    ./src/app/page.tsx [Client Component Browser]
+    ./src/app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/page.tsx [Client Component SSR]
+    ./src/app/page.tsx [Server Component] 
+[browser] ./src/app/page.tsx:1422:30
+Expected '</', got 'jsx text'
+  1420 |                       </>
+  1421 |                     ) : null}
+> 1422 |                       </span>
+       |                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 1423 |                       <span className="rounded-full bg-white px-3 py-1 text-[#8b6422]">
+       | ^^^^^^^^^^^^^^^^^^^^^^
+  1424 |                         {challenge.durationDays}일 챌린지
+  1425 |                       </span>
+  1426 |                       <span className="rounded-full bg-white px-3 py-1 text-[#8b6422]">
+
+Parsing ecmascript source code failed
+
+Import traces:
+  Client Component Browser:
+    ./src/app/page.tsx [Client Component Browser]
+    ./src/app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/page.tsx [Client Component SSR]
+    ./src/app/page.tsx [Server Component] 
+[browser] ./src/app/page.tsx:1422:30
+Expected '</', got 'jsx text'
+  1420 |                       </>
+  1421 |                     ) : null}
+> 1422 |                       </span>
+       |                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 1423 |                       <span className="rounded-full bg-white px-3 py-1 text-[#8b6422]">
+       | ^^^^^^^^^^^^^^^^^^^^^^
+  1424 |                         {challenge.durationDays}일 챌린지
+  1425 |                       </span>
+  1426 |                       <span className="rounded-full bg-white px-3 py-1 text-[#8b6422]">
+
+Parsing ecmascript source code failed
+
+Import traces:
+  Client Component Browser:
+    ./src/app/page.tsx [Client Component Browser]
+    ./src/app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/page.tsx [Client Component SSR]
+    ./src/app/page.tsx [Server Component] 
+[browser] ./src/app/page.tsx:1422:30
+Expected '</', got 'jsx text'
+  1420 |                       </>
+  1421 |                     ) : null}
+> 1422 |                       </span>
+       |                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 1423 |                       <span className="rounded-full bg-white px-3 py-1 text-[#8b6422]">
+       | ^^^^^^^^^^^^^^^^^^^^^^
+  1424 |                         {challenge.durationDays}일 챌린지
+  1425 |                       </span>
+  1426 |                       <span className="rounded-full bg-white px-3 py-1 text-[#8b6422]">
+
+Parsing ecmascript source code failed
+
+Import traces:
+  Client Component Browser:
+    ./src/app/page.tsx [Client Component Browser]
+    ./src/app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/page.tsx [Client Component SSR]
+    ./src/app/page.tsx [Server Component] 
+[browser] ./src/app/page.tsx:1422:30
+Expected '</', got 'jsx text'
+  1420 |                       </>
+  1421 |                     ) : null}
+> 1422 |                       </span>
+       |                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 1423 |                       <span className="rounded-full bg-white px-3 py-1 text-[#8b6422]">
+       | ^^^^^^^^^^^^^^^^^^^^^^
+  1424 |                         {challenge.durationDays}일 챌린지
+  1425 |                       </span>
+  1426 |                       <span className="rounded-full bg-white px-3 py-1 text-[#8b6422]">
+
+Parsing ecmascript source code failed
+
+Import traces:
+  Client Component Browser:
+    ./src/app/page.tsx [Client Component Browser]
+    ./src/app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/page.tsx [Client Component SSR]
+    ./src/app/page.tsx [Server Component] 
+[browser] ./src/app/page.tsx:1422:30
+Expected '</', got 'jsx text'
+  1420 |                       </>
+  1421 |                     ) : null}
+> 1422 |                       </span>
+       |                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 1423 |                       <span className="rounded-full bg-white px-3 py-1 text-[#8b6422]">
+       | ^^^^^^^^^^^^^^^^^^^^^^
+  1424 |                         {challenge.durationDays}일 챌린지
+  1425 |                       </span>
+  1426 |                       <span className="rounded-full bg-white px-3 py-1 text-[#8b6422]">
+
+Parsing ecmascript source code failed
+
+Import traces:
+  Client Component Browser:
+    ./src/app/page.tsx [Client Component Browser]
+    ./src/app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/page.tsx [Client Component SSR]
+    ./src/app/page.tsx [Server Component] 
+[browser] ./src/app/page.tsx:1422:30
+Expected '</', got 'jsx text'
+  1420 |                       </>
+  1421 |                     ) : null}
+> 1422 |                       </span>
+       |                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 1423 |                       <span className="rounded-full bg-white px-3 py-1 text-[#8b6422]">
+       | ^^^^^^^^^^^^^^^^^^^^^^
+  1424 |                         {challenge.durationDays}일 챌린지
+  1425 |                       </span>
+  1426 |                       <span className="rounded-full bg-white px-3 py-1 text-[#8b6422]">
+
+Parsing ecmascript source code failed
+
+Import traces:
+  Client Component Browser:
+    ./src/app/page.tsx [Client Component Browser]
+    ./src/app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/page.tsx [Client Component SSR]
+    ./src/app/page.tsx [Server Component] 
+[browser] ./src/app/page.tsx:1422:30
+Expected '</', got 'jsx text'
+  1420 |                       </>
+  1421 |                     ) : null}
+> 1422 |                       </span>
+       |                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 1423 |                       <span className="rounded-full bg-white px-3 py-1 text-[#8b6422]">
+       | ^^^^^^^^^^^^^^^^^^^^^^
+  1424 |                         {challenge.durationDays}일 챌린지
+  1425 |                       </span>
+  1426 |                       <span className="rounded-full bg-white px-3 py-1 text-[#8b6422]">
+
+Parsing ecmascript source code failed
+
+Import traces:
+  Client Component Browser:
+    ./src/app/page.tsx [Client Component Browser]
+    ./src/app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/page.tsx [Client Component SSR]
+    ./src/app/page.tsx [Server Component] 
+[browser] ./src/app/page.tsx:1422:30
+Expected '</', got 'jsx text'
+  1420 |                       </>
+  1421 |                     ) : null}
+> 1422 |                       </span>
+       |                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 1423 |                       <span className="rounded-full bg-white px-3 py-1 text-[#8b6422]">
+       | ^^^^^^^^^^^^^^^^^^^^^^
+  1424 |                         {challenge.durationDays}일 챌린지
+  1425 |                       </span>
+  1426 |                       <span className="rounded-full bg-white px-3 py-1 text-[#8b6422]">
+
+Parsing ecmascript source code failed
+
+Import traces:
+  Client Component Browser:
+    ./src/app/page.tsx [Client Component Browser]
+    ./src/app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/page.tsx [Client Component SSR]
+    ./src/app/page.tsx [Server Component] 
+[browser] ./src/app/page.tsx:1422:30
+Expected '</', got 'jsx text'
+  1420 |                       </>
+  1421 |                     ) : null}
+> 1422 |                       </span>
+       |                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 1423 |                       <span className="rounded-full bg-white px-3 py-1 text-[#8b6422]">
+       | ^^^^^^^^^^^^^^^^^^^^^^
+  1424 |                         {challenge.durationDays}일 챌린지
+  1425 |                       </span>
+  1426 |                       <span className="rounded-full bg-white px-3 py-1 text-[#8b6422]">
+
+Parsing ecmascript source code failed
+
+Import traces:
+  Client Component Browser:
+    ./src/app/page.tsx [Client Component Browser]
+    ./src/app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/page.tsx [Client Component SSR]
+    ./src/app/page.tsx [Server Component] 
+[browser] ./src/app/page.tsx:1422:30
+Expected '</', got 'jsx text'
+  1420 |                       </>
+  1421 |                     ) : null}
+> 1422 |                       </span>
+       |                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 1423 |                       <span className="rounded-full bg-white px-3 py-1 text-[#8b6422]">
+       | ^^^^^^^^^^^^^^^^^^^^^^
+  1424 |                         {challenge.durationDays}일 챌린지
+  1425 |                       </span>
+  1426 |                       <span className="rounded-full bg-white px-3 py-1 text-[#8b6422]">
+
+Parsing ecmascript source code failed
+
+Import traces:
+  Client Component Browser:
+    ./src/app/page.tsx [Client Component Browser]
+    ./src/app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/page.tsx [Client Component SSR]
+    ./src/app/page.tsx [Server Component] 
+[browser] ./src/app/page.tsx:1422:30
+Expected '</', got 'jsx text'
+  1420 |                       </>
+  1421 |                     ) : null}
+> 1422 |                       </span>
+       |                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 1423 |                       <span className="rounded-full bg-white px-3 py-1 text-[#8b6422]">
+       | ^^^^^^^^^^^^^^^^^^^^^^
+  1424 |                         {challenge.durationDays}일 챌린지
+  1425 |                       </span>
+  1426 |                       <span className="rounded-full bg-white px-3 py-1 text-[#8b6422]">
+
+Parsing ecmascript source code failed
+
+Import traces:
+  Client Component Browser:
+    ./src/app/page.tsx [Client Component Browser]
+    ./src/app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/page.tsx [Client Component SSR]
+    ./src/app/page.tsx [Server Component] 
+[browser] ./src/app/page.tsx:1422:30
+Expected '</', got 'jsx text'
+  1420 |                       </>
+  1421 |                     ) : null}
+> 1422 |                       </span>
+       |                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 1423 |                       <span className="rounded-full bg-white px-3 py-1 text-[#8b6422]">
+       | ^^^^^^^^^^^^^^^^^^^^^^
+  1424 |                         {challenge.durationDays}일 챌린지
+  1425 |                       </span>
+  1426 |                       <span className="rounded-full bg-white px-3 py-1 text-[#8b6422]">
+
+Parsing ecmascript source code failed
+
+Import traces:
+  Client Component Browser:
+    ./src/app/page.tsx [Client Component Browser]
+    ./src/app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/page.tsx [Client Component SSR]
+    ./src/app/page.tsx [Server Component] 
+[browser] ./src/app/page.tsx:1422:30
+Expected '</', got 'jsx text'
+  1420 |                       </>
+  1421 |                     ) : null}
+> 1422 |                       </span>
+       |                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 1423 |                       <span className="rounded-full bg-white px-3 py-1 text-[#8b6422]">
+       | ^^^^^^^^^^^^^^^^^^^^^^
+  1424 |                         {challenge.durationDays}일 챌린지
+  1425 |                       </span>
+  1426 |                       <span className="rounded-full bg-white px-3 py-1 text-[#8b6422]">
+
+Parsing ecmascript source code failed
+
+Import traces:
+  Client Component Browser:
+    ./src/app/page.tsx [Client Component Browser]
+    ./src/app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/page.tsx [Client Component SSR]
+    ./src/app/page.tsx [Server Component] 
+[browser] ./src/app/page.tsx:1422:30
+Expected '</', got 'jsx text'
+  1420 |                       </>
+  1421 |                     ) : null}
+> 1422 |                       </span>
+       |                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 1423 |                       <span className="rounded-full bg-white px-3 py-1 text-[#8b6422]">
+       | ^^^^^^^^^^^^^^^^^^^^^^
+  1424 |                         {challenge.durationDays}일 챌린지
+  1425 |                       </span>
+  1426 |                       <span className="rounded-full bg-white px-3 py-1 text-[#8b6422]">
+
+Parsing ecmascript source code failed
+
+Import traces:
+  Client Component Browser:
+    ./src/app/page.tsx [Client Component Browser]
+    ./src/app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/page.tsx [Client Component SSR]
+    ./src/app/page.tsx [Server Component] 
+[browser] ./src/app/page.tsx:1422:30
+Expected '</', got 'jsx text'
+  1420 |                       </>
+  1421 |                     ) : null}
+> 1422 |                       </span>
+       |                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 1423 |                       <span className="rounded-full bg-white px-3 py-1 text-[#8b6422]">
+       | ^^^^^^^^^^^^^^^^^^^^^^
+  1424 |                         {challenge.durationDays}일 챌린지
+  1425 |                       </span>
+  1426 |                       <span className="rounded-full bg-white px-3 py-1 text-[#8b6422]">
+
+Parsing ecmascript source code failed
+
+Import traces:
+  Client Component Browser:
+    ./src/app/page.tsx [Client Component Browser]
+    ./src/app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/page.tsx [Client Component SSR]
+    ./src/app/page.tsx [Server Component] 
+[browser] ./src/app/page.tsx:1422:30
+Expected '</', got 'jsx text'
+  1420 |                       </>
+  1421 |                     ) : null}
+> 1422 |                       </span>
+       |                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 1423 |                       <span className="rounded-full bg-white px-3 py-1 text-[#8b6422]">
+       | ^^^^^^^^^^^^^^^^^^^^^^
+  1424 |                         {challenge.durationDays}일 챌린지
+  1425 |                       </span>
+  1426 |                       <span className="rounded-full bg-white px-3 py-1 text-[#8b6422]">
+
+Parsing ecmascript source code failed
+
+Import traces:
+  Client Component Browser:
+    ./src/app/page.tsx [Client Component Browser]
+    ./src/app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/page.tsx [Client Component SSR]
+    ./src/app/page.tsx [Server Component] 
+[browser] ./src/app/page.tsx:1422:30
+Expected '</', got 'jsx text'
+  1420 |                       </>
+  1421 |                     ) : null}
+> 1422 |                       </span>
+       |                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 1423 |                       <span className="rounded-full bg-white px-3 py-1 text-[#8b6422]">
+       | ^^^^^^^^^^^^^^^^^^^^^^
+  1424 |                         {challenge.durationDays}일 챌린지
+  1425 |                       </span>
+  1426 |                       <span className="rounded-full bg-white px-3 py-1 text-[#8b6422]">
+
+Parsing ecmascript source code failed
+
+Import traces:
+  Client Component Browser:
+    ./src/app/page.tsx [Client Component Browser]
+    ./src/app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/page.tsx [Client Component SSR]
+    ./src/app/page.tsx [Server Component] 
+[browser] ./src/app/page.tsx:1422:30
+Expected '</', got 'jsx text'
+  1420 |                       </>
+  1421 |                     ) : null}
+> 1422 |                       </span>
+       |                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 1423 |                       <span className="rounded-full bg-white px-3 py-1 text-[#8b6422]">
+       | ^^^^^^^^^^^^^^^^^^^^^^
+  1424 |                         {challenge.durationDays}일 챌린지
+  1425 |                       </span>
+  1426 |                       <span className="rounded-full bg-white px-3 py-1 text-[#8b6422]">
+
+Parsing ecmascript source code failed
+
+Import traces:
+  Client Component Browser:
+    ./src/app/page.tsx [Client Component Browser]
+    ./src/app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/page.tsx [Client Component SSR]
+    ./src/app/page.tsx [Server Component] 
+[browser] ./src/app/page.tsx:1422:30
+Expected '</', got 'jsx text'
+  1420 |                       </>
+  1421 |                     ) : null}
+> 1422 |                       </span>
+       |                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 1423 |                       <span className="rounded-full bg-white px-3 py-1 text-[#8b6422]">
+       | ^^^^^^^^^^^^^^^^^^^^^^
+  1424 |                         {challenge.durationDays}일 챌린지
+  1425 |                       </span>
+  1426 |                       <span className="rounded-full bg-white px-3 py-1 text-[#8b6422]">
+
+Parsing ecmascript source code failed
+
+Import traces:
+  Client Component Browser:
+    ./src/app/page.tsx [Client Component Browser]
+    ./src/app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/page.tsx [Client Component SSR]
+    ./src/app/page.tsx [Server Component] 
+[browser] ./src/app/page.tsx:1422:30
+Expected '</', got 'jsx text'
+  1420 |                       </>
+  1421 |                     ) : null}
+> 1422 |                       </span>
+       |                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 1423 |                       <span className="rounded-full bg-white px-3 py-1 text-[#8b6422]">
+       | ^^^^^^^^^^^^^^^^^^^^^^
+  1424 |                         {challenge.durationDays}일 챌린지
+  1425 |                       </span>
+  1426 |                       <span className="rounded-full bg-white px-3 py-1 text-[#8b6422]">
+
+Parsing ecmascript source code failed
+
+Import traces:
+  Client Component Browser:
+    ./src/app/page.tsx [Client Component Browser]
+    ./src/app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/page.tsx [Client Component SSR]
+    ./src/app/page.tsx [Server Component] 
+[browser] ./src/app/page.tsx:1422:30
+Expected '</', got 'jsx text'
+  1420 |                       </>
+  1421 |                     ) : null}
+> 1422 |                       </span>
+       |                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 1423 |                       <span className="rounded-full bg-white px-3 py-1 text-[#8b6422]">
+       | ^^^^^^^^^^^^^^^^^^^^^^
+  1424 |                         {challenge.durationDays}일 챌린지
+  1425 |                       </span>
+  1426 |                       <span className="rounded-full bg-white px-3 py-1 text-[#8b6422]">
+
+Parsing ecmascript source code failed
+
+Import traces:
+  Client Component Browser:
+    ./src/app/page.tsx [Client Component Browser]
+    ./src/app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/page.tsx [Client Component SSR]
+    ./src/app/page.tsx [Server Component] 
+[browser] ./src/app/page.tsx:1422:30
+Expected '</', got 'jsx text'
+  1420 |                       </>
+  1421 |                     ) : null}
+> 1422 |                       </span>
+       |                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 1423 |                       <span className="rounded-full bg-white px-3 py-1 text-[#8b6422]">
+       | ^^^^^^^^^^^^^^^^^^^^^^
+  1424 |                         {challenge.durationDays}일 챌린지
+  1425 |                       </span>
+  1426 |                       <span className="rounded-full bg-white px-3 py-1 text-[#8b6422]">
+
+Parsing ecmascript source code failed
+
+Import traces:
+  Client Component Browser:
+    ./src/app/page.tsx [Client Component Browser]
+    ./src/app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/page.tsx [Client Component SSR]
+    ./src/app/page.tsx [Server Component] 
+[browser] ./src/app/page.tsx:1422:30
+Expected '</', got 'jsx text'
+  1420 |                       </>
+  1421 |                     ) : null}
+> 1422 |                       </span>
+       |                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 1423 |                       <span className="rounded-full bg-white px-3 py-1 text-[#8b6422]">
+       | ^^^^^^^^^^^^^^^^^^^^^^
+  1424 |                         {challenge.durationDays}일 챌린지
+  1425 |                       </span>
+  1426 |                       <span className="rounded-full bg-white px-3 py-1 text-[#8b6422]">
+
+Parsing ecmascript source code failed
+
+Import traces:
+  Client Component Browser:
+    ./src/app/page.tsx [Client Component Browser]
+    ./src/app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/page.tsx [Client Component SSR]
+    ./src/app/page.tsx [Server Component] 
+[browser] ./src/app/page.tsx:1422:30
+Expected '</', got 'jsx text'
+  1420 |                       </>
+  1421 |                     ) : null}
+> 1422 |                       </span>
+       |                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 1423 |                       <span className="rounded-full bg-white px-3 py-1 text-[#8b6422]">
+       | ^^^^^^^^^^^^^^^^^^^^^^
+  1424 |                         {challenge.durationDays}일 챌린지
+  1425 |                       </span>
+  1426 |                       <span className="rounded-full bg-white px-3 py-1 text-[#8b6422]">
+
+Parsing ecmascript source code failed
+
+Import traces:
+  Client Component Browser:
+    ./src/app/page.tsx [Client Component Browser]
+    ./src/app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/page.tsx [Client Component SSR]
+    ./src/app/page.tsx [Server Component] 
+[browser] ./src/app/page.tsx:1422:30
+Expected '</', got 'jsx text'
+  1420 |                       </>
+  1421 |                     ) : null}
+> 1422 |                       </span>
+       |                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 1423 |                       <span className="rounded-full bg-white px-3 py-1 text-[#8b6422]">
+       | ^^^^^^^^^^^^^^^^^^^^^^
+  1424 |                         {challenge.durationDays}일 챌린지
+  1425 |                       </span>
+  1426 |                       <span className="rounded-full bg-white px-3 py-1 text-[#8b6422]">
+
+Parsing ecmascript source code failed
+
+Import traces:
+  Client Component Browser:
+    ./src/app/page.tsx [Client Component Browser]
+    ./src/app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/page.tsx [Client Component SSR]
+    ./src/app/page.tsx [Server Component] 
+Persisting failed: Unable to write SST file 00002511.sst
+
+Caused by:
+    지정된 경로를 찾을 수 없습니다. (os error 3)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Persisting failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Persisting failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Persisting failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Persisting failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Persisting failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Persisting failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Persisting failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Persisting failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+⨯ Error: ENOENT: no such file or directory, open 'C:\Users\82102\Desktop\Coding\our_little_earth\.next\dev\server\app\api\daily-mission\[__metadata_id__]\route\app-paths-manifest.json'
+    at ignore-listed frames {
+  errno: -4058,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: 'C:\\Users\\82102\\Desktop\\Coding\\our_little_earth\\.next\\dev\\server\\app\\api\\daily-mission\\[__metadata_id__]\\route\\app-paths-manifest.json'
+}
+⨯ Error: ENOENT: no such file or directory, open 'C:\Users\82102\Desktop\Coding\our_little_earth\.next\dev\server\pages\_app\build-manifest.json'
+    at ignore-listed frames {
+  errno: -4058,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: 'C:\\Users\\82102\\Desktop\\Coding\\our_little_earth\\.next\\dev\\server\\pages\\_app\\build-manifest.json'
+}
+Error: ENOENT: no such file or directory, open 'C:\Users\82102\Desktop\Coding\our_little_earth\.next\dev\server\app\api\daily-mission\[__metadata_id__]\route\app-paths-manifest.json'
+    at ignore-listed frames {
+  errno: -4058,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: 'C:\\Users\\82102\\Desktop\\Coding\\our_little_earth\\.next\\dev\\server\\app\\api\\daily-mission\\[__metadata_id__]\\route\\app-paths-manifest.json'
+}
+⨯ Error: ENOENT: no such file or directory, open 'C:\Users\82102\Desktop\Coding\our_little_earth\.next\dev\server\pages\_app\build-manifest.json'
+    at ignore-listed frames {
+  errno: -4058,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: 'C:\\Users\\82102\\Desktop\\Coding\\our_little_earth\\.next\\dev\\server\\pages\\_app\\build-manifest.json'
+}
+Error: ENOENT: no such file or directory, open 'C:\Users\82102\Desktop\Coding\our_little_earth\.next\dev\server\pages\_app\build-manifest.json'
+    at ignore-listed frames {
+  errno: -4058,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: 'C:\\Users\\82102\\Desktop\\Coding\\our_little_earth\\.next\\dev\\server\\pages\\_app\\build-manifest.json'
+}
+Persisting failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Persisting failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Persisting failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Persisting failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Persisting failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Persisting failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Persisting failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Persisting failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Persisting failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Persisting failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Persisting failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+⨯ Error: ENOENT: no such file or directory, open 'C:\Users\82102\Desktop\Coding\our_little_earth\.next\dev\server\app\api\daily-mission\[__metadata_id__]\route\app-paths-manifest.json'
+    at ignore-listed frames {
+  errno: -4058,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: 'C:\\Users\\82102\\Desktop\\Coding\\our_little_earth\\.next\\dev\\server\\app\\api\\daily-mission\\[__metadata_id__]\\route\\app-paths-manifest.json'
+}
+⨯ Error: ENOENT: no such file or directory, open 'C:\Users\82102\Desktop\Coding\our_little_earth\.next\dev\server\pages\_app\build-manifest.json'
+    at ignore-listed frames {
+  errno: -4058,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: 'C:\\Users\\82102\\Desktop\\Coding\\our_little_earth\\.next\\dev\\server\\pages\\_app\\build-manifest.json'
+}
+Error: ENOENT: no such file or directory, open 'C:\Users\82102\Desktop\Coding\our_little_earth\.next\dev\server\app\api\daily-mission\[__metadata_id__]\route\app-paths-manifest.json'
+    at ignore-listed frames {
+  errno: -4058,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: 'C:\\Users\\82102\\Desktop\\Coding\\our_little_earth\\.next\\dev\\server\\app\\api\\daily-mission\\[__metadata_id__]\\route\\app-paths-manifest.json'
+}
+⨯ Error: ENOENT: no such file or directory, open 'C:\Users\82102\Desktop\Coding\our_little_earth\.next\dev\server\pages\_app\build-manifest.json'
+    at ignore-listed frames {
+  errno: -4058,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: 'C:\\Users\\82102\\Desktop\\Coding\\our_little_earth\\.next\\dev\\server\\pages\\_app\\build-manifest.json'
+}
+Error: ENOENT: no such file or directory, open 'C:\Users\82102\Desktop\Coding\our_little_earth\.next\dev\server\pages\_app\build-manifest.json'
+    at ignore-listed frames {
+  errno: -4058,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: 'C:\\Users\\82102\\Desktop\\Coding\\our_little_earth\\.next\\dev\\server\\pages\\_app\\build-manifest.json'
+}
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Persisting failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Persisting failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Persisting failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Persisting failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Persisting failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Persisting failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Persisting failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+⨯ Error: ENOENT: no such file or directory, open 'C:\Users\82102\Desktop\Coding\our_little_earth\.next\dev\server\app\api\daily-mission\[__metadata_id__]\route\app-paths-manifest.json'
+    at ignore-listed frames {
+  errno: -4058,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: 'C:\\Users\\82102\\Desktop\\Coding\\our_little_earth\\.next\\dev\\server\\app\\api\\daily-mission\\[__metadata_id__]\\route\\app-paths-manifest.json'
+}
+⨯ Error: ENOENT: no such file or directory, open 'C:\Users\82102\Desktop\Coding\our_little_earth\.next\dev\server\pages\_app\build-manifest.json'
+    at ignore-listed frames {
+  errno: -4058,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: 'C:\\Users\\82102\\Desktop\\Coding\\our_little_earth\\.next\\dev\\server\\pages\\_app\\build-manifest.json'
+}
+Error: ENOENT: no such file or directory, open 'C:\Users\82102\Desktop\Coding\our_little_earth\.next\dev\server\app\api\daily-mission\[__metadata_id__]\route\app-paths-manifest.json'
+    at ignore-listed frames {
+  errno: -4058,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: 'C:\\Users\\82102\\Desktop\\Coding\\our_little_earth\\.next\\dev\\server\\app\\api\\daily-mission\\[__metadata_id__]\\route\\app-paths-manifest.json'
+}
+⨯ Error: ENOENT: no such file or directory, open 'C:\Users\82102\Desktop\Coding\our_little_earth\.next\dev\server\pages\_app\build-manifest.json'
+    at ignore-listed frames {
+  errno: -4058,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: 'C:\\Users\\82102\\Desktop\\Coding\\our_little_earth\\.next\\dev\\server\\pages\\_app\\build-manifest.json'
+}
+Error: ENOENT: no such file or directory, open 'C:\Users\82102\Desktop\Coding\our_little_earth\.next\dev\server\pages\_app\build-manifest.json'
+    at ignore-listed frames {
+  errno: -4058,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: 'C:\\Users\\82102\\Desktop\\Coding\\our_little_earth\\.next\\dev\\server\\pages\\_app\\build-manifest.json'
+}
+Persisting failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+⨯ Error: ENOENT: no such file or directory, open 'C:\Users\82102\Desktop\Coding\our_little_earth\.next\dev\server\app\page\build-manifest.json'
+    at ignore-listed frames {
+  errno: -4058,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: 'C:\\Users\\82102\\Desktop\\Coding\\our_little_earth\\.next\\dev\\server\\app\\page\\build-manifest.json'
+}
+⨯ Error: ENOENT: no such file or directory, open 'C:\Users\82102\Desktop\Coding\our_little_earth\.next\dev\server\pages\_app\build-manifest.json'
+    at ignore-listed frames {
+  errno: -4058,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: 'C:\\Users\\82102\\Desktop\\Coding\\our_little_earth\\.next\\dev\\server\\pages\\_app\\build-manifest.json'
+}
+Error: ENOENT: no such file or directory, open 'C:\Users\82102\Desktop\Coding\our_little_earth\.next\dev\server\app\page\build-manifest.json'
+    at ignore-listed frames {
+  errno: -4058,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: 'C:\\Users\\82102\\Desktop\\Coding\\our_little_earth\\.next\\dev\\server\\app\\page\\build-manifest.json'
+}
+⨯ Error: ENOENT: no such file or directory, open 'C:\Users\82102\Desktop\Coding\our_little_earth\.next\dev\server\pages\_app\build-manifest.json'
+    at ignore-listed frames {
+  errno: -4058,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: 'C:\\Users\\82102\\Desktop\\Coding\\our_little_earth\\.next\\dev\\server\\pages\\_app\\build-manifest.json'
+}
+Error: ENOENT: no such file or directory, open 'C:\Users\82102\Desktop\Coding\our_little_earth\.next\dev\server\pages\_app\build-manifest.json'
+    at ignore-listed frames {
+  errno: -4058,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: 'C:\\Users\\82102\\Desktop\\Coding\\our_little_earth\\.next\\dev\\server\\pages\\_app\\build-manifest.json'
+}
+Persisting failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Persisting failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Persisting failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)
+⨯ Error: ENOENT: no such file or directory, open 'C:\Users\82102\Desktop\Coding\our_little_earth\.next\dev\server\app\api\daily-mission\[__metadata_id__]\route\app-paths-manifest.json'
+    at ignore-listed frames {
+  errno: -4058,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: 'C:\\Users\\82102\\Desktop\\Coding\\our_little_earth\\.next\\dev\\server\\app\\api\\daily-mission\\[__metadata_id__]\\route\\app-paths-manifest.json'
+}
+⨯ Error: ENOENT: no such file or directory, open 'C:\Users\82102\Desktop\Coding\our_little_earth\.next\dev\server\pages\_app\build-manifest.json'
+    at ignore-listed frames {
+  errno: -4058,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: 'C:\\Users\\82102\\Desktop\\Coding\\our_little_earth\\.next\\dev\\server\\pages\\_app\\build-manifest.json'
+}
+Error: ENOENT: no such file or directory, open 'C:\Users\82102\Desktop\Coding\our_little_earth\.next\dev\server\app\api\daily-mission\[__metadata_id__]\route\app-paths-manifest.json'
+    at ignore-listed frames {
+  errno: -4058,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: 'C:\\Users\\82102\\Desktop\\Coding\\our_little_earth\\.next\\dev\\server\\app\\api\\daily-mission\\[__metadata_id__]\\route\\app-paths-manifest.json'
+}
+⨯ Error: ENOENT: no such file or directory, open 'C:\Users\82102\Desktop\Coding\our_little_earth\.next\dev\server\pages\_app\build-manifest.json'
+    at ignore-listed frames {
+  errno: -4058,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: 'C:\\Users\\82102\\Desktop\\Coding\\our_little_earth\\.next\\dev\\server\\pages\\_app\\build-manifest.json'
+}
+Error: ENOENT: no such file or directory, open 'C:\Users\82102\Desktop\Coding\our_little_earth\.next\dev\server\pages\_app\build-manifest.json'
+    at ignore-listed frames {
+  errno: -4058,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: 'C:\\Users\\82102\\Desktop\\Coding\\our_little_earth\\.next\\dev\\server\\pages\\_app\\build-manifest.json'
+}
+Compaction failed: Another write batch or compaction is already active (Only a single write operations is allowed at a time)

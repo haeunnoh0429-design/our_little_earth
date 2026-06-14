@@ -87,7 +87,7 @@ export function loadKakaoMap() {
     const script = document.createElement("script");
     script.id = KAKAO_SDK_ID;
     script.async = true;
-    script.src = `https://dapi.kakao.com/v2/maps/sdk.js?appkey=${appKey}&autoload=false`;
+    script.src = `https://dapi.kakao.com/v2/maps/sdk.js?appkey=${appKey}&autoload=false&libraries=services`;
     script.addEventListener("load", initialize, { once: true });
     script.addEventListener("error", handleScriptError, { once: true });
 

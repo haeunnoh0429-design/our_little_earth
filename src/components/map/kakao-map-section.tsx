@@ -2,19 +2,16 @@
 
 import { useEffect, useRef, useState } from "react";
 import { loadKakaoMap } from "@/lib/load-kakao-map";
+import { mockCafes } from "@/lib/mock-cafes";
 
 const DEFAULT_CENTER = {
-  lat: 37.5665,
-  lng: 126.978,
+  lat: 37.5301,
+  lng: 127.1238,
 };
 
 type MapStatus = "loading" | "ready" | "error";
-type LocationStatus =
-  | "idle"
-  | "loading"
-  | "granted"
-  | "denied"
-  | "unsupported";
+type LocationStatus = "idle" | "loading" | "granted" | "denied" | "unsupported";
+type CafeStatus = "idle" | "loading" | "ready" | "error";
 
 type Coordinates = {
   lat: number;
@@ -25,12 +22,15 @@ export function KakaoMapSection() {
   const mapRef = useRef<HTMLDivElement | null>(null);
   const kakaoRef = useRef<typeof window.kakao | null>(null);
   const mapInstanceRef = useRef<kakao.maps.Map | null>(null);
-  const markerRef = useRef<kakao.maps.Marker | null>(null);
+  const currentLocationMarkerRef = useRef<kakao.maps.Marker | null>(null);
+  const cafeMarkersRef = useRef<kakao.maps.Marker[]>([]);
 
   const [mapStatus, setMapStatus] = useState<MapStatus>("loading");
   const [locationStatus, setLocationStatus] = useState<LocationStatus>("idle");
+  const [cafeStatus, setCafeStatus] = useState<CafeStatus>("idle");
   const [errorMessage, setErrorMessage] = useState("");
   const [coordinates, setCoordinates] = useState<Coordinates | null>(null);
+  const [cafeCount, setCafeCount] = useState(0);
 
   const origin =
     typeof window === "undefined" ? "unknown" : window.location.origin;
@@ -59,12 +59,14 @@ export function KakaoMapSection() {
 
         const map = new kakao.maps.Map(mapRef.current, {
           center: defaultCenter,
-          level: 4,
+          level: 5,
         });
 
         map.relayout();
         mapInstanceRef.current = map;
         setMapStatus("ready");
+
+        void loadCafes();
       } catch (error) {
         if (!isMounted) {
           return;
@@ -74,7 +76,80 @@ export function KakaoMapSection() {
         setErrorMessage(
           error instanceof Error
             ? error.message
-            : "알 수 없는 카카오 맵 로딩 오류가 발생했어요.",
+            : "알 수 없는 카카오맵 로딩 오류가 발생했어요.",
+        );
+      }
+    }
+
+    async function loadCafes() {
+      const kakao = kakaoRef.current;
+      const map = mapInstanceRef.current;
+
+      if (!kakao || !map) {
+        return;
+      }
+
+      setCafeStatus("loading");
+
+      try {
+        const geocoder = new kakao.maps.services.Geocoder();
+
+        cafeMarkersRef.current.forEach((marker) => marker.setMap(null));
+        cafeMarkersRef.current = [];
+
+        const results = await Promise.all(
+          mockCafes.map(
+            (cafe) =>
+              new Promise<kakao.maps.Marker | null>((resolve) => {
+                geocoder.addressSearch(cafe.address, (result, status) => {
+                  if (
+                    status !== kakao.maps.services.Status.OK ||
+                    result.length === 0
+                  ) {
+                    resolve(null);
+                    return;
+                  }
+
+                  const position = new kakao.maps.LatLng(
+                    Number(result[0].y),
+                    Number(result[0].x),
+                  );
+
+                  const marker = new kakao.maps.Marker({
+                    map,
+                    position,
+                  });
+
+                  const infoWindow = new kakao.maps.InfoWindow({
+                    content: `
+                      <div style="padding:10px 12px; min-width:180px; font-size:12px; line-height:1.5;">
+                        <strong>${cafe.name}</strong><br />
+                        <span>${cafe.address}</span>
+                      </div>
+                    `,
+                  });
+
+                  kakao.maps.event.addListener(marker, "click", () => {
+                    infoWindow.open(map, marker);
+                  });
+
+                  resolve(marker);
+                });
+              }),
+          ),
+        );
+
+        cafeMarkersRef.current = results.filter(
+          (marker): marker is kakao.maps.Marker => marker !== null,
+        );
+        setCafeCount(cafeMarkersRef.current.length);
+        setCafeStatus("ready");
+      } catch (error) {
+        setCafeStatus("error");
+        setErrorMessage(
+          error instanceof Error
+            ? error.message
+            : "카페 위치 데이터를 불러오는 중 오류가 발생했어요.",
         );
       }
     }
@@ -83,6 +158,8 @@ export function KakaoMapSection() {
 
     return () => {
       isMounted = false;
+      currentLocationMarkerRef.current?.setMap(null);
+      cafeMarkersRef.current.forEach((marker) => marker.setMap(null));
     };
   }, []);
 
@@ -100,6 +177,7 @@ export function KakaoMapSection() {
     }
 
     setLocationStatus("loading");
+    setErrorMessage("");
 
     navigator.geolocation.getCurrentPosition(
       (position) => {
@@ -112,22 +190,18 @@ export function KakaoMapSection() {
           nextCoordinates.lng,
         );
 
-        markerRef.current?.setMap(null);
-        markerRef.current = new kakao.maps.Marker({
+        currentLocationMarkerRef.current?.setMap(null);
+        currentLocationMarkerRef.current = new kakao.maps.Marker({
           map,
           position: currentCenter,
         });
 
         map.setCenter(currentCenter);
+        map.setLevel(4);
         setCoordinates(nextCoordinates);
         setLocationStatus("granted");
       },
       (error) => {
-        if (error.code === error.PERMISSION_DENIED) {
-          setLocationStatus("denied");
-          return;
-        }
-
         setLocationStatus("denied");
         setErrorMessage(
           `현재 위치를 가져오지 못했어요. 코드: ${error.code}, 메시지: ${error.message}`,
@@ -147,11 +221,10 @@ export function KakaoMapSection() {
         <div>
           <p className="text-xs font-bold text-[#6f806d]">지도</p>
           <h2 className="mt-1 text-[1.7rem] font-black tracking-[-0.04em] text-[#24382a]">
-            우리 동네 친환경 스팟
+            텀블러 사용 가능한 카페
           </h2>
           <p className="mt-2 text-sm leading-6 text-[#6f7c69]">
-            카카오 맵 위에 미션 장소, 줍깅 포인트, 학교 챌린지 위치를 차근차근
-            연결할 수 있어요.
+            현재는 강동구 기준 텀블러 사용 가능 카페 데이터를 지도 위에 표시하고 있어요.
           </p>
         </div>
       </div>
@@ -179,16 +252,35 @@ export function KakaoMapSection() {
       {mapStatus === "ready" ? (
         <div className="mt-3 space-y-3">
           <div className="rounded-[1rem] bg-[#f4f8ee] px-4 py-3 text-sm text-[#5d6f60]">
-            기본 중심 좌표는 서울시청 근처예요. 아래 버튼을 눌러 내 위치로 다시
-            이동해 보세요.
+            기본 중심 좌표는 강동구 근처예요. 아래 버튼을 누르면 현재 위치로 이동하고,
+            카페 마커도 함께 확인할 수 있어요.
           </div>
 
           <button
             onClick={moveToCurrentLocation}
             className="w-full rounded-[1.1rem] bg-[#295c3a] px-4 py-3 text-sm font-black text-white shadow-[0_10px_22px_rgba(41,92,58,0.16)]"
           >
-            내 위치로 이동하기
+            현재 위치로 이동하기
           </button>
+
+          {cafeStatus === "loading" ? (
+            <p className="text-sm text-[#6f7c69]">
+              카페 위치 데이터를 불러오는 중이에요...
+            </p>
+          ) : null}
+
+          {cafeStatus === "ready" ? (
+            <p className="text-sm text-[#2c6540]">
+              지도에 텀블러 사용 가능 카페 {cafeCount}곳을 표시했어요.
+            </p>
+          ) : null}
+
+          {cafeStatus === "error" ? (
+            <div className="rounded-[1rem] bg-[#fff4e8] px-4 py-3 text-sm text-[#8a5830]">
+              <p className="font-bold">카페 위치 데이터를 불러오지 못했어요.</p>
+              <p className="mt-1 break-words">{errorMessage}</p>
+            </div>
+          ) : null}
 
           {locationStatus === "loading" ? (
             <p className="text-sm text-[#6f7c69]">현재 위치를 확인하는 중이에요...</p>
@@ -207,14 +299,8 @@ export function KakaoMapSection() {
             <div className="rounded-[1rem] bg-[#fff4e8] px-4 py-3 text-sm text-[#8a5830]">
               <p className="font-bold">현재 위치를 가져오지 못했어요.</p>
               <p className="mt-1">
-                브라우저 위치 권한이 차단되어 있거나 정확한 위치를 아직 받지 못한
-                상태예요.
+                브라우저 위치 권한이 차단되었거나, 정확한 위치를 아직 받지 못한 상태예요.
               </p>
-              <p className="mt-1">
-                주소창 왼쪽의 자물쇠 아이콘에서 위치 권한을 허용한 뒤 다시 눌러
-                주세요.
-              </p>
-              {errorMessage ? <p className="mt-2 break-words">{errorMessage}</p> : null}
             </div>
           ) : null}
 
