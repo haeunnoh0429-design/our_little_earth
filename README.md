@@ -52,7 +52,7 @@ copy .env.local.example .env.local
 ## Trash bin map API setup
 
 1. Use the public data endpoint `15149274/v1/uddi:e57109ed-829a-487a-8e13-da157116f1cb`.
-2. Create or copy your 공공데이터포털 service key.
+2. Create or copy your public data portal service key.
 3. Put it in `ODCLOUD_TRASH_BIN_API_KEY` inside `.env.local`.
 4. The app calls `GET /api/trash-bins` on the server and renders markers on Kakao Map.
 

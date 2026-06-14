@@ -24,29 +24,36 @@ function pickString(record: RawTrashBinRecord, keys: string[]) {
   return "";
 }
 
+function pickIdentifier(record: RawTrashBinRecord, keys: string[], fallback: string) {
+  for (const key of keys) {
+    const value = record[key];
+
+    if (typeof value === "string" && value.trim() !== "") {
+      return value.trim();
+    }
+
+    if (typeof value === "number" && Number.isFinite(value)) {
+      return String(value);
+    }
+  }
+
+  return fallback;
+}
+
 function normalizeTrashBin(record: RawTrashBinRecord, index: number): TrashBin {
-  const district = pickString(record, ["자치구명", "자치구"]);
+  const district = pickString(record, ["자치구명"]);
   const roadAddress = pickString(record, [
     "설치위치(도로명 주소)",
     "설치위치",
-    "도로명주소",
     "주소",
   ]);
-  const locationType = pickString(record, [
-    "설치 장소 유형",
-    "설치장소유형",
-    "설치장소",
-  ]);
-  const binType = pickString(record, ["쓰레기통 형태", "쓰레기통형태"]);
-  const wasteType = pickString(record, [
-    "수거 쓰레기 종류",
-    "수거쓰레기종류",
-    "수거 종류",
-  ]);
-  const sequence = pickString(record, ["연번", "순번", "번호"]);
+  const locationType = pickString(record, ["설치 장소 유형"]);
+  const binType = pickString(record, ["쓰레기통 형태"]);
+  const wasteType = pickString(record, ["수거 쓰레기 종류"]);
+  const sequence = pickIdentifier(record, ["연번", "순번", "번호"], `trash-bin-${index + 1}`);
 
   return {
-    id: sequence || `trash-bin-${index + 1}`,
+    id: sequence,
     district,
     roadAddress,
     locationType,

@@ -4,6 +4,18 @@ declare global {
       constructor(latitude: number, longitude: number);
     }
 
+    class Size {
+      constructor(width: number, height: number);
+    }
+
+    class Point {
+      constructor(x: number, y: number);
+    }
+
+    class MarkerImage {
+      constructor(src: string, size: Size, options?: MarkerImageOptions);
+    }
+
     class Map {
       constructor(container: HTMLElement, options: MapOptions);
       setCenter(latlng: LatLng): void;
@@ -58,8 +70,13 @@ declare global {
       level: number;
     }
 
+    interface MarkerImageOptions {
+      offset?: Point;
+    }
+
     interface MarkerOptions {
       position: LatLng;
+      image?: MarkerImage;
       map?: Map;
     }
 
