@@ -1,10 +1,15 @@
-"use client";
+﻿"use client";
 
 import Image from "next/image";
-import { type FormEvent, useEffect, useMemo, useState } from "react";
+import { type FormEvent, useEffect, useEffectEvent, useMemo, useState } from "react";
 import { KakaoMapSection } from "@/components/map/kakao-map-section";
-import { mockDailyMissions } from "@/lib/mock-daily-missions";
 import type { DailyMission } from "@/types/mission";
+
+type MissionApiResponse = {
+  mission: DailyMission;
+  source: "ai" | "mock";
+  reason: string;
+};
 
 type TabId = "home" | "map" | "mission" | "challenge" | "ranking" | "mypage";
 type AuthMode = "login" | "signup";
@@ -47,13 +52,23 @@ type ChallengeDayProof = {
   review: string;
   submitted: boolean;
   open: boolean;
+  latitude: number | null;
+  longitude: number | null;
+  locationStatus: "idle" | "loading" | "granted" | "denied" | "unsupported";
+  errorMessage: string;
 };
+
+type ChallengeProofMethod = "photo" | "gps" | "review";
+type ChallengeDifficulty = "easy" | "medium" | "hard";
 
 type Challenge = {
   id: string;
   title: string;
   creator: string;
   description: string;
+  location: string;
+  difficulty: ChallengeDifficulty;
+  proofMethods: ChallengeProofMethod[];
   participants: number;
   reward: number;
   durationDays: number;
@@ -67,8 +82,26 @@ type Challenge = {
 type ChallengeDraft = {
   title: string;
   description: string;
+  location: string;
+  difficulty: ChallengeDifficulty;
+  proofMethods: ChallengeProofMethod[];
   durationDays: string;
-  reward: string;
+};
+
+type MissionVerificationState = {
+  photoName: string;
+  latitude: number | null;
+  longitude: number | null;
+  locationStatus: "idle" | "loading" | "granted" | "denied" | "unsupported";
+  errorMessage: string;
+};
+
+type DailyCheckinDraft = {
+  date: string;
+  showerMinutes: string;
+  petBottleCount: string;
+  carMinutes: string;
+  responded: boolean;
 };
 
 type UserProfile = {
@@ -96,7 +129,6 @@ const TAB_ITEMS: Array<{ id: Exclude<TabId, "home">; label: string }> = [
 const gradeOptions = [1, 2, 3];
 const classOptions = Array.from({ length: 10 }, (_, index) => index + 1);
 const registeredUsersStorageKey = "ole-registered-users";
-const maxDailyMissionCount = 3;
 const signupQuestions: SignupQuestion[] = [
   {
     key: "transport",
@@ -154,6 +186,18 @@ const signupQuestions: SignupQuestion[] = [
   },
 ];
 
+const challengeDifficultyLabels: Record<ChallengeDifficulty, string> = {
+  easy: "쉬움",
+  medium: "보통",
+  hard: "어려움",
+};
+
+const challengeProofMethodLabels: Record<ChallengeProofMethod, string> = {
+  photo: "사진",
+  gps: "GPS",
+  review: "후기",
+};
+
 function createProofDays(durationDays: number): ChallengeDayProof[] {
   return Array.from({ length: durationDays }, (_, index) => ({
     day: index + 1,
@@ -161,7 +205,60 @@ function createProofDays(durationDays: number): ChallengeDayProof[] {
     review: "",
     submitted: false,
     open: false,
+    latitude: null,
+    longitude: null,
+    locationStatus: "idle",
+    errorMessage: "",
   }));
+}
+
+function createEmptyMissionVerification(): MissionVerificationState {
+  return {
+    photoName: "",
+    latitude: null,
+    longitude: null,
+    locationStatus: "idle",
+    errorMessage: "",
+  };
+}
+
+function requiresGpsProof(mission: DailyMission | null) {
+  return mission?.space === "outdoor";
+}
+
+function getTodayKey() {
+  const today = new Date();
+  const year = today.getFullYear();
+  const month = String(today.getMonth() + 1).padStart(2, "0");
+  const date = String(today.getDate()).padStart(2, "0");
+
+  return `${year}-${month}-${date}`;
+}
+
+function getDayDifference(from: string, to: string) {
+  const fromDate = new Date(`${from}T00:00:00`);
+  const toDate = new Date(`${to}T00:00:00`);
+  const millisecondsPerDay = 1000 * 60 * 60 * 24;
+
+  return Math.max(0, Math.floor((toDate.getTime() - fromDate.getTime()) / millisecondsPerDay));
+}
+
+function calculateCheckinDebt(draft: Pick<DailyCheckinDraft, "showerMinutes" | "petBottleCount" | "carMinutes">) {
+  const showerMinutes = Number(draft.showerMinutes) || 0;
+  const petBottleCount = Number(draft.petBottleCount) || 0;
+  const carMinutes = Number(draft.carMinutes) || 0;
+
+  return Math.max(0, showerMinutes - 10) * 3 + petBottleCount * 5 + carMinutes * 2;
+}
+
+function createEmptyDailyCheckinDraft(date = getTodayKey()): DailyCheckinDraft {
+  return {
+    date,
+    showerMinutes: "",
+    petBottleCount: "",
+    carMinutes: "",
+    responded: false,
+  };
 }
 
 function createFreshChallengeState(challenge: Challenge): Challenge {
@@ -180,6 +277,9 @@ const initialChallenges: Challenge[] = [
     title: "우리 학교 플로깅 챌린지",
     creator: "2학년 3반 박지우",
     description: "등교나 하교 길에 쓰레기 3개 이상 줍고 사진과 후기를 남기는 챌린지예요.",
+    location: "학교 주변과 등하굣길",
+    difficulty: "easy",
+    proofMethods: ["photo", "review"],
     participants: 18,
     reward: 120,
     durationDays: 1,
@@ -197,6 +297,9 @@ const initialChallenges: Challenge[] = [
     title: "일주일 물 절약 챌린지",
     creator: "3학년 2반 김하늘",
     description: "7일 동안 매일 물 절약 사진과 후기를 인증하면서 습관을 만드는 챌린지예요.",
+    location: "집과 학교 화장실",
+    difficulty: "medium",
+    proofMethods: ["photo", "review"],
     participants: 24,
     reward: 150,
     durationDays: 7,
@@ -208,13 +311,13 @@ const initialChallenges: Challenge[] = [
     completed: false,
     progressOpen: false,
     proofDays: [
-      { day: 1, photoName: "day1-water.jpg", review: "양치컵을 사용했어요.", submitted: true, open: false },
-      { day: 2, photoName: "day2-water.jpg", review: "샤워 시간을 5분으로 줄였어요.", submitted: true, open: false },
-      { day: 3, photoName: "", review: "", submitted: false, open: true },
-      { day: 4, photoName: "", review: "", submitted: false, open: false },
-      { day: 5, photoName: "", review: "", submitted: false, open: false },
-      { day: 6, photoName: "", review: "", submitted: false, open: false },
-      { day: 7, photoName: "", review: "", submitted: false, open: false },
+      { day: 1, photoName: "day1-water.jpg", review: "양치컵을 사용했어요.", submitted: true, open: false, latitude: null, longitude: null, locationStatus: "idle", errorMessage: "" },
+      { day: 2, photoName: "day2-water.jpg", review: "샤워 시간을 5분으로 줄였어요.", submitted: true, open: false, latitude: null, longitude: null, locationStatus: "idle", errorMessage: "" },
+      { day: 3, photoName: "", review: "", submitted: false, open: true, latitude: null, longitude: null, locationStatus: "idle", errorMessage: "" },
+      { day: 4, photoName: "", review: "", submitted: false, open: false, latitude: null, longitude: null, locationStatus: "idle", errorMessage: "" },
+      { day: 5, photoName: "", review: "", submitted: false, open: false, latitude: null, longitude: null, locationStatus: "idle", errorMessage: "" },
+      { day: 6, photoName: "", review: "", submitted: false, open: false, latitude: null, longitude: null, locationStatus: "idle", errorMessage: "" },
+      { day: 7, photoName: "", review: "", submitted: false, open: false, latitude: null, longitude: null, locationStatus: "idle", errorMessage: "" },
     ],
   },
   {
@@ -222,6 +325,9 @@ const initialChallenges: Challenge[] = [
     title: "우리 반 분리배출 인증전",
     creator: "1학년 5반 최서연",
     description: "분리배출을 올바르게 한 사진과 짧은 후기를 올려 함께 점수를 쌓아요.",
+    location: "교실, 집, 분리수거장",
+    difficulty: "easy",
+    proofMethods: ["photo", "review"],
     participants: 11,
     reward: 90,
     durationDays: 1,
@@ -351,7 +457,7 @@ function readStoredMission(userKey: string | null) {
     const parsed = JSON.parse(savedMission) as DailyMission | DailyMission[];
 
     if (Array.isArray(parsed)) {
-      return parsed.slice(0, maxDailyMissionCount);
+      return parsed.slice(0, 1);
     }
 
     return parsed ? [parsed] : [];
@@ -377,6 +483,44 @@ function readStoredCompletedMissionIds(userKey: string | null) {
     return JSON.parse(savedCompletedMissionIds) as string[];
   } catch {
     return [] as string[];
+  }
+}
+
+function readStoredCheckinDate(userKey: string | null) {
+  if (typeof window === "undefined" || !userKey) {
+    return "";
+  }
+
+  return window.localStorage.getItem(`ole-daily-checkin-${userKey}`) ?? "";
+}
+
+function readStoredDailyCheckinDraft(userKey: string | null) {
+  if (typeof window === "undefined" || !userKey) {
+    return createEmptyDailyCheckinDraft();
+  }
+
+  const savedDraft = window.localStorage.getItem(`ole-daily-checkin-draft-${userKey}`);
+
+  if (!savedDraft) {
+    return createEmptyDailyCheckinDraft();
+  }
+
+  try {
+    const parsed = JSON.parse(savedDraft) as Partial<DailyCheckinDraft>;
+
+    if (
+      typeof parsed.date !== "string" ||
+      typeof parsed.showerMinutes !== "string" ||
+      typeof parsed.petBottleCount !== "string" ||
+      typeof parsed.carMinutes !== "string" ||
+      typeof parsed.responded !== "boolean"
+    ) {
+      return createEmptyDailyCheckinDraft();
+    }
+
+    return parsed as DailyCheckinDraft;
+  } catch {
+    return createEmptyDailyCheckinDraft();
   }
 }
 
@@ -537,18 +681,28 @@ function AuthScreen({
 
 function ProofDayCard({
   dayProof,
+  requiredProofMethods,
   onOpen,
   onPhotoChange,
+  onVerifyLocation,
   onReviewChange,
   onSubmit,
 }: {
   dayProof: ChallengeDayProof;
+  requiredProofMethods: ChallengeProofMethod[];
   onOpen: () => void;
   onPhotoChange: (photoName: string) => void;
+  onVerifyLocation: () => void;
   onReviewChange: (review: string) => void;
   onSubmit: () => void;
 }) {
-  const canSubmit = dayProof.photoName.trim() !== "" && dayProof.review.trim() !== "";
+  const requiresPhoto = requiredProofMethods.includes("photo");
+  const requiresGps = requiredProofMethods.includes("gps");
+  const requiresReview = requiredProofMethods.includes("review");
+  const canSubmit =
+    (!requiresPhoto || dayProof.photoName.trim() !== "") &&
+    (!requiresGps || dayProof.locationStatus === "granted") &&
+    (!requiresReview || dayProof.review.trim() !== "");
 
   return (
     <div className="rounded-[1.2rem] bg-white p-4">
@@ -576,32 +730,73 @@ function ProofDayCard({
 
       {dayProof.submitted ? (
         <div className="mt-3 text-sm text-[#5d725e]">
-          <p>사진: {dayProof.photoName}</p>
-          <p className="mt-1">후기: {dayProof.review}</p>
+          {requiresPhoto ? <p>사진: {dayProof.photoName}</p> : null}
+          {requiresGps && dayProof.latitude !== null && dayProof.longitude !== null ? (
+            <p className="mt-1">
+              위치 인증 완료: 위도 {dayProof.latitude.toFixed(5)}, 경도 {dayProof.longitude.toFixed(5)}
+            </p>
+          ) : null}
+          {requiresReview ? <p className="mt-1">후기: {dayProof.review}</p> : null}
         </div>
       ) : null}
 
       {dayProof.open && !dayProof.submitted ? (
         <div className="mt-4 rounded-[1.2rem] bg-[#f8faf2] p-4">
-          <label className="block">
-            <span className="mb-2 block text-xs font-black text-[#47614d]">사진 올리기</span>
-            <input
-              type="file"
-              accept="image/*"
-              onChange={(event) => onPhotoChange(event.target.files?.[0]?.name ?? "")}
-              className="block w-full text-sm text-[#47614d] file:mr-3 file:rounded-full file:border-0 file:bg-[#e8f4dc] file:px-3 file:py-2 file:text-xs file:font-black file:text-[#2c6a41]"
-            />
-          </label>
+          {requiresPhoto ? (
+            <label className="block">
+              <span className="mb-2 block text-xs font-black text-[#47614d]">사진 올리기</span>
+              <input
+                type="file"
+                accept="image/*"
+                onChange={(event) => onPhotoChange(event.target.files?.[0]?.name ?? "")}
+                className="block w-full text-sm text-[#47614d] file:mr-3 file:rounded-full file:border-0 file:bg-[#e8f4dc] file:px-3 file:py-2 file:text-xs file:font-black file:text-[#2c6a41]"
+              />
+            </label>
+          ) : null}
 
-          <label className="mt-4 block">
-            <span className="mb-2 block text-xs font-black text-[#47614d]">간단한 후기</span>
-            <textarea
-              value={dayProof.review}
-              onChange={(event) => onReviewChange(event.target.value)}
-              placeholder="오늘 실천한 내용을 짧게 적어 보세요."
-              className="min-h-24 w-full rounded-2xl border border-[#d5e5c9] bg-white px-4 py-3 text-sm text-[#1f3828] outline-none transition placeholder:text-[#8ca08f] focus:border-[#69a85c] focus:ring-4 focus:ring-[#dff1d4]"
-            />
-          </label>
+          {requiresGps ? (
+            <div className="mt-4 rounded-[1rem] bg-white p-4">
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <p className="text-xs font-black text-[#47614d]">GPS 인증</p>
+                  <p className="mt-1 text-xs leading-5 text-[#6c816f]">
+                    현재 위치를 확인해 챌린지 장소에서 실천했는지 인증해요.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={onVerifyLocation}
+                  className="rounded-full bg-[#e8f4dc] px-3 py-2 text-xs font-black text-[#2c6a41]"
+                >
+                  {dayProof.locationStatus === "loading" ? "확인 중..." : "현재 위치 인증"}
+                </button>
+              </div>
+
+              {dayProof.locationStatus === "granted" &&
+              dayProof.latitude !== null &&
+              dayProof.longitude !== null ? (
+                <p className="mt-3 text-sm text-[#2c6a41]">
+                  위치 인증 완료: 위도 {dayProof.latitude.toFixed(5)}, 경도 {dayProof.longitude.toFixed(5)}
+                </p>
+              ) : null}
+
+              {dayProof.errorMessage ? (
+                <p className="mt-3 text-sm text-[#8a5830]">{dayProof.errorMessage}</p>
+              ) : null}
+            </div>
+          ) : null}
+
+          {requiresReview ? (
+            <label className="mt-4 block">
+              <span className="mb-2 block text-xs font-black text-[#47614d]">간단한 후기</span>
+              <textarea
+                value={dayProof.review}
+                onChange={(event) => onReviewChange(event.target.value)}
+                placeholder="오늘 실천한 내용을 짧게 적어 보세요."
+                className="min-h-24 w-full rounded-2xl border border-[#d5e5c9] bg-white px-4 py-3 text-sm text-[#1f3828] outline-none transition placeholder:text-[#8ca08f] focus:border-[#69a85c] focus:ring-4 focus:ring-[#dff1d4]"
+              />
+            </label>
+          ) : null}
 
           <button
             type="button"
@@ -609,7 +804,7 @@ function ProofDayCard({
             disabled={!canSubmit}
             className="mt-4 w-full rounded-2xl bg-[#2c6a41] px-4 py-3 text-sm font-black text-white disabled:cursor-not-allowed disabled:bg-[#a9bea9]"
           >
-            사진과 후기 제출하고 완료하기
+            인증 제출하고 완료하기
           </button>
         </div>
       ) : null}
@@ -639,9 +834,22 @@ export default function HomePage() {
     const user = readStoredSessionUser();
     return readStoredMission(user ? getIdentityKey(user) : null);
   });
+  const [missionReason, setMissionReason] = useState("");
+  const [isMissionLoading, setIsMissionLoading] = useState(false);
+  const [missionVerification, setMissionVerification] = useState<MissionVerificationState>(
+    createEmptyMissionVerification,
+  );
   const [completedMissionIds, setCompletedMissionIds] = useState<string[]>(() => {
     const user = readStoredSessionUser();
     return readStoredCompletedMissionIds(user ? getIdentityKey(user) : null);
+  });
+  const [dailyCheckinDraft, setDailyCheckinDraft] = useState<DailyCheckinDraft>(() => {
+    const user = readStoredSessionUser();
+    return readStoredDailyCheckinDraft(user ? getIdentityKey(user) : null);
+  });
+  const [lastCheckinDate, setLastCheckinDate] = useState(() => {
+    const user = readStoredSessionUser();
+    return readStoredCheckinDate(user ? getIdentityKey(user) : null);
   });
   const [challenges, setChallenges] = useState<Challenge[]>(() =>
     initialChallenges.map(createFreshChallengeState),
@@ -649,9 +857,16 @@ export default function HomePage() {
   const [challengeDraft, setChallengeDraft] = useState<ChallengeDraft>({
     title: "",
     description: "",
+    location: "",
+    difficulty: "medium",
+    proofMethods: ["photo", "review"],
     durationDays: "",
-    reward: "",
   });
+  const [challengeRewardSuggestion, setChallengeRewardSuggestion] = useState<number | null>(null);
+  const [challengeRewardReason, setChallengeRewardReason] = useState("");
+  const [isChallengeRewardLoading, setIsChallengeRewardLoading] = useState(false);
+  const [challengeRewardError, setChallengeRewardError] = useState("");
+  const [isChallengeComposerOpen, setIsChallengeComposerOpen] = useState(false);
 
   const isLoggedIn = currentUser !== null;
   const currentUserKey = currentUser ? getIdentityKey(currentUser) : null;
@@ -692,6 +907,30 @@ export default function HomePage() {
   }, [completedMissionIds, currentUserKey]);
 
   useEffect(() => {
+    if (!currentUserKey) {
+      return;
+    }
+
+    window.localStorage.setItem(
+      `ole-daily-checkin-draft-${currentUserKey}`,
+      JSON.stringify(dailyCheckinDraft),
+    );
+  }, [currentUserKey, dailyCheckinDraft]);
+
+  useEffect(() => {
+    if (!currentUserKey) {
+      return;
+    }
+
+    if (lastCheckinDate) {
+      window.localStorage.setItem(`ole-daily-checkin-${currentUserKey}`, lastCheckinDate);
+      return;
+    }
+
+    window.localStorage.removeItem(`ole-daily-checkin-${currentUserKey}`);
+  }, [currentUserKey, lastCheckinDate]);
+
+  useEffect(() => {
     window.localStorage.setItem(registeredUsersStorageKey, JSON.stringify(registeredUsers));
   }, [registeredUsers]);
 
@@ -704,16 +943,47 @@ export default function HomePage() {
     window.localStorage.setItem("ole-session-user", JSON.stringify(currentUser));
   }, [currentUser]);
 
-  const availableMissions = useMemo(
-    () =>
-      mockDailyMissions.filter(
-        (mission) =>
-          !completedMissionIds.includes(mission.id) &&
-          !selectedMissions.some((selectedMission) => selectedMission.id === mission.id),
-      ),
-    [completedMissionIds, selectedMissions],
-  );
+  const reconcileDailyCheckin = useEffectEvent(() => {
+    if (!currentUser) {
+      return;
+    }
+
+    const today = getTodayKey();
+    const checkinDate = dailyCheckinDraft.date;
+    const dayDifference = getDayDifference(checkinDate, today);
+
+    if (dayDifference <= 0) {
+      return;
+    }
+
+    const appliedDebt = dailyCheckinDraft.responded ? calculateCheckinDebt(dailyCheckinDraft) : 40;
+    const missedDebt = dayDifference > 1 ? (dayDifference - 1) * 40 : 0;
+    const nextAddedDebt = appliedDebt + missedDebt;
+
+    setProfile((current) => ({
+      ...current,
+      ecoDebt: current.ecoDebt + nextAddedDebt,
+    }));
+    setLastCheckinDate(checkinDate);
+    setDailyCheckinDraft(createEmptyDailyCheckinDraft(today));
+  });
+
+  useEffect(() => {
+    if (!currentUser) {
+      return;
+    }
+
+    const timeoutId = window.setTimeout(reconcileDailyCheckin, 0);
+    const intervalId = window.setInterval(reconcileDailyCheckin, 60 * 1000);
+
+    return () => {
+      window.clearTimeout(timeoutId);
+      window.clearInterval(intervalId);
+    };
+  }, [currentUser, dailyCheckinDraft]);
+
   const selectedMission = selectedMissions[0] ?? null;
+  const todayKey = getTodayKey();
 
   const completionRate = Math.min(
     100,
@@ -766,7 +1036,11 @@ export default function HomePage() {
           : storedProfile.school,
     });
     setSelectedMissions(readStoredMission(userKey));
+    setMissionReason("");
+    setMissionVerification(createEmptyMissionVerification());
     setCompletedMissionIds(readStoredCompletedMissionIds(userKey));
+    setDailyCheckinDraft(readStoredDailyCheckinDraft(userKey));
+    setLastCheckinDate(readStoredCheckinDate(userKey));
     setActiveTab("home");
   };
 
@@ -799,7 +1073,11 @@ export default function HomePage() {
         clearedDebt: 0,
       });
       setSelectedMissions([]);
+      setMissionReason("");
+      setMissionVerification(createEmptyMissionVerification());
       setCompletedMissionIds([]);
+      setDailyCheckinDraft(createEmptyDailyCheckinDraft());
+      setLastCheckinDate("");
       setActiveTab("home");
       setAuthNotice("회원가입이 완료됐어요.");
       return;
@@ -819,7 +1097,11 @@ export default function HomePage() {
     setActiveTab("home");
     setAuthMode("login");
     setSelectedMissions([]);
+    setMissionReason("");
+    setMissionVerification(createEmptyMissionVerification());
     setCompletedMissionIds([]);
+    setDailyCheckinDraft(createEmptyDailyCheckinDraft());
+    setLastCheckinDate("");
     setProfile(DEFAULT_PROFILE);
     setLoginForm({
       grade: "",
@@ -830,14 +1112,56 @@ export default function HomePage() {
     setAuthNotice("로그아웃됐어요. 다시 로그인해 주세요.");
   };
 
-  const drawMission = () => {
-    if (selectedMissions.length >= maxDailyMissionCount || availableMissions.length === 0) {
+  const handleCheckinDraftChange = (
+    field: "showerMinutes" | "petBottleCount" | "carMinutes",
+    value: string,
+  ) => {
+    setDailyCheckinDraft((current) => ({
+      ...current,
+      date: todayKey,
+      [field]: value.replace(/[^\d]/g, ""),
+    }));
+  };
+
+  const handleCheckinSave = () => {
+    setDailyCheckinDraft((current) => ({
+      ...current,
+      date: todayKey,
+      responded: true,
+    }));
+    setLastCheckinDate(todayKey);
+  };
+
+  const drawMission = async () => {
+    if (isMissionLoading || selectedMission) {
       return;
     }
 
-    const nextMission =
-      availableMissions[Math.floor(Math.random() * availableMissions.length)];
-    setSelectedMissions((current) => [...current, nextMission]);
+    setIsMissionLoading(true);
+    setMissionReason("");
+
+    try {
+      const response = await fetch("/api/daily-mission", {
+        method: "GET",
+        cache: "no-store",
+      });
+
+      if (!response.ok) {
+        throw new Error(`미션 요청 실패 (${response.status})`);
+      }
+
+      const result = (await response.json()) as MissionApiResponse;
+
+      setSelectedMissions([result.mission]);
+      setMissionReason("");
+      setMissionVerification(createEmptyMissionVerification());
+    } catch (error) {
+      setMissionReason(
+        error instanceof Error ? error.message : "미션을 불러오지 못했어요.",
+      );
+    } finally {
+      setIsMissionLoading(false);
+    }
   };
 
   const completeMission = (missionId: string) => {
@@ -865,6 +1189,8 @@ export default function HomePage() {
     });
 
     setSelectedMissions((current) => current.filter((mission) => mission.id !== missionId));
+    setMissionReason("");
+    setMissionVerification(createEmptyMissionVerification());
   };
 
   const completeSelectedMission = () => {
@@ -880,6 +1206,73 @@ export default function HomePage() {
       ...current,
       [field]: value,
     }));
+    setChallengeRewardSuggestion(null);
+    setChallengeRewardReason("");
+    setChallengeRewardError("");
+  };
+
+  const handleMissionPhotoChange = (photoName: string) => {
+    setMissionVerification((current) => ({
+      ...current,
+      photoName,
+    }));
+  };
+
+  const toggleChallengeProofMethod = (method: ChallengeProofMethod) => {
+    setChallengeDraft((current) => {
+      const nextMethods = current.proofMethods.includes(method)
+        ? current.proofMethods.filter((item) => item !== method)
+        : [...current.proofMethods, method];
+
+      return {
+        ...current,
+        proofMethods: nextMethods,
+      };
+    });
+    setChallengeRewardSuggestion(null);
+    setChallengeRewardReason("");
+    setChallengeRewardError("");
+  };
+
+  const verifyMissionLocation = () => {
+    if (!navigator.geolocation) {
+      setMissionVerification((current) => ({
+        ...current,
+        locationStatus: "unsupported",
+        errorMessage: "이 브라우저에서는 위치 정보를 지원하지 않아요.",
+      }));
+      return;
+    }
+
+    setMissionVerification((current) => ({
+      ...current,
+      locationStatus: "loading",
+      errorMessage: "",
+    }));
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        setMissionVerification((current) => ({
+          ...current,
+          latitude: position.coords.latitude,
+          longitude: position.coords.longitude,
+          locationStatus: "granted",
+          errorMessage: "",
+        }));
+      },
+      (error) => {
+        setMissionVerification((current) => ({
+          ...current,
+          locationStatus: "denied",
+          errorMessage: `위치 인증에 실패했어요. 코드: ${error.code}, 메시지: ${error.message}`,
+        }));
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 0,
+      },
+    );
   };
 
   const toggleChallengeProgress = (challengeId: string) => {
@@ -972,8 +1365,15 @@ export default function HomePage() {
           return challenge;
         }
 
+        const requiresPhoto = challenge.proofMethods.includes("photo");
+        const requiresGps = challenge.proofMethods.includes("gps");
+        const requiresReview = challenge.proofMethods.includes("review");
+
         const updatedProofDays = challenge.proofDays.map((proofDay) =>
-          proofDay.day === day && proofDay.photoName.trim() !== "" && proofDay.review.trim() !== ""
+          proofDay.day === day &&
+          (!requiresPhoto || proofDay.photoName.trim() !== "") &&
+          (!requiresGps || proofDay.locationStatus === "granted") &&
+          (!requiresReview || proofDay.review.trim() !== "")
             ? { ...proofDay, submitted: true, open: false }
             : proofDay,
         );
@@ -991,47 +1391,209 @@ export default function HomePage() {
     );
   };
 
-  const handleCreateChallenge = () => {
+  const verifyChallengeDayLocation = (challengeId: string, day: number) => {
+    if (!navigator.geolocation) {
+      setChallenges((current) =>
+        current.map((challenge) =>
+          challenge.id === challengeId
+            ? {
+                ...challenge,
+                proofDays: challenge.proofDays.map((proofDay) =>
+                  proofDay.day === day
+                    ? {
+                        ...proofDay,
+                        locationStatus: "unsupported",
+                        errorMessage: "이 브라우저에서는 위치 정보를 지원하지 않아요.",
+                      }
+                    : proofDay,
+                ),
+              }
+            : challenge,
+        ),
+      );
+      return;
+    }
+
+    setChallenges((current) =>
+      current.map((challenge) =>
+        challenge.id === challengeId
+          ? {
+              ...challenge,
+              proofDays: challenge.proofDays.map((proofDay) =>
+                proofDay.day === day
+                  ? { ...proofDay, locationStatus: "loading", errorMessage: "" }
+                  : proofDay,
+              ),
+            }
+          : challenge,
+      ),
+    );
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        setChallenges((current) =>
+          current.map((challenge) =>
+            challenge.id === challengeId
+              ? {
+                  ...challenge,
+                  proofDays: challenge.proofDays.map((proofDay) =>
+                    proofDay.day === day
+                      ? {
+                          ...proofDay,
+                          latitude: position.coords.latitude,
+                          longitude: position.coords.longitude,
+                          locationStatus: "granted",
+                          errorMessage: "",
+                        }
+                      : proofDay,
+                  ),
+                }
+              : challenge,
+          ),
+        );
+      },
+      (error) => {
+        setChallenges((current) =>
+          current.map((challenge) =>
+            challenge.id === challengeId
+              ? {
+                  ...challenge,
+                  proofDays: challenge.proofDays.map((proofDay) =>
+                    proofDay.day === day
+                      ? {
+                          ...proofDay,
+                          locationStatus: "denied",
+                          errorMessage: `위치 인증에 실패했어요. 코드: ${error.code}, 메시지: ${error.message}`,
+                        }
+                      : proofDay,
+                  ),
+                }
+              : challenge,
+          ),
+        );
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 0,
+      },
+    );
+  };
+
+  const requestChallengeRewardSuggestion = async () => {
     const durationDays = Number(challengeDraft.durationDays);
-    const reward = Number(challengeDraft.reward);
 
     if (
       challengeDraft.title.trim() === "" ||
       challengeDraft.description.trim() === "" ||
+      challengeDraft.location.trim() === "" ||
       !Number.isFinite(durationDays) ||
       durationDays < 1 ||
-      !Number.isFinite(reward) ||
-      reward < 1
+      challengeDraft.proofMethods.length === 0
     ) {
-      return;
+      setChallengeRewardError("제목, 설명, 장소, 기간, 인증 방식을 먼저 입력해 주세요.");
+      return null;
     }
 
-    const creator = currentUser
-      ? `${currentUser.grade}학년 ${currentUser.classRoom}반 ${currentUser.name}`
-      : profile.name;
+    setIsChallengeRewardLoading(true);
+    setChallengeRewardError("");
 
-    const newChallenge: Challenge = {
-      id: `challenge-${Date.now()}`,
-      title: challengeDraft.title.trim(),
-      creator,
-      description: challengeDraft.description.trim(),
-      participants: 1,
-      reward,
-      durationDays,
-      hotReviews: [],
-      joined: false,
-      completed: false,
-      progressOpen: false,
-      proofDays: createProofDays(durationDays),
-    };
+    try {
+      const response = await fetch("/api/challenge-reward", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          title: challengeDraft.title.trim(),
+          description: challengeDraft.description.trim(),
+          location: challengeDraft.location.trim(),
+          durationDays,
+          difficulty: challengeDraft.difficulty,
+          proofMethods: challengeDraft.proofMethods,
+        }),
+      });
 
-    setChallenges((current) => [newChallenge, ...current]);
-    setChallengeDraft({
-      title: "",
-      description: "",
-      durationDays: "",
-      reward: "",
-    });
+      const payload = (await response.json()) as
+        | { reward?: number; reason?: string; error?: string }
+        | undefined;
+
+      if (!response.ok || typeof payload?.reward !== "number") {
+        throw new Error(payload?.error ?? "AI 보상 계산에 실패했어요.");
+      }
+
+      setChallengeRewardSuggestion(payload.reward);
+      setChallengeRewardReason(payload.reason ?? "");
+      return payload.reward;
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "AI 보상 계산 중 오류가 발생했어요.";
+      setChallengeRewardError(message);
+      return null;
+    } finally {
+      setIsChallengeRewardLoading(false);
+    }
+  };
+
+  const handleCreateChallenge = () => {
+    void (async () => {
+      const durationDays = Number(challengeDraft.durationDays);
+
+      if (
+        challengeDraft.title.trim() === "" ||
+        challengeDraft.description.trim() === "" ||
+        challengeDraft.location.trim() === "" ||
+        !Number.isFinite(durationDays) ||
+        durationDays < 1 ||
+        challengeDraft.proofMethods.length === 0
+      ) {
+        setChallengeRewardError("제목, 설명, 장소, 기간, 인증 방식을 모두 입력해 주세요.");
+        return;
+      }
+
+      const reward =
+        challengeRewardSuggestion ?? (await requestChallengeRewardSuggestion());
+
+      if (reward === null) {
+        return;
+      }
+
+      const creator = currentUser
+        ? `${currentUser.grade}학년 ${currentUser.classRoom}반 ${currentUser.name}`
+        : profile.name;
+
+      const newChallenge: Challenge = {
+        id: `challenge-${Date.now()}`,
+        title: challengeDraft.title.trim(),
+        creator,
+        description: challengeDraft.description.trim(),
+        location: challengeDraft.location.trim(),
+        difficulty: challengeDraft.difficulty,
+        proofMethods: challengeDraft.proofMethods,
+        participants: 1,
+        reward,
+        durationDays,
+        hotReviews: [],
+        joined: false,
+        completed: false,
+        progressOpen: false,
+        proofDays: createProofDays(durationDays),
+      };
+
+      setChallenges((current) => [newChallenge, ...current]);
+      setChallengeDraft({
+        title: "",
+        description: "",
+        location: "",
+        difficulty: "medium",
+        proofMethods: ["photo", "review"],
+        durationDays: "",
+      });
+      setChallengeRewardSuggestion(null);
+      setChallengeRewardReason("");
+      setChallengeRewardError("");
+      setIsChallengeComposerOpen(false);
+    })();
   };
 
   const renderContent = () => {
@@ -1092,6 +1654,55 @@ export default function HomePage() {
             <h2 className="mt-1 text-xl font-black tracking-[-0.04em] text-[#1e3826]">
               오늘은 어디부터 시작할까요?
             </h2>
+            <div className="mt-4 flex items-center justify-between rounded-[1.4rem] bg-[#f4faee] px-4 py-4">
+              <div className="min-w-0 flex-1">
+                <p className="text-base font-black text-[#24482f]">오늘 체크인</p>
+                <p className="mt-1 text-sm text-[#64806a]">
+                  {dailyCheckinDraft.responded
+                    ? "같은 날에는 다시 수정해서 저장할 수 있어요."
+                    : "응답하지 않으면 다음날 40 EM이 추가돼요."}
+                </p>
+                <div className="mt-3 grid grid-cols-3 gap-2">
+                  <input
+                    inputMode="numeric"
+                    value={dailyCheckinDraft.showerMinutes}
+                    onChange={(event) =>
+                      handleCheckinDraftChange("showerMinutes", event.target.value)
+                    }
+                    placeholder="샤워"
+                    className="rounded-xl border border-[#d8e7d5] bg-white px-3 py-2 text-sm text-[#1f3526] placeholder:text-[#8ca08f]"
+                  />
+                  <input
+                    inputMode="numeric"
+                    value={dailyCheckinDraft.petBottleCount}
+                    onChange={(event) =>
+                      handleCheckinDraftChange("petBottleCount", event.target.value)
+                    }
+                    placeholder="페트병"
+                    className="rounded-xl border border-[#d8e7d5] bg-white px-3 py-2 text-sm text-[#1f3526] placeholder:text-[#8ca08f]"
+                  />
+                  <input
+                    inputMode="numeric"
+                    value={dailyCheckinDraft.carMinutes}
+                    onChange={(event) =>
+                      handleCheckinDraftChange("carMinutes", event.target.value)
+                    }
+                    placeholder="차"
+                    className="rounded-xl border border-[#d8e7d5] bg-white px-3 py-2 text-sm text-[#1f3526] placeholder:text-[#8ca08f]"
+                  />
+                </div>
+                <p className="mt-2 text-xs text-[#6c816f]">
+                  샤워는 10분 초과분만 계산돼요. 다음날 입력값 기준으로 빚이 반영됩니다.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={handleCheckinSave}
+                className="ml-4 shrink-0 rounded-full bg-[#2a5d3b] px-4 py-2 text-sm font-black text-white"
+              >
+                {dailyCheckinDraft.responded ? "다시 저장" : "체크인 저장"}
+              </button>
+            </div>
             <div className="mt-4 grid gap-3 sm:grid-cols-3">
               <button
                 onClick={() => setActiveTab("map")}
@@ -1125,6 +1736,12 @@ export default function HomePage() {
     }
 
     if (activeTab === "mission") {
+      const needsGpsProof = requiresGpsProof(selectedMission);
+      const canCompleteMission =
+        selectedMission !== null &&
+        missionVerification.photoName.trim() !== "" &&
+        (!needsGpsProof || missionVerification.locationStatus === "granted");
+
       return (
         <section className="space-y-4 rounded-[1.9rem] bg-white p-5 shadow-[0_12px_30px_rgba(65,91,62,0.08)]">
           <div>
@@ -1154,11 +1771,76 @@ export default function HomePage() {
                   예상 시간 {selectedMission.durationMinutes}분
                 </div>
               </div>
+              <div className="mt-4 rounded-[1.2rem] bg-white px-4 py-3 text-sm leading-6 text-[#55735d]">
+                <p className="font-black text-[#24482f]">인증 방법</p>
+                <p className="mt-2">{selectedMission.proofGuide}</p>
+                <p className="mt-2 text-xs text-[#6d816e]">
+                  {needsGpsProof
+                    ? "이 미션은 사진 인증과 현재 위치 인증이 모두 필요해요."
+                    : "이 미션은 사진 인증이 필요해요."}
+                </p>
+              </div>
+              <div className="mt-4 rounded-[1.2rem] bg-white p-4">
+                <label className="block">
+                  <span className="mb-2 block text-xs font-black text-[#47614d]">사진 인증</span>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={(event) =>
+                      handleMissionPhotoChange(event.target.files?.[0]?.name ?? "")
+                    }
+                    className="block w-full text-sm text-[#47614d] file:mr-3 file:rounded-full file:border-0 file:bg-[#e8f4dc] file:px-3 file:py-2 file:text-xs file:font-black file:text-[#2c6a41]"
+                  />
+                </label>
+                {missionVerification.photoName ? (
+                  <p className="mt-3 text-sm text-[#5d725e]">
+                    선택한 사진: {missionVerification.photoName}
+                  </p>
+                ) : null}
+
+                {needsGpsProof ? (
+                  <div className="mt-4 rounded-[1rem] bg-[#f8faf2] p-4">
+                    <div className="flex items-center justify-between gap-3">
+                      <div>
+                        <p className="text-xs font-black text-[#47614d]">위치 인증</p>
+                        <p className="mt-1 text-xs leading-5 text-[#6c816f]">
+                          야외 미션이라 현재 위치를 함께 확인해요.
+                        </p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={verifyMissionLocation}
+                        className="rounded-full bg-[#e8f4dc] px-3 py-2 text-xs font-black text-[#2c6a41]"
+                      >
+                        {missionVerification.locationStatus === "loading"
+                          ? "확인 중..."
+                          : "현재 위치 인증"}
+                      </button>
+                    </div>
+
+                    {missionVerification.locationStatus === "granted" &&
+                    missionVerification.latitude !== null &&
+                    missionVerification.longitude !== null ? (
+                      <p className="mt-3 text-sm text-[#2c6a41]">
+                        위치 인증 완료: 위도 {missionVerification.latitude.toFixed(5)}, 경도{" "}
+                        {missionVerification.longitude.toFixed(5)}
+                      </p>
+                    ) : null}
+
+                    {missionVerification.errorMessage ? (
+                      <p className="mt-3 text-sm text-[#8a5830]">
+                        {missionVerification.errorMessage}
+                      </p>
+                    ) : null}
+                  </div>
+                ) : null}
+              </div>
               <button
                 onClick={completeSelectedMission}
-                className="mt-4 w-full rounded-[1.2rem] bg-[#2a5d3b] px-4 py-3 text-sm font-black text-white"
+                disabled={!canCompleteMission}
+                className="mt-4 w-full rounded-[1.2rem] bg-[#2a5d3b] px-4 py-3 text-sm font-black text-white disabled:cursor-not-allowed disabled:bg-[#a9bea9]"
               >
-                미션 완료하고 빚 청산하기
+                인증 완료하고 빚 청산하기
               </button>
             </article>
           ) : (
@@ -1167,13 +1849,19 @@ export default function HomePage() {
             </div>
           )}
 
+          {!selectedMission && missionReason ? (
+            <div className="rounded-[1.2rem] bg-[#fff6e8] px-4 py-3 text-sm leading-6 text-[#7a5a1d]">
+              {missionReason}
+            </div>
+          ) : null}
+
           <button
             onClick={drawMission}
-            disabled={selectedMissions.length >= maxDailyMissionCount || availableMissions.length === 0}
+            disabled={isMissionLoading || Boolean(selectedMission)}
             className="w-full rounded-[1.2rem] bg-[#d8eece] px-4 py-3 text-sm font-black text-[#23442b] disabled:cursor-not-allowed disabled:opacity-60"
           >
-            {availableMissions.length === 0
-              ? "완료 가능한 미션이 없어요"
+            {isMissionLoading
+              ? "미션 불러오는 중..."
               : selectedMission
                 ? "현재 미션 진행 중"
                 : "오늘의 미션 뽑기"}
@@ -1208,43 +1896,112 @@ export default function HomePage() {
               </div>
               <button
                 type="button"
-                onClick={handleCreateChallenge}
+                onClick={() => setIsChallengeComposerOpen((current) => !current)}
                 className="rounded-full bg-[#2c6a41] px-4 py-2 text-sm font-black text-white"
               >
-                챌린지 만들기
+                {isChallengeComposerOpen ? "접기" : "챌린지 만들기"}
               </button>
             </div>
 
-            <div className="mt-4 grid gap-3">
-              <input
-                value={challengeDraft.title}
-                onChange={(event) => handleDraftChange("title", event.target.value)}
-                placeholder="챌린지 이름"
-                className="rounded-2xl border border-[#d5e5c9] bg-white px-4 py-3 text-sm text-[#1f3828]"
-              />
-              <textarea
-                value={challengeDraft.description}
-                onChange={(event) => handleDraftChange("description", event.target.value)}
-                placeholder="챌린지 설명"
-                className="min-h-24 rounded-2xl border border-[#d5e5c9] bg-white px-4 py-3 text-sm text-[#1f3828]"
-              />
-              <div className="grid grid-cols-2 gap-3">
+            {!isChallengeComposerOpen ? (
+              <p className="mt-4 text-sm leading-6 text-[#5d725e]">
+                제목, 설명, 장소, 난이도, 인증 방식을 고르면 AI가 30~70 EM 사이 보상을 정해줘요.
+              </p>
+            ) : (
+              <div className="mt-4 grid gap-3">
                 <input
-                  value={challengeDraft.durationDays}
-                  onChange={(event) => handleDraftChange("durationDays", event.target.value)}
-                  placeholder="기간(일)"
-                  inputMode="numeric"
+                  value={challengeDraft.title}
+                  onChange={(event) => handleDraftChange("title", event.target.value)}
+                  placeholder="챌린지 이름"
                   className="rounded-2xl border border-[#d5e5c9] bg-white px-4 py-3 text-sm text-[#1f3828]"
                 />
+                <textarea
+                  value={challengeDraft.description}
+                  onChange={(event) => handleDraftChange("description", event.target.value)}
+                  placeholder="챌린지 설명"
+                  className="min-h-24 rounded-2xl border border-[#d5e5c9] bg-white px-4 py-3 text-sm text-[#1f3828]"
+                />
                 <input
-                  value={challengeDraft.reward}
-                  onChange={(event) => handleDraftChange("reward", event.target.value)}
-                  placeholder="갚을 에코머니"
-                  inputMode="numeric"
+                  value={challengeDraft.location}
+                  onChange={(event) => handleDraftChange("location", event.target.value)}
+                  placeholder="실천 장소 예: 운동장, 학교 앞 공원, 교실"
                   className="rounded-2xl border border-[#d5e5c9] bg-white px-4 py-3 text-sm text-[#1f3828]"
                 />
+                <div className="grid gap-2">
+                  <p className="text-xs font-black text-[#47614d]">난이도</p>
+                  <div className="grid grid-cols-3 gap-2">
+                    {(["easy", "medium", "hard"] as const).map((difficulty) => (
+                      <button
+                        key={difficulty}
+                        type="button"
+                        onClick={() => handleDraftChange("difficulty", difficulty)}
+                        className={`rounded-2xl px-3 py-3 text-sm font-black ${
+                          challengeDraft.difficulty === difficulty
+                            ? "bg-[#2c6a41] text-white"
+                            : "bg-white text-[#47614d] ring-1 ring-[#d5e5c9]"
+                        }`}
+                      >
+                        {challengeDifficultyLabels[difficulty]}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <div className="grid gap-2">
+                  <p className="text-xs font-black text-[#47614d]">인증 방식</p>
+                  <div className="grid grid-cols-3 gap-2">
+                    {(["photo", "gps", "review"] as const).map((method) => (
+                      <button
+                        key={method}
+                        type="button"
+                        onClick={() => toggleChallengeProofMethod(method)}
+                        className={`rounded-2xl px-3 py-3 text-sm font-black ${
+                          challengeDraft.proofMethods.includes(method)
+                            ? "bg-[#2c6a41] text-white"
+                            : "bg-white text-[#47614d] ring-1 ring-[#d5e5c9]"
+                        }`}
+                      >
+                        {challengeProofMethodLabels[method]}
+                      </button>
+                    ))}
+                  </div>
+                  <p className="text-xs text-[#6c816f]">사진, GPS, 후기를 여러 개 함께 고를 수 있어요.</p>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <input
+                    value={challengeDraft.durationDays}
+                    onChange={(event) => handleDraftChange("durationDays", event.target.value)}
+                    placeholder="기간(일)"
+                    inputMode="numeric"
+                    className="rounded-2xl border border-[#d5e5c9] bg-white px-4 py-3 text-sm text-[#1f3828]"
+                  />
+                  <div className="rounded-2xl border border-[#d5e5c9] bg-white px-4 py-3 text-sm text-[#1f3828]">
+                    {isChallengeRewardLoading ? (
+                      <span className="font-black text-[#2c6a41]">AI가 보상을 계산 중이에요...</span>
+                    ) : challengeRewardSuggestion !== null ? (
+                      <>
+                        <p className="font-black text-[#2c6a41]">AI 추천 보상 {challengeRewardSuggestion} EM</p>
+                        {challengeRewardReason ? (
+                          <p className="mt-1 text-xs leading-5 text-[#5d725e]">{challengeRewardReason}</p>
+                        ) : null}
+                      </>
+                    ) : (
+                      <p className="text-[#5d725e]">생성할 때 AI가 30~70 EM 안에서 보상을 정해요.</p>
+                    )}
+                  </div>
+                </div>
+                {challengeRewardError ? (
+                  <p className="text-sm font-bold text-[#b13a3a]">{challengeRewardError}</p>
+                ) : null}
+                <button
+                  type="button"
+                  onClick={handleCreateChallenge}
+                  disabled={isChallengeRewardLoading}
+                  className="rounded-2xl bg-[#2c6a41] px-4 py-3 text-sm font-black text-white"
+                >
+                  {isChallengeRewardLoading ? "AI 보상 계산 중..." : "이 내용으로 챌린지 만들기"}
+                </button>
               </div>
-            </div>
+            )}
           </section>
 
           {activeChallenges.length > 0 ? (
@@ -1278,9 +2035,13 @@ export default function HomePage() {
                             <ProofDayCard
                               key={dayProof.day}
                               dayProof={dayProof}
+                              requiredProofMethods={challenge.proofMethods}
                               onOpen={() => openChallengeDayProof(challenge.id, dayProof.day)}
                               onPhotoChange={(photoName) =>
                                 updateChallengeDayPhoto(challenge.id, dayProof.day, photoName)
+                              }
+                              onVerifyLocation={() =>
+                                verifyChallengeDayLocation(challenge.id, dayProof.day)
                               }
                               onReviewChange={(review) =>
                                 updateChallengeDayReview(challenge.id, dayProof.day, review)
@@ -1299,7 +2060,7 @@ export default function HomePage() {
 
           {activeChallenges.length === 0 ? (
             <section className="rounded-[1.5rem] bg-[#f3f8ea] p-5">
-              <p className="text-xs font-bold text-[#5d725e]">李몄뿬 以묒씤 梨뚮┛吏</p>
+              <p className="text-xs font-bold text-[#5d725e]">참여 중인 챌린지</p>
               <div className="mt-4 rounded-[1.2rem] bg-white p-4 text-sm text-[#5d725e]">
                 아직 참여한 챌린지가 없어요.
               </div>
@@ -1323,28 +2084,35 @@ export default function HomePage() {
                       <span className="rounded-full bg-white px-3 py-1 text-[#8b6422]">
                         완료 보상 {challenge.reward}
                       </span>
+                      <span className="rounded-full bg-white px-3 py-1 text-[#5d725e]">
+                        난이도 {challengeDifficultyLabels[challenge.difficulty]}
+                      </span>
                     </div>
                   </div>
 
                   <button
                     type="button"
-                    onClick={() => toggleChallengeProgress(challenge.id)}
+                    onClick={() => handleJoinChallenge(challenge.id)}
                     className="rounded-full bg-white px-4 py-2 text-xs font-black text-[#2c6a41]"
                   >
-                    {challenge.progressOpen ? "접기" : "자세히 보기"}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => toggleChallengeProgress(challenge.id)}
-                    className="hidden rounded-full bg-[#2c6a41] px-4 py-2 text-xs font-black text-white"
-                  >
-                    {challenge.joined ? "계속하기" : "참여하기"}
+                    참여하기
                   </button>
                 </div>
 
                 {challenge.progressOpen ? (
                 <div className="mt-4 rounded-[1.2rem] bg-white p-4">
                   <p className="text-sm leading-6 text-[#5d725e]">{challenge.description}</p>
+                  <div className="mt-3 flex flex-wrap gap-2 text-xs font-black">
+                    <span className="rounded-full bg-[#f3f8ea] px-3 py-1 text-[#2c6a41]">
+                      장소 {challenge.location}
+                    </span>
+                    <span className="rounded-full bg-[#f3f8ea] px-3 py-1 text-[#2c6a41]">
+                      난이도 {challengeDifficultyLabels[challenge.difficulty]}
+                    </span>
+                    <span className="rounded-full bg-[#f3f8ea] px-3 py-1 text-[#2c6a41]">
+                      인증 {challenge.proofMethods.map((method) => challengeProofMethodLabels[method]).join(", ")}
+                    </span>
+                  </div>
                   <button
                     type="button"
                     onClick={() => handleJoinChallenge(challenge.id)}
@@ -1540,3 +2308,4 @@ export default function HomePage() {
     </main>
   );
 }
+

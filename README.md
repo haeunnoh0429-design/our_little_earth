@@ -47,7 +47,9 @@ copy .env.local.example .env.local
 1. Create an API key in the OpenAI dashboard.
 2. Put it in `OPENAI_API_KEY` inside `.env.local`.
 3. Optionally change `OPENAI_MISSION_MODEL`.
-4. Call `GET /api/daily-mission` to test the server-side AI mission generator.
+4. Optionally change `OPENAI_CHALLENGE_MODEL`.
+5. Call `GET /api/daily-mission` to test the server-side AI mission generator.
+6. Create a challenge in the app to test AI reward scoring.
 
 ## Trash bin map API setup
 
@@ -69,11 +71,40 @@ copy .env.local.example .env.local
 - Dummy mission data: `src/lib/mock-daily-missions.ts`
 - Rule-based selector: `src/lib/daily-mission-selector.ts`
 - OpenAI mission generator: `src/lib/mission-ai.ts`
+- OpenAI challenge reward scorer: `src/lib/challenge-reward-ai.ts`
 - API endpoint: `src/app/api/daily-mission/route.ts`
+- API endpoint: `src/app/api/challenge-reward/route.ts`
 - Preview screen: `src/app/page.tsx`
 
 This project currently uses mock mission data first so an AI API can be added
 later without changing the UI contract.
+
+## Current API and DB usage
+
+- Kakao Map JavaScript SDK
+  - Loaded in `src/lib/load-kakao-map.ts`
+  - Used in `src/components/map/kakao-map-section.tsx`
+  - Purpose: map rendering, geocoding, and marker display
+- Seoul Gangdong-gu trash bin public data API
+  - Upstream endpoint: `https://api.odcloud.kr/api/15149274/v1/uddi:e57109ed-829a-487a-8e13-da157116f1cb`
+  - Wrapped by `src/app/api/trash-bins/route.ts`
+  - Used by `src/components/map/kakao-map-section.tsx` through `GET /api/trash-bins`
+  - Purpose: load trash bin location data for the map
+- OpenAI Responses API
+  - Request code: `src/lib/mission-ai.ts`
+  - Route wrapper: `src/app/api/daily-mission/route.ts`
+  - Purpose: generate one daily eco mission as structured JSON
+  - Current status: route is implemented, but the main preview page still uses local mock mission state
+- Firebase Firestore
+  - Shared initializer: `src/lib/firebase.ts`
+  - Current status before this feedback: initialized only, no app read/write flow was using `db`
+  - Current status after this feedback: `src/app/page.tsx` includes a Firestore connection check that performs a real read request so teammates can confirm the SDK is wired correctly
+
+## Current persistence status
+
+- User login/session, selected missions, completed missions, and profile are currently stored in `localStorage`
+- Challenge state is currently kept in React state in `src/app/page.tsx`
+- Firestore is not yet the main source of truth for user, mission, or challenge data
 
 ## Notes
 

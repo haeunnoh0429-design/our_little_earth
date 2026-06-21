@@ -3,4 +3,7 @@ export type Cafe = {
   brand: string;
   address: string;
   depositCupSupported: boolean;
+  personalCupDiscountSupported: boolean;
+  sourceLabel?: string;
+  sourceUrl?: string;
 };

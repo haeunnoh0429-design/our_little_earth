@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { loadKakaoMap } from "@/lib/load-kakao-map";
 import { mockCafes } from "@/lib/mock-cafes";
+import type { Cafe } from "@/types/cafe";
 import type { TrashBin } from "@/types/trash-bin";
 
 const DEFAULT_CENTER = {
@@ -10,16 +11,28 @@ const DEFAULT_CENTER = {
   lng: 127.1238,
 };
 
-const CAFE_MARKER_COLOR = "#2f855a";
+const CHECK_IN_RADIUS_METERS = 50;
+const DEPOSIT_MARKER_COLOR = "#2f855a";
+const DISCOUNT_MARKER_COLOR = "#2563eb";
 const TRASH_BIN_MARKER_COLOR = "#f59e0b";
 
 type MapStatus = "loading" | "ready" | "error";
 type LocationStatus = "idle" | "loading" | "granted" | "denied" | "unsupported";
 type MarkerLayerStatus = "idle" | "loading" | "ready" | "error";
+type DestinationKind = "trash-bin" | "personal-cup" | "deposit-cup";
 
 type Coordinates = {
   lat: number;
   lng: number;
+};
+
+type SelectedPlace = {
+  id: string;
+  name: string;
+  address: string;
+  lat: number;
+  lng: number;
+  availableActions: DestinationKind[];
 };
 
 type TrashBinApiResponse = {
@@ -59,6 +72,42 @@ function escapeHtml(value: string) {
     .replaceAll("'", "&#39;");
 }
 
+function getStoreMarkerColor(store: Cafe) {
+  return store.depositCupSupported ? DEPOSIT_MARKER_COLOR : DISCOUNT_MARKER_COLOR;
+}
+
+function getStoreMarkerLabel(store: Cafe) {
+  return store.depositCupSupported ? "보" : "컵";
+}
+
+function buildStoreInfoWindowContent(store: Cafe) {
+  const benefitBadges = [
+    store.depositCupSupported
+      ? `<span style="display:inline-block; margin:4px 6px 0 0; padding:2px 8px; border-radius:999px; background:${DEPOSIT_MARKER_COLOR}; color:#ffffff; font-size:11px; font-weight:700;">다회용컵 보증금제</span>`
+      : "",
+    store.personalCupDiscountSupported
+      ? `<span style="display:inline-block; margin:4px 6px 0 0; padding:2px 8px; border-radius:999px; background:${DISCOUNT_MARKER_COLOR}; color:#ffffff; font-size:11px; font-weight:700;">개인컵 사용</span>`
+      : "",
+  ]
+    .filter(Boolean)
+    .join("");
+
+  const sourceLine =
+    store.sourceLabel && store.sourceUrl
+      ? `<div style="margin-top:6px; color:#6b7280;">출처: <a href="${escapeHtml(store.sourceUrl)}" target="_blank" rel="noreferrer" style="color:#2563eb;">${escapeHtml(store.sourceLabel)}</a></div>`
+      : "";
+
+  return `
+    <div style="padding:10px 12px; min-width:220px; font-size:12px; line-height:1.5;">
+      <strong>${escapeHtml(store.name)}</strong><br />
+      <span>${escapeHtml(store.brand)}</span><br />
+      <span>${escapeHtml(store.address)}</span><br />
+      <div style="margin-top:4px;">${benefitBadges}</div>
+      ${sourceLine}
+    </div>
+  `;
+}
+
 function getTrashBinSearchAddress(trashBin: TrashBin) {
   const address = trashBin.roadAddress.trim();
 
@@ -73,23 +122,88 @@ function getTrashBinSearchAddress(trashBin: TrashBin) {
   return `서울특별시 ${address}`;
 }
 
+function toRadians(value: number) {
+  return (value * Math.PI) / 180;
+}
+
+function getDistanceMeters(from: Coordinates, to: Coordinates) {
+  const earthRadius = 6371000;
+  const dLat = toRadians(to.lat - from.lat);
+  const dLng = toRadians(to.lng - from.lng);
+  const lat1 = toRadians(from.lat);
+  const lat2 = toRadians(to.lat);
+
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLng / 2) * Math.sin(dLng / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+  return earthRadius * c;
+}
+
+function getActionLabel(kind: DestinationKind) {
+  if (kind === "trash-bin") {
+    return "분리수거함";
+  }
+
+  if (kind === "personal-cup") {
+    return "개인컵 사용";
+  }
+
+  return "다회용컵 보증금제 매장";
+}
+
+function getActionProofGuide(kind: DestinationKind) {
+  if (kind === "trash-bin") {
+    return "GPS 체크인 + 분리수거 사진";
+  }
+
+  if (kind === "personal-cup") {
+    return "GPS 체크인 + 개인컵 사용 문구가 보이는 영수증 사진";
+  }
+
+  return "GPS 체크인 + 다회용컵 사용 사진";
+}
+
+function getAvailableActions(store: Cafe): DestinationKind[] {
+  const actions: DestinationKind[] = [];
+
+  if (store.personalCupDiscountSupported) {
+    actions.push("personal-cup");
+  }
+
+  if (store.depositCupSupported) {
+    actions.push("deposit-cup");
+  }
+
+  return actions;
+}
+
 export function KakaoMapSection() {
   const mapRef = useRef<HTMLDivElement | null>(null);
   const kakaoRef = useRef<typeof window.kakao | null>(null);
   const mapInstanceRef = useRef<kakao.maps.Map | null>(null);
   const currentLocationMarkerRef = useRef<kakao.maps.Marker | null>(null);
-  const cafeMarkersRef = useRef<kakao.maps.Marker[]>([]);
+  const storeMarkersRef = useRef<kakao.maps.Marker[]>([]);
   const trashBinMarkersRef = useRef<kakao.maps.Marker[]>([]);
 
   const [mapStatus, setMapStatus] = useState<MapStatus>("loading");
   const [locationStatus, setLocationStatus] = useState<LocationStatus>("idle");
-  const [cafeStatus, setCafeStatus] = useState<MarkerLayerStatus>("idle");
-  const [trashBinStatus, setTrashBinStatus] =
-    useState<MarkerLayerStatus>("idle");
+  const [storeStatus, setStoreStatus] = useState<MarkerLayerStatus>("idle");
+  const [trashBinStatus, setTrashBinStatus] = useState<MarkerLayerStatus>("idle");
   const [errorMessage, setErrorMessage] = useState("");
   const [coordinates, setCoordinates] = useState<Coordinates | null>(null);
-  const [cafeCount, setCafeCount] = useState(0);
+  const [storeCount, setStoreCount] = useState(0);
   const [trashBinCount, setTrashBinCount] = useState(0);
+  const [selectedPlace, setSelectedPlace] = useState<SelectedPlace | null>(null);
+  const [selectedAction, setSelectedAction] = useState<DestinationKind | null>(null);
+  const [activePlaceId, setActivePlaceId] = useState<string | null>(null);
+  const [proofPhotoName, setProofPhotoName] = useState("");
+
+  const depositCupCount = mockCafes.filter((store) => store.depositCupSupported).length;
+  const personalCupDiscountCount = mockCafes.filter(
+    (store) => store.personalCupDiscountSupported,
+  ).length;
 
   const origin =
     typeof window === "undefined" ? "unknown" : window.location.origin;
@@ -125,7 +239,7 @@ export function KakaoMapSection() {
         mapInstanceRef.current = map;
         setMapStatus("ready");
 
-        await Promise.all([loadCafes(), loadTrashBins()]);
+        await Promise.all([loadStores(), loadTrashBins()]);
       } catch (error) {
         if (!isMounted) {
           return;
@@ -140,7 +254,7 @@ export function KakaoMapSection() {
       }
     }
 
-    async function loadCafes() {
+    async function loadStores() {
       const kakao = kakaoRef.current;
       const map = mapInstanceRef.current;
 
@@ -148,20 +262,19 @@ export function KakaoMapSection() {
         return;
       }
 
-      setCafeStatus("loading");
+      setStoreStatus("loading");
 
       try {
         const geocoder = new kakao.maps.services.Geocoder();
-        const cafeMarkerImage = buildMarkerImage(kakao, CAFE_MARKER_COLOR, "컵");
 
-        cafeMarkersRef.current.forEach((marker) => marker.setMap(null));
-        cafeMarkersRef.current = [];
+        storeMarkersRef.current.forEach((marker) => marker.setMap(null));
+        storeMarkersRef.current = [];
 
         const results = await Promise.all(
           mockCafes.map(
-            (cafe) =>
+            (store) =>
               new Promise<kakao.maps.Marker | null>((resolve) => {
-                geocoder.addressSearch(cafe.address, (result, status) => {
+                geocoder.addressSearch(store.address, (result, status) => {
                   if (
                     status !== kakao.maps.services.Status.OK ||
                     result.length === 0
@@ -170,29 +283,38 @@ export function KakaoMapSection() {
                     return;
                   }
 
-                  const position = new kakao.maps.LatLng(
-                    Number(result[0].y),
-                    Number(result[0].x),
-                  );
+                  const position = {
+                    lat: Number(result[0].y),
+                    lng: Number(result[0].x),
+                  };
 
                   const marker = new kakao.maps.Marker({
                     map,
-                    position,
-                    image: cafeMarkerImage,
+                    position: new kakao.maps.LatLng(position.lat, position.lng),
+                    image: buildMarkerImage(
+                      kakao,
+                      getStoreMarkerColor(store),
+                      getStoreMarkerLabel(store),
+                    ),
                   });
 
                   const infoWindow = new kakao.maps.InfoWindow({
-                    content: `
-                      <div style="padding:10px 12px; min-width:190px; font-size:12px; line-height:1.5;">
-                        <strong>${escapeHtml(cafe.name)}</strong><br />
-                        <span>${escapeHtml(cafe.address)}</span><br />
-                        <span style="color:${CAFE_MARKER_COLOR}; font-weight:700;">다회용컵 보증금제 매장</span>
-                      </div>
-                    `,
+                    content: buildStoreInfoWindowContent(store),
                   });
 
                   kakao.maps.event.addListener(marker, "click", () => {
                     infoWindow.open(map, marker);
+                    setSelectedPlace({
+                      id: store.name,
+                      name: store.name,
+                      address: store.address,
+                      lat: position.lat,
+                      lng: position.lng,
+                      availableActions: getAvailableActions(store),
+                    });
+                    setSelectedAction(getAvailableActions(store)[0] ?? null);
+                    setActivePlaceId(null);
+                    setProofPhotoName("");
                   });
 
                   resolve(marker);
@@ -205,17 +327,17 @@ export function KakaoMapSection() {
           return;
         }
 
-        cafeMarkersRef.current = results.filter(
+        storeMarkersRef.current = results.filter(
           (marker): marker is kakao.maps.Marker => marker !== null,
         );
-        setCafeCount(cafeMarkersRef.current.length);
-        setCafeStatus("ready");
+        setStoreCount(storeMarkersRef.current.length);
+        setStoreStatus("ready");
       } catch (error) {
         if (!isMounted) {
           return;
         }
 
-        setCafeStatus("error");
+        setStoreStatus("error");
         setErrorMessage(
           error instanceof Error
             ? error.message
@@ -248,7 +370,7 @@ export function KakaoMapSection() {
         const trashBinMarkerImage = buildMarkerImage(
           kakao,
           TRASH_BIN_MARKER_COLOR,
-          "분",
+          "통",
         );
 
         trashBinMarkersRef.current.forEach((marker) => marker.setMap(null));
@@ -258,46 +380,55 @@ export function KakaoMapSection() {
           payload.trashBins.map(
             (trashBin) =>
               new Promise<kakao.maps.Marker | null>((resolve) => {
-                geocoder.addressSearch(
-                  getTrashBinSearchAddress(trashBin),
-                  (result, status) => {
-                    if (
-                      status !== kakao.maps.services.Status.OK ||
-                      result.length === 0
-                    ) {
-                      resolve(null);
-                      return;
-                    }
+                const searchAddress = getTrashBinSearchAddress(trashBin);
 
-                    const position = new kakao.maps.LatLng(
-                      Number(result[0].y),
-                      Number(result[0].x),
-                    );
+                geocoder.addressSearch(searchAddress, (result, status) => {
+                  if (
+                    status !== kakao.maps.services.Status.OK ||
+                    result.length === 0
+                  ) {
+                    resolve(null);
+                    return;
+                  }
 
-                    const marker = new kakao.maps.Marker({
-                      map,
-                      position,
-                      image: trashBinMarkerImage,
+                  const position = {
+                    lat: Number(result[0].y),
+                    lng: Number(result[0].x),
+                  };
+
+                  const marker = new kakao.maps.Marker({
+                    map,
+                    position: new kakao.maps.LatLng(position.lat, position.lng),
+                    image: trashBinMarkerImage,
+                  });
+
+                  const infoWindow = new kakao.maps.InfoWindow({
+                    content: `
+                      <div style="padding:10px 12px; min-width:190px; font-size:12px; line-height:1.5;">
+                        <strong>${escapeHtml(trashBin.district || "분리수거함")}</strong><br />
+                        <span>${escapeHtml(searchAddress)}</span><br />
+                        <span>${escapeHtml(trashBin.locationType || "설치 장소 정보 없음")}</span>
+                      </div>
+                    `,
+                  });
+
+                  kakao.maps.event.addListener(marker, "click", () => {
+                    infoWindow.open(map, marker);
+                    setSelectedPlace({
+                      id: trashBin.id,
+                      name: `${trashBin.district || "분리수거함"} 분리수거함`,
+                      address: searchAddress,
+                      lat: position.lat,
+                      lng: position.lng,
+                      availableActions: ["trash-bin"],
                     });
+                    setSelectedAction("trash-bin");
+                    setActivePlaceId(null);
+                    setProofPhotoName("");
+                  });
 
-                    const infoWindow = new kakao.maps.InfoWindow({
-                      content: `
-                        <div style="padding:10px 12px; min-width:190px; font-size:12px; line-height:1.5;">
-                          <strong>${escapeHtml(trashBin.district)} 분리수거함</strong><br />
-                          <span>${escapeHtml(getTrashBinSearchAddress(trashBin))}</span><br />
-                          <span>${escapeHtml(trashBin.locationType || "설치 장소 정보 없음")}</span><br />
-                          <span style="color:${TRASH_BIN_MARKER_COLOR}; font-weight:700;">${escapeHtml(trashBin.wasteType || "수거 종류 정보 없음")}</span>
-                        </div>
-                      `,
-                    });
-
-                    kakao.maps.event.addListener(marker, "click", () => {
-                      infoWindow.open(map, marker);
-                    });
-
-                    resolve(marker);
-                  },
-                );
+                  resolve(marker);
+                });
               }),
           ),
         );
@@ -330,10 +461,24 @@ export function KakaoMapSection() {
     return () => {
       isMounted = false;
       currentLocationMarkerRef.current?.setMap(null);
-      cafeMarkersRef.current.forEach((marker) => marker.setMap(null));
+      storeMarkersRef.current.forEach((marker) => marker.setMap(null));
       trashBinMarkersRef.current.forEach((marker) => marker.setMap(null));
     };
   }, []);
+
+  const distanceMeters = useMemo(() => {
+    if (!selectedPlace || !coordinates || activePlaceId !== selectedPlace.id) {
+      return null;
+    }
+
+    return getDistanceMeters(coordinates, {
+      lat: selectedPlace.lat,
+      lng: selectedPlace.lng,
+    });
+  }, [activePlaceId, coordinates, selectedPlace]);
+
+  const isCheckedIn =
+    distanceMeters !== null && distanceMeters <= CHECK_IN_RADIUS_METERS;
 
   const moveToCurrentLocation = () => {
     if (!navigator.geolocation) {
@@ -387,17 +532,29 @@ export function KakaoMapSection() {
     );
   };
 
+  const startCheckInFlow = () => {
+    if (!selectedPlace) {
+      return;
+    }
+
+    setActivePlaceId(selectedPlace.id);
+    setProofPhotoName("");
+  };
+
+  const proofReady = proofPhotoName.trim() !== "";
+  const isActivePlaceSelected =
+    selectedPlace !== null && activePlaceId === selectedPlace.id;
+
   return (
     <section className="rounded-[1.9rem] bg-white p-4 shadow-[0_10px_30px_rgba(69,95,63,0.08)]">
       <div className="flex items-start justify-between gap-3">
         <div>
           <p className="text-xs font-bold text-[#6f806d]">지도</p>
           <h2 className="mt-1 text-[1.7rem] font-black tracking-[-0.04em] text-[#24382a]">
-            분리수거함과 다회용컵 보증금제 매장
+            갈 장소를 고르고 체크인하기
           </h2>
           <p className="mt-2 text-sm leading-6 text-[#6f7c69]">
-            강동구 기준 분리수거함 위치와 다회용컵 보증금제를 운영하는 매장 9곳을
-            한눈에 볼 수 있어요.
+            새 장소를 누르면 그 장소 정보만 보이고, `장소로 이동`을 눌렀을 때부터 체크인과 인증을 시작해요.
           </p>
         </div>
       </div>
@@ -416,7 +573,7 @@ export function KakaoMapSection() {
           <p className="mt-1 break-words">{errorMessage}</p>
           <p className="mt-2">
             `.env.local`의 `NEXT_PUBLIC_KAKAO_MAP_APP_KEY` 값과 Kakao Developers의
-            JavaScript SDK 허용 도메인을 확인해 주세요.
+            JavaScript SDK 도메인 등록을 확인해 주세요.
           </p>
           <p className="mt-2">현재 접속 주소: {origin}</p>
         </div>
@@ -425,24 +582,30 @@ export function KakaoMapSection() {
       {mapStatus === "ready" ? (
         <div className="mt-3 space-y-3">
           <div className="rounded-[1rem] bg-[#f4f8ee] px-4 py-3 text-sm text-[#5d6f60]">
-            기본 중심 좌표는 강동구 근처예요. 아래 버튼으로 현재 위치로 이동할 수 있고,
-            마커를 누르면 매장과 분리수거함 상세 정보를 확인할 수 있어요.
+            현재 위치를 먼저 확인한 뒤, 지도에서 새 장소를 눌러 주세요.
           </div>
 
-          <div className="grid gap-2 text-sm text-[#415540] sm:grid-cols-2">
+          <div className="grid gap-2 text-sm text-[#415540] sm:grid-cols-3">
             <div className="rounded-[1rem] bg-[#eef7ea] px-4 py-3">
               <span
                 className="mr-2 inline-block h-3 w-3 rounded-full align-middle"
-                style={{ backgroundColor: CAFE_MARKER_COLOR }}
+                style={{ backgroundColor: DEPOSIT_MARKER_COLOR }}
               />
-              다회용컵 보증금제 매장
+              다회용컵 보증금제 {depositCupCount}곳
+            </div>
+            <div className="rounded-[1rem] bg-[#edf4ff] px-4 py-3">
+              <span
+                className="mr-2 inline-block h-3 w-3 rounded-full align-middle"
+                style={{ backgroundColor: DISCOUNT_MARKER_COLOR }}
+              />
+              개인컵 사용 가능 {personalCupDiscountCount}곳
             </div>
             <div className="rounded-[1rem] bg-[#fff5df] px-4 py-3">
               <span
                 className="mr-2 inline-block h-3 w-3 rounded-full align-middle"
                 style={{ backgroundColor: TRASH_BIN_MARKER_COLOR }}
               />
-              분리수거함 위치
+              분리수거함 {trashBinCount}곳
             </div>
           </div>
 
@@ -450,23 +613,121 @@ export function KakaoMapSection() {
             onClick={moveToCurrentLocation}
             className="w-full rounded-[1.1rem] bg-[#295c3a] px-4 py-3 text-sm font-black text-white shadow-[0_10px_22px_rgba(41,92,58,0.16)]"
           >
-            현재 위치로 이동하기
+            현재 위치 확인하기
           </button>
 
-          {cafeStatus === "loading" || trashBinStatus === "loading" ? (
+          {selectedPlace ? (
+            <section
+              key={selectedPlace.id}
+              className="rounded-[1.4rem] bg-[#f8fbf4] p-4"
+            >
+              <p className="text-xs font-bold text-[#5d725e]">선택한 장소</p>
+              <h3 className="mt-1 text-lg font-black text-[#21452f]">{selectedPlace.name}</h3>
+              <p className="mt-2 text-sm leading-6 text-[#5d725e]">{selectedPlace.address}</p>
+
+              <div className="mt-4 flex flex-wrap gap-2">
+                {selectedPlace.availableActions.map((action) => (
+                  <button
+                    key={action}
+                    type="button"
+                    onClick={() => setSelectedAction(action)}
+                    className={`rounded-full px-4 py-2 text-xs font-black ${
+                      selectedAction === action
+                        ? "bg-[#2c6a41] text-white"
+                        : "bg-white text-[#2c6a41]"
+                    }`}
+                  >
+                    {getActionLabel(action)}
+                  </button>
+                ))}
+              </div>
+
+              <button
+                type="button"
+                onClick={startCheckInFlow}
+                className="mt-4 w-full rounded-[1.1rem] bg-[#2c6a41] px-4 py-3 text-sm font-black text-white"
+              >
+                장소로 이동
+              </button>
+
+              {selectedAction ? (
+                <div className="mt-4 rounded-[1.2rem] bg-white p-4 text-sm text-[#46604c]">
+                  <p className="font-black text-[#21452f]">필수 인증</p>
+                  <p className="mt-2">{getActionProofGuide(selectedAction)}</p>
+
+                  {!isActivePlaceSelected ? (
+                    <p className="mt-3 text-[#6f7c69]">
+                      위 버튼을 누르면 이 장소 기준으로 체크인과 사진 인증을 시작해요.
+                    </p>
+                  ) : null}
+
+                  {isActivePlaceSelected && distanceMeters !== null ? (
+                    <p className="mt-3">
+                      현재 장소와의 거리: 약 {Math.round(distanceMeters)}m
+                    </p>
+                  ) : null}
+
+                  {isActivePlaceSelected ? (
+                    isCheckedIn ? (
+                      <p className="mt-3 font-black text-[#2c6a41]">
+                        체크인 완료. 50m 안으로 들어왔어요.
+                      </p>
+                    ) : (
+                      <p className="mt-3 text-[#8a5830]">
+                        아직 체크인 전이에요. 장소 반경 50m 안으로 들어와 주세요.
+                      </p>
+                    )
+                  ) : null}
+
+                  {isActivePlaceSelected ? (
+                    <label className="mt-4 block">
+                      <span className="mb-2 block text-xs font-black text-[#47614d]">
+                        인증 사진 올리기
+                      </span>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={(event) =>
+                          setProofPhotoName(event.target.files?.[0]?.name ?? "")
+                        }
+                        className="block w-full text-sm text-[#47614d] file:mr-3 file:rounded-full file:border-0 file:bg-[#e8f4dc] file:px-3 file:py-2 file:text-xs file:font-black file:text-[#2c6a41]"
+                      />
+                    </label>
+                  ) : null}
+
+                  {isActivePlaceSelected && proofPhotoName ? (
+                    <p className="mt-3 text-sm text-[#5d725e]">
+                      선택한 파일: {proofPhotoName}
+                    </p>
+                  ) : null}
+
+                  {isActivePlaceSelected && isCheckedIn && proofReady ? (
+                    <p className="mt-3 font-black text-[#2c6a41]">
+                      GPS 체크인과 사진 준비가 모두 완료됐어요.
+                    </p>
+                  ) : null}
+                </div>
+              ) : null}
+            </section>
+          ) : (
+            <div className="rounded-[1.2rem] bg-[#f7fbf3] px-4 py-4 text-sm leading-6 text-[#667d6b]">
+              지도의 마커를 눌러 갈 장소를 먼저 선택해 주세요.
+            </div>
+          )}
+
+          {storeStatus === "loading" || trashBinStatus === "loading" ? (
             <p className="text-sm text-[#6f7c69]">
               매장과 분리수거함 위치 데이터를 불러오는 중이에요...
             </p>
           ) : null}
 
-          {cafeStatus === "ready" && trashBinStatus === "ready" ? (
+          {storeStatus === "ready" && trashBinStatus === "ready" ? (
             <p className="text-sm text-[#2c6540]">
-              지도에 다회용컵 보증금제 매장 {cafeCount}곳과 분리수거함 {trashBinCount}곳을
-              표시했어요.
+              지도에 컵 관련 매장 {storeCount}곳과 분리수거함 {trashBinCount}곳을 표시했어요.
             </p>
           ) : null}
 
-          {cafeStatus === "error" || trashBinStatus === "error" ? (
+          {storeStatus === "error" || trashBinStatus === "error" ? (
             <div className="rounded-[1rem] bg-[#fff4e8] px-4 py-3 text-sm text-[#8a5830]">
               <p className="font-bold">지도 데이터를 일부 불러오지 못했어요.</p>
               <p className="mt-1 break-words">{errorMessage}</p>
