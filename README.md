@@ -23,6 +23,8 @@ Open [http://localhost:3000](http://localhost:3000).
 
 Copy `.env.local.example` to `.env.local` and fill in the Firebase and Kakao
 keys. If you want AI mission generation, also add your OpenAI server key.
+For Vercel deployment, add the same keys in Project Settings > Environment
+Variables.
 
 ```bash
 copy .env.local.example .env.local
@@ -57,6 +59,7 @@ copy .env.local.example .env.local
 2. Create or copy your public data portal service key.
 3. Put it in `ODCLOUD_TRASH_BIN_API_KEY` inside `.env.local`.
 4. The app calls `GET /api/trash-bins` on the server and renders markers on Kakao Map.
+5. In Vercel, add `ODCLOUD_TRASH_BIN_API_KEY` to every environment you deploy.
 
 ## Scripts
 

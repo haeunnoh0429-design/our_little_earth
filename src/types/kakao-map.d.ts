@@ -50,12 +50,29 @@ declare global {
             status: Status,
           ) => void,
         ): void;
+        coord2Address(
+          longitude: number,
+          latitude: number,
+          callback: (
+            result: CoordinateAddressResult[],
+            status: Status,
+          ) => void,
+        ): void;
       }
 
       interface AddressSearchResult {
         address_name: string;
         x: string;
         y: string;
+      }
+
+      interface CoordinateAddressResult {
+        address?: {
+          address_name?: string;
+        };
+        road_address?: {
+          address_name?: string;
+        };
       }
 
       enum Status {

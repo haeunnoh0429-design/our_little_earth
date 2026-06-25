@@ -383,3 +383,113 @@ https://react.dev/link/hydration-mismatch
   1693 |           <p className="text-sm font-bold text-[#68806d]">Our Little Earth</p>
   1694 |           <div className="flex items-center gap-2">
   1695 |             {activeTab !== "home" ? (
+[browser] Uncaught Error: Hydration failed because the server rendered HTML didn't match the client. As a result this tree will be regenerated on the client. This can happen if a SSR-ed Client Component used:
+
+- A server/client branch `if (typeof window !== 'undefined')`.
+- Variable input such as `Date.now()` or `Math.random()` which changes each time it's called.
+- Date formatting in a user's locale which doesn't match the server.
+- External changing data without sending a snapshot of it along with the HTML.
+- Invalid HTML tag nesting.
+
+It can also happen if the client has a browser extension installed which messes with the HTML before React loaded.
+
+https://react.dev/link/hydration-mismatch
+
+  ...
+    <RenderFromTemplateContext>
+      <ScrollAndMaybeFocusHandler cacheNode={{rsc:{...}, ...}}>
+        <InnerScrollAndFocusHandlerOld focusAndScrollRef={{scrollRef:null, ...}} cacheNode={{rsc:{...}, ...}}>
+          <ErrorBoundary errorComponent={undefined} errorStyles={undefined} errorScripts={undefined}>
+            <LoadingBoundary name="/" loading={null}>
+              <HTTPAccessFallbackBoundary notFound={{...}} forbidden={undefined} unauthorized={undefined}>
+                <HTTPAccessFallbackErrorBoundary pathname="/" notFound={{...}} forbidden={undefined} ...>
+                  <RedirectBoundary>
+                    <RedirectErrorBoundary router={{...}}>
+                      <InnerLayoutRouter url="/" tree={[...]} params={{}} cacheNode={{rsc:{...}, ...}} ...>
+                        <SegmentViewNode type="page" pagePath="page.tsx">
+                          <SegmentTrieNode>
+                          <ClientPageRoot Component={function HomePage} serverProvidedParams={{...}}>
+                            <HomePage params={Promise} searchParams={Promise}>
+                              <main
++                               className="min-h-screen bg-[linear-gradient(180deg,#f4f8ef_0%,#edf7ff_100%)] px-4 pb-2..."
+-                               className="min-h-screen bg-[linear-gradient(180deg,#f4f8ef_0%,#edf7ff_100%)] px-4 py-6..."
+                              >
+                                <div
++                                 className="mx-auto max-w-xl"
+-                                 className="mx-auto flex min-h-[calc(100vh-3rem)] max-w-xl items-center"
+                                >
++                                 <div className="mb-4 flex items-center justify-between">
+-                                 <section
+-                                   className="overflow-hidden rounded-[2rem] bg-white shadow-[0_18px_50px_rgba(60,98,..."
+-                                 >
+                                  ...
+                                ...
+                        ...
+                      ...
+          ...
+
+    at <unknown> (https://react.dev/link/hydration-mismatch)
+    at div (<anonymous>)
+    at HomePage (src/app/page.tsx:2268:9)
+  2266 |     <main className="min-h-screen bg-[linear-gradient(180deg,#f4f8ef_0%,#edf7ff_100%)] p...
+  2267 |       <div className="mx-auto max-w-xl">
+> 2268 |         <div className="mb-4 flex items-center justify-between">
+       |         ^
+  2269 |           <p className="text-sm font-bold text-[#68806d]">Our Little Earth</p>
+  2270 |           <div className="flex items-center gap-2">
+  2271 |             {activeTab !== "home" ? (
+[browser] Uncaught Error: Hydration failed because the server rendered HTML didn't match the client. As a result this tree will be regenerated on the client. This can happen if a SSR-ed Client Component used:
+
+- A server/client branch `if (typeof window !== 'undefined')`.
+- Variable input such as `Date.now()` or `Math.random()` which changes each time it's called.
+- Date formatting in a user's locale which doesn't match the server.
+- External changing data without sending a snapshot of it along with the HTML.
+- Invalid HTML tag nesting.
+
+It can also happen if the client has a browser extension installed which messes with the HTML before React loaded.
+
+https://react.dev/link/hydration-mismatch
+
+  ...
+    <RenderFromTemplateContext>
+      <ScrollAndMaybeFocusHandler cacheNode={{rsc:{...}, ...}}>
+        <InnerScrollAndFocusHandlerOld focusAndScrollRef={{scrollRef:null, ...}} cacheNode={{rsc:{...}, ...}}>
+          <ErrorBoundary errorComponent={undefined} errorStyles={undefined} errorScripts={undefined}>
+            <LoadingBoundary name="/" loading={null}>
+              <HTTPAccessFallbackBoundary notFound={{...}} forbidden={undefined} unauthorized={undefined}>
+                <HTTPAccessFallbackErrorBoundary pathname="/" notFound={{...}} forbidden={undefined} ...>
+                  <RedirectBoundary>
+                    <RedirectErrorBoundary router={{...}}>
+                      <InnerLayoutRouter url="/" tree={[...]} params={{}} cacheNode={{rsc:{...}, ...}} ...>
+                        <SegmentViewNode type="page" pagePath="page.tsx">
+                          <SegmentTrieNode>
+                          <ClientPageRoot Component={function HomePage} serverProvidedParams={{...}}>
+                            <HomePage params={Promise} searchParams={Promise}>
+                              <main
++                               className="min-h-screen bg-[linear-gradient(180deg,#f4f8ef_0%,#edf7ff_100%)] px-4 pb-2..."
+-                               className="min-h-screen bg-[linear-gradient(180deg,#f4f8ef_0%,#edf7ff_100%)] px-4 py-6..."
+                              >
+                                <div
++                                 className="mx-auto max-w-xl"
+-                                 className="mx-auto flex min-h-[calc(100vh-3rem)] max-w-xl items-center"
+                                >
++                                 <div className="mb-4 flex items-center justify-between">
+-                                 <section
+-                                   className="overflow-hidden rounded-[2rem] bg-white shadow-[0_18px_50px_rgba(60,98,..."
+-                                 >
+                                  ...
+                                ...
+                        ...
+                      ...
+          ...
+
+    at <unknown> (https://react.dev/link/hydration-mismatch)
+    at div (<anonymous>)
+    at HomePage (src/app/page.tsx:2268:9)
+  2266 |     <main className="min-h-screen bg-[linear-gradient(180deg,#f4f8ef_0%,#edf7ff_100%)] p...
+  2267 |       <div className="mx-auto max-w-xl">
+> 2268 |         <div className="mb-4 flex items-center justify-between">
+       |         ^
+  2269 |           <p className="text-sm font-bold text-[#68806d]">Our Little Earth</p>
+  2270 |           <div className="flex items-center gap-2">
+  2271 |             {activeTab !== "home" ? (

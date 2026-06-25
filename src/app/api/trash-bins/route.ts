@@ -96,9 +96,20 @@ export async function GET() {
   }
 
   const payload = (await response.json()) as OdcloudResponse;
+  const uniqueAddressMap = new Map<string, TrashBin>();
   const trashBins = (payload.data ?? [])
     .map(normalizeTrashBin)
-    .filter((trashBin) => trashBin.roadAddress !== "");
+    .filter((trashBin) => trashBin.roadAddress !== "")
+    .filter((trashBin) => {
+      const key = `${trashBin.district}-${trashBin.roadAddress}-${trashBin.locationType}`;
+
+      if (uniqueAddressMap.has(key)) {
+        return false;
+      }
+
+      uniqueAddressMap.set(key, trashBin);
+      return true;
+    });
 
   return NextResponse.json({
     trashBins,
