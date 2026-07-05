@@ -48,6 +48,8 @@ type TrashBinApiResponse = {
 
 type KakaoMapSectionProps = {
   completedTodayActionKeys: string[];
+  rewardActionLabel: string;
+  rewardAmountLabel: string;
   onCompleteAction: (completion: MapActionCompletion) => void;
 };
 
@@ -203,6 +205,8 @@ function getAvailableActions(store: Cafe): DestinationKind[] {
 
 export function KakaoMapSection({
   completedTodayActionKeys,
+  rewardActionLabel,
+  rewardAmountLabel,
   onCompleteAction,
 }: KakaoMapSectionProps) {
   const mapRef = useRef<HTMLDivElement | null>(null);
@@ -599,11 +603,11 @@ export function KakaoMapSection({
   };
 
   return (
-    <section className="rounded-[1.9rem] bg-white p-4 shadow-[0_10px_30px_rgba(69,95,63,0.08)]">
+    <section className="ole-card p-4">
       <div className="flex items-start justify-between gap-3">
         <div>
           <p className="text-xs font-bold text-[#6f806d]">지도</p>
-          <h2 className="mt-1 text-[1.7rem] font-black tracking-[-0.04em] text-[#24382a]">
+          <h2 className="mt-1 text-[1.7rem] font-black tracking-normal text-[#24382a]">
             갈 장소를 고르고 체크인하기
           </h2>
           <p className="mt-2 text-sm leading-6 text-[#6f7c69]">
@@ -612,7 +616,7 @@ export function KakaoMapSection({
         </div>
       </div>
 
-      <div className="mt-4 overflow-hidden rounded-[1.5rem] border border-[#e2eadc] bg-[#eef5e8]">
+      <div className="mt-4 overflow-hidden rounded-[0.95rem] border border-[#cddfbd] bg-[#eef5e8] shadow-[0_6px_0_rgba(62,117,67,0.10)]">
         <div ref={mapRef} className="h-[320px] w-full" />
       </div>
 
@@ -634,7 +638,7 @@ export function KakaoMapSection({
 
       {mapStatus === "ready" ? (
         <div className="mt-3 space-y-3">
-          <div className="rounded-[1rem] bg-[#f4f8ee] px-4 py-3 text-sm text-[#5d6f60]">
+          <div className="border-l-4 border-[#79c85b] bg-[#fffef8] px-4 py-3 text-sm text-[#5d6f60]">
             현재 위치를 먼저 확인한 뒤, 지도에서 새 장소를 눌러 주세요.
           </div>
 
@@ -664,7 +668,7 @@ export function KakaoMapSection({
 
           <button
             onClick={moveToCurrentLocation}
-            className="w-full rounded-[1.1rem] bg-[#295c3a] px-4 py-3 text-sm font-black text-white shadow-[0_10px_22px_rgba(41,92,58,0.16)]"
+            className="ole-button w-full px-4 py-3 text-sm font-black text-white"
           >
             현재 위치 확인하기
           </button>
@@ -672,7 +676,7 @@ export function KakaoMapSection({
           {selectedPlace ? (
             <section
               key={selectedPlace.id}
-              className="rounded-[1.4rem] bg-[#f8fbf4] p-4"
+              className="ole-card-flat p-4"
             >
               <p className="text-xs font-bold text-[#5d725e]">선택한 장소</p>
               <h3 className="mt-1 text-lg font-black text-[#21452f]">{selectedPlace.name}</h3>
@@ -698,17 +702,17 @@ export function KakaoMapSection({
               <button
                 type="button"
                 onClick={startCheckInFlow}
-                className="mt-4 w-full rounded-[1.1rem] bg-[#2c6a41] px-4 py-3 text-sm font-black text-white"
+                className="ole-button mt-4 w-full px-4 py-3 text-sm font-black text-white"
               >
                 장소로 이동
               </button>
 
               {selectedAction ? (
-                <div className="mt-4 rounded-[1.2rem] bg-white p-4 text-sm text-[#46604c]">
+                <div className="mt-4 border-t border-[#d9e6c8] pt-4 text-sm text-[#46604c]">
                   <p className="font-black text-[#21452f]">필수 인증</p>
                   <p className="mt-2">{getActionProofGuide(selectedAction)}</p>
                   <p className="mt-2 font-black text-[#2c6a41]">
-                    완료 보상 {selectedActionReward} EM
+                    {rewardAmountLabel} {selectedActionReward} EM
                   </p>
 
                   {!isActivePlaceSelected ? (
@@ -772,16 +776,16 @@ export function KakaoMapSection({
                       type="button"
                       onClick={completeSelectedAction}
                       disabled={!canCompleteSelectedAction}
-                      className="mt-4 w-full rounded-[1.1rem] bg-[#2c6a41] px-4 py-3 text-sm font-black text-white disabled:cursor-not-allowed disabled:bg-[#a9bea9]"
+                      className="ole-button mt-4 w-full px-4 py-3 text-sm font-black text-white disabled:cursor-not-allowed disabled:bg-[#a9bea9]"
                     >
-                      인증 완료하고 {selectedActionReward} EM 받기
+                      인증 완료하고 {rewardActionLabel}
                     </button>
                   )}
                 </div>
               ) : null}
             </section>
           ) : (
-            <div className="rounded-[1.2rem] bg-[#f7fbf3] px-4 py-4 text-sm leading-6 text-[#667d6b]">
+            <div className="ole-soft px-4 py-4 text-sm leading-6 text-[#667d6b]">
               지도의 마커를 눌러 갈 장소를 먼저 선택해 주세요.
             </div>
           )}
