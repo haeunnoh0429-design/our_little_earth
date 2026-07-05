@@ -12,12 +12,27 @@ type OdcloudResponse = {
   data?: RawTrashBinRecord[];
 };
 
+function repairMojibake(value: string) {
+  const trimmed = value.trim();
+
+  if (!/[ÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝÞßàáâãäåæçèéêëìíîïðñòóôõöøùúûüýþÿ]/.test(trimmed)) {
+    return trimmed;
+  }
+
+  const bytes = Uint8Array.from(
+    Array.from(trimmed, (character) => character.charCodeAt(0) & 0xff),
+  );
+  const repaired = new TextDecoder("utf-8").decode(bytes).trim();
+
+  return repaired.includes("�") ? trimmed : repaired;
+}
+
 function pickString(record: RawTrashBinRecord, keys: string[]) {
   for (const key of keys) {
     const value = record[key];
 
     if (typeof value === "string" && value.trim() !== "") {
-      return value.trim();
+      return repairMojibake(value);
     }
   }
 
@@ -29,7 +44,7 @@ function pickIdentifier(record: RawTrashBinRecord, keys: string[], fallback: str
     const value = record[key];
 
     if (typeof value === "string" && value.trim() !== "") {
-      return value.trim();
+      return repairMojibake(value);
     }
 
     if (typeof value === "number" && Number.isFinite(value)) {

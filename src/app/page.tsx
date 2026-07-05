@@ -2,7 +2,11 @@
 
 import Image from "next/image";
 import { type FormEvent, useEffect, useEffectEvent, useMemo, useState } from "react";
-import { KakaoMapSection } from "@/components/map/kakao-map-section";
+import {
+  createMapActionKey,
+  KakaoMapSection,
+  type MapActionCompletion,
+} from "@/components/map/kakao-map-section";
 import { loadKakaoMap } from "@/lib/load-kakao-map";
 import type { DailyMission } from "@/types/mission";
 
@@ -81,6 +85,7 @@ type Challenge = {
   creatorBonusAwarded: boolean;
   hotReviews: ChallengeReview[];
   joined: boolean;
+  joinedAt: string;
   completed: boolean;
   progressOpen: boolean;
   proofDays: ChallengeDayProof[];
@@ -116,6 +121,7 @@ type UserProfile = {
   name: string;
   school: string;
   ecoDebt: number;
+  ecoMoney: number;
   clearedDebt: number;
 };
 
@@ -135,10 +141,15 @@ type CompletedChallengeRecord = {
   completedAt: string;
 };
 
+type CompletedMapActionRecord = MapActionCompletion & {
+  completedAt: string;
+};
+
 const DEFAULT_PROFILE: UserProfile = {
   name: "지구 탐험가",
   school: "우리반 초록 지구단",
   ecoDebt: 3200,
+  ecoMoney: 0,
   clearedDebt: 0,
 };
 
@@ -425,7 +436,17 @@ function readStoredProfile(userKey: string | null) {
   }
 
   try {
-    return JSON.parse(savedProfile) as UserProfile;
+    const parsed = JSON.parse(savedProfile) as Partial<UserProfile>;
+
+    const ecoDebt = typeof parsed.ecoDebt === "number" ? parsed.ecoDebt : DEFAULT_PROFILE.ecoDebt;
+
+    return {
+      ...DEFAULT_PROFILE,
+      ...parsed,
+      ecoDebt,
+      ecoMoney: ecoDebt > 0 ? 0 : typeof parsed.ecoMoney === "number" ? parsed.ecoMoney : 0,
+      clearedDebt: typeof parsed.clearedDebt === "number" ? parsed.clearedDebt : 0,
+    };
   } catch {
     return DEFAULT_PROFILE;
   }
@@ -519,6 +540,7 @@ function createFreshChallengeState(challenge: Challenge): Challenge {
   return {
     ...challenge,
     joined: false,
+    joinedAt: "",
     completed: false,
     progressOpen: false,
     creatorBonusAwarded: false,
@@ -546,6 +568,7 @@ const initialChallenges: Challenge[] = [
       { id: "review-2", author: "최서연", text: "하교길 친구랑 같이 해서 더 재밌었어요.", rating: 4, likes: 9 },
     ],
     joined: false,
+    joinedAt: "",
     completed: false,
     progressOpen: false,
     proofDays: createProofDays(1),
@@ -569,6 +592,7 @@ const initialChallenges: Challenge[] = [
       { id: "review-4", author: "박지우", text: "매일 인증하니까 친구들이랑 서로 응원하게 돼요.", rating: 4, likes: 17 },
     ],
     joined: false,
+    joinedAt: "",
     completed: false,
     progressOpen: false,
     proofDays: createProofDays(14),
@@ -592,6 +616,7 @@ const initialChallenges: Challenge[] = [
       { id: "review-6", author: "정유나", text: "사진을 찍어 올리니 더 꼼꼼하게 하게 돼요.", rating: 5, likes: 8 },
     ],
     joined: false,
+    joinedAt: "",
     completed: false,
     progressOpen: false,
     proofDays: createProofDays(1),
@@ -611,7 +636,13 @@ function readStoredChallenges() {
 
   try {
     const parsed = JSON.parse(saved) as unknown;
-    return Array.isArray(parsed) ? (parsed as Challenge[]) : initialChallenges.map(createFreshChallengeState);
+    return Array.isArray(parsed)
+      ? (parsed as Array<Partial<Challenge>>).map((challenge) => ({
+          ...challenge,
+          joinedAt: typeof challenge.joinedAt === "string" && challenge.joinedAt ? challenge.joinedAt : challenge.joined ? getTodayKey() : "",
+          proofDays: Array.isArray(challenge.proofDays) ? challenge.proofDays : createProofDays(challenge.durationDays ?? 1),
+        })) as Challenge[]
+      : initialChallenges.map(createFreshChallengeState);
   } catch {
     return initialChallenges.map(createFreshChallengeState);
   }
@@ -636,6 +667,25 @@ function readStoredCompletedChallenges(userKey: string | null) {
   }
 }
 
+function readStoredCompletedMapActions(userKey: string | null) {
+  if (typeof window === "undefined" || !userKey) {
+    return [] as CompletedMapActionRecord[];
+  }
+
+  const saved = window.localStorage.getItem(`ole-completed-map-actions-${userKey}`);
+
+  if (!saved) {
+    return [] as CompletedMapActionRecord[];
+  }
+
+  try {
+    const parsed = JSON.parse(saved) as unknown;
+    return Array.isArray(parsed) ? (parsed as CompletedMapActionRecord[]) : [];
+  } catch {
+    return [] as CompletedMapActionRecord[];
+  }
+}
+
 function renderStars(rating: number) {
   return "★".repeat(clampRating(rating)) + "☆".repeat(5 - clampRating(rating));
 }
@@ -653,19 +703,61 @@ function groupProofDays(proofDays: ChallengeDayProof[]) {
   return groups;
 }
 
+function getMapActionLabel(action: MapActionCompletion["action"]) {
+  if (action === "deposit-cup") {
+    return "다회용컵 보증금제";
+  }
+
+  if (action === "personal-cup") {
+    return "개인컵 사용";
+  }
+
+  return "분리수거함 분리수거";
+}
+
+function applyEcoMoneyReward(profile: UserProfile, amount: number): UserProfile {
+  const debtPayment = Math.min(profile.ecoDebt, amount);
+  const remainingReward = amount - debtPayment;
+  const nextEcoDebt = profile.ecoDebt - debtPayment;
+
+  return {
+    ...profile,
+    ecoDebt: nextEcoDebt,
+    ecoMoney: nextEcoDebt > 0 ? 0 : profile.ecoMoney + remainingReward,
+    clearedDebt: profile.clearedDebt + debtPayment,
+  };
+}
+
+function applyEcoDebtCharge(profile: UserProfile, amount: number): UserProfile {
+  const moneyPayment = Math.min(profile.ecoMoney, amount);
+  const remainingDebt = amount - moneyPayment;
+
+  return {
+    ...profile,
+    ecoDebt: profile.ecoDebt + remainingDebt,
+    ecoMoney: profile.ecoMoney - moneyPayment,
+  };
+}
+
+function getChallengeActiveDay(challenge: Challenge, todayKey: string) {
+  if (!challenge.joinedAt) {
+    return 1;
+  }
+
+  return getDayDifference(challenge.joinedAt, todayKey) + 1;
+}
+
+function canUseChallengeDay(challenge: Challenge, day: number, todayKey: string) {
+  return challenge.joined && !challenge.completed && day === getChallengeActiveDay(challenge, todayKey);
+}
+
 function awardDebtReduction(userKey: string | null, amount: number) {
   if (typeof window === "undefined" || !userKey || amount <= 0) {
     return;
   }
 
   const stored = readStoredProfile(userKey);
-  const baseDebt = Math.max(stored.clearedDebt + stored.ecoDebt, DEFAULT_PROFILE.ecoDebt);
-  const nextClearedDebt = Math.min(baseDebt, stored.clearedDebt + amount);
-  const nextProfile: UserProfile = {
-    ...stored,
-    clearedDebt: nextClearedDebt,
-    ecoDebt: Math.max(0, baseDebt - nextClearedDebt),
-  };
+  const nextProfile = applyEcoMoneyReward(stored, amount);
 
   window.localStorage.setItem(`ole-profile-${userKey}`, JSON.stringify(nextProfile));
 }
@@ -846,6 +938,7 @@ function RatingPicker({ value, onChange }: { value: number; onChange: (rating: n
 function ProofDayCard({
   dayProof,
   requiredProofMethods,
+  isActiveDay,
   onOpen,
   onPhotoChange,
   onVerifyLocation,
@@ -855,6 +948,7 @@ function ProofDayCard({
 }: {
   dayProof: ChallengeDayProof;
   requiredProofMethods: ChallengeProofMethod[];
+  isActiveDay: boolean;
   onOpen: () => void;
   onPhotoChange: (photoName: string) => void;
   onVerifyLocation: () => void;
@@ -868,7 +962,8 @@ function ProofDayCard({
   const canSubmit =
     (!requiresPhoto || dayProof.photoName.trim() !== "") &&
     (!requiresGps || dayProof.locationStatus === "granted") &&
-    (!requiresReview || (dayProof.review.trim() !== "" && dayProof.rating > 0));
+    (!requiresReview || (dayProof.review.trim() !== "" && dayProof.rating > 0)) &&
+    isActiveDay;
 
   return (
     <div className="rounded-[1.4rem] bg-white p-5">
@@ -882,8 +977,13 @@ function ProofDayCard({
         {dayProof.submitted ? (
           <span className="rounded-full bg-[#2c6a41] px-4 py-2 text-sm font-black text-white">완료</span>
         ) : (
-          <button type="button" onClick={onOpen} className="rounded-full bg-[#e9f4de] px-4 py-2 text-sm font-black text-[#2c6a41]">
-            {dayProof.open ? "닫기" : "인증하기"}
+          <button
+            type="button"
+            onClick={onOpen}
+            disabled={!isActiveDay}
+            className="rounded-full bg-[#e9f4de] px-4 py-2 text-sm font-black text-[#2c6a41] disabled:cursor-not-allowed disabled:bg-[#eef1e8] disabled:text-[#94a194]"
+          >
+            {dayProof.open ? "닫기" : isActiveDay ? "인증하기" : "오늘 불가"}
           </button>
         )}
       </div>
@@ -1009,6 +1109,10 @@ export default function Home() {
     const user = readStoredSessionUser();
     return readStoredCompletedChallenges(user ? getIdentityKey(user) : null);
   });
+  const [completedMapActionHistory, setCompletedMapActionHistory] = useState<CompletedMapActionRecord[]>(() => {
+    const user = readStoredSessionUser();
+    return readStoredCompletedMapActions(user ? getIdentityKey(user) : null);
+  });
   const [challengeDraft, setChallengeDraft] = useState<ChallengeDraft>({
     title: "",
     description: "",
@@ -1101,6 +1205,14 @@ export default function Home() {
   }, [completedChallengeHistory, currentUserKey]);
 
   useEffect(() => {
+    if (!currentUserKey) {
+      return;
+    }
+
+    window.localStorage.setItem(`ole-completed-map-actions-${currentUserKey}`, JSON.stringify(completedMapActionHistory));
+  }, [completedMapActionHistory, currentUserKey]);
+
+  useEffect(() => {
     window.localStorage.setItem(registeredUsersStorageKey, JSON.stringify(registeredUsers));
   }, [registeredUsers]);
 
@@ -1133,10 +1245,7 @@ export default function Home() {
     const missedDebt = dayDifference > 1 ? (dayDifference - 1) * 40 : 0;
     const nextAddedDebt = appliedDebt + missedDebt;
 
-    setProfile((current) => ({
-      ...current,
-      ecoDebt: current.ecoDebt + nextAddedDebt,
-    }));
+    setProfile((current) => applyEcoDebtCharge(current, nextAddedDebt));
     setLastCheckinDate(checkinDate);
     setDailyCheckinDraft(createEmptyDailyCheckinDraft(todayKey));
   });
@@ -1157,7 +1266,11 @@ export default function Home() {
 
   const completionRate = Math.min(100, Math.round((profile.clearedDebt / Math.max(1, profile.clearedDebt + profile.ecoDebt)) * 100));
   const carbonFootprintSavedKg = (profile.clearedDebt / 100).toFixed(1);
+  const hasEcoDebt = profile.ecoDebt > 0;
   const missionCompletedToday = completedMissionHistory.some((record) => record.completedAt === todayKey);
+  const completedTodayMapActionKeys = completedMapActionHistory
+    .filter((record) => record.completedAt === todayKey)
+    .map((record) => createMapActionKey(record.placeId, record.action));
   const canDrawMissionToday = missionDrawDate !== todayKey && !missionCompletedToday && !selectedMission;
   const activeChallenges = challenges.filter((challenge) => challenge.joined && !challenge.completed);
   const availableChallenges = challenges.filter((challenge) => !challenge.completed && !challenge.joined);
@@ -1195,7 +1308,8 @@ export default function Home() {
     setProfile({
       ...storedProfile,
       name: user.name,
-      ecoDebt: storedProfile.ecoDebt || user.initialDebt,
+      ecoDebt: storedProfile.ecoDebt ?? user.initialDebt,
+      ecoMoney: storedProfile.ecoMoney ?? 0,
       school: storedProfile.school === DEFAULT_PROFILE.school ? `${user.grade}학년 ${user.classRoom}반` : storedProfile.school,
     });
     setSelectedMission(readStoredMission(userKey));
@@ -1206,6 +1320,7 @@ export default function Home() {
     setDailyCheckinDraft(readStoredDailyCheckinDraft(userKey));
     setLastCheckinDate(readStoredCheckinDate(userKey));
     setCompletedChallengeHistory(readStoredCompletedChallenges(userKey));
+    setCompletedMapActionHistory(readStoredCompletedMapActions(userKey));
     setChallenges(readStoredChallenges());
     setActiveTab("home");
   };
@@ -1231,6 +1346,7 @@ export default function Home() {
         name: nextUser.name,
         school: `${nextUser.grade}학년 ${nextUser.classRoom}반`,
         ecoDebt: initialDebt,
+        ecoMoney: 0,
         clearedDebt: 0,
       });
       setSelectedMission(null);
@@ -1241,6 +1357,7 @@ export default function Home() {
       setDailyCheckinDraft(createEmptyDailyCheckinDraft());
       setLastCheckinDate("");
       setCompletedChallengeHistory([]);
+      setCompletedMapActionHistory([]);
       setActiveTab("home");
       setAuthNotice("회원가입이 완료됐어요.");
       return;
@@ -1267,6 +1384,7 @@ export default function Home() {
     setDailyCheckinDraft(createEmptyDailyCheckinDraft());
     setLastCheckinDate("");
     setCompletedChallengeHistory([]);
+    setCompletedMapActionHistory([]);
     setProfile(DEFAULT_PROFILE);
     setLoginForm({ grade: "", classRoom: "", name: "" });
     setSignupAnswers(createEmptySignupAnswers());
@@ -1329,20 +1447,33 @@ export default function Home() {
       ...current.filter((record) => record.id !== selectedMission.id || record.completedAt !== todayKey),
     ]);
 
-    setProfile((current) => {
-      const baseDebt = Math.max(current.clearedDebt + current.ecoDebt, DEFAULT_PROFILE.ecoDebt);
-      const nextClearedDebt = Math.min(baseDebt, current.clearedDebt + selectedMission.ecoMoney);
-
-      return {
-        ...current,
-        clearedDebt: nextClearedDebt,
-        ecoDebt: Math.max(0, baseDebt - nextClearedDebt),
-      };
-    });
+    setProfile((current) => applyEcoMoneyReward(current, selectedMission.ecoMoney));
 
     setSelectedMission(null);
     setMissionVerification(createEmptyMissionVerification());
     setMissionReason("오늘의 미션을 완료했어요. 내일 새로운 미션을 받아볼 수 있어요.");
+  };
+
+  const completeMapAction = (completion: MapActionCompletion) => {
+    const completionKey = createMapActionKey(completion.placeId, completion.action);
+    const alreadyCompletedToday = completedMapActionHistory.some(
+      (record) =>
+        record.completedAt === todayKey &&
+        createMapActionKey(record.placeId, record.action) === completionKey,
+    );
+
+    if (alreadyCompletedToday) {
+      return;
+    }
+
+    setCompletedMapActionHistory((current) => [
+      {
+        ...completion,
+        completedAt: todayKey,
+      },
+      ...current,
+    ]);
+    setProfile((current) => applyEcoMoneyReward(current, completion.reward));
   };
 
   const handleDraftChange = (field: keyof ChallengeDraft, value: string | ChallengeDifficulty) => {
@@ -1429,6 +1560,7 @@ export default function Home() {
           ? {
               ...challenge,
               joined: true,
+              joinedAt: challenge.joinedAt || todayKey,
               progressOpen: true,
               participants: challenge.joined ? challenge.participants : challenge.participants + 1,
             }
@@ -1444,6 +1576,7 @@ export default function Home() {
           ? {
               ...challenge,
               joined: false,
+              joinedAt: "",
               completed: false,
               progressOpen: false,
               participants: Math.max(0, challenge.participants - 1),
@@ -1476,10 +1609,11 @@ export default function Home() {
           ? {
               ...challenge,
               joined: true,
+              joinedAt: challenge.joinedAt || todayKey,
               progressOpen: true,
               proofDays: challenge.proofDays.map((proofDay) => ({
                 ...proofDay,
-                open: proofDay.day === day ? !proofDay.open : false,
+                open: proofDay.day === day && canUseChallengeDay(challenge, day, todayKey) ? !proofDay.open : false,
               })),
             }
           : challenge,
@@ -1709,6 +1843,7 @@ export default function Home() {
         creatorBonusAwarded: false,
         hotReviews: [],
         joined: false,
+        joinedAt: "",
         completed: false,
         progressOpen: false,
         proofDays: createProofDays(durationDays),
@@ -1731,81 +1866,70 @@ export default function Home() {
   };
 
   const submitChallengeDayProof = (challengeId: string, day: number) => {
-    let completedRecord: CompletedChallengeRecord | null = null;
+    const challenge = challenges.find((item) => item.id === challengeId);
 
-    setChallenges((current) =>
-      current.map((challenge) => {
-        if (challenge.id !== challengeId) {
-          return challenge;
-        }
+    if (!challenge || challenge.completed || !canUseChallengeDay(challenge, day, todayKey)) {
+      return;
+    }
 
-        const requiresPhoto = challenge.proofMethods.includes("photo");
-        const requiresGps = challenge.proofMethods.includes("gps");
-        const requiresReview = challenge.proofMethods.includes("review");
+    const requiresPhoto = challenge.proofMethods.includes("photo");
+    const requiresGps = challenge.proofMethods.includes("gps");
+    const requiresReview = challenge.proofMethods.includes("review");
 
-        const updatedProofDays = challenge.proofDays.map((proofDay) =>
-          proofDay.day === day &&
-          (!requiresPhoto || proofDay.photoName.trim() !== "") &&
-          (!requiresGps || proofDay.locationStatus === "granted") &&
-          (!requiresReview || (proofDay.review.trim() !== "" && proofDay.rating > 0))
-            ? { ...proofDay, submitted: true, open: false }
-            : proofDay,
-        );
-
-        const submittedDay = updatedProofDays.find((proofDay) => proofDay.day === day);
-        const allSubmitted = updatedProofDays.every((proofDay) => proofDay.submitted);
-        const creatorBonus = allSubmitted && !challenge.creatorBonusAwarded ? updateChallengeCreatorBonus(challenge, currentUserKey) : 0;
-
-        if (allSubmitted) {
-          completedRecord = {
-            id: challenge.id,
-            title: challenge.title,
-            reward: challenge.reward,
-            creatorBonus,
-            completedAt: todayKey,
-          };
-        }
-
-        return {
-          ...challenge,
-          joined: true,
-          completed: allSubmitted,
-          progressOpen: !allSubmitted,
-          creatorBonusAwarded: challenge.creatorBonusAwarded || allSubmitted,
-          participants: challenge.joined ? challenge.participants : challenge.participants + 1,
-          proofDays: updatedProofDays,
-          hotReviews:
-            submittedDay && submittedDay.review.trim() !== "" && submittedDay.rating > 0
-              ? [
-                  {
-                    id: `${challenge.id}-review-${day}`,
-                    author: profile.name,
-                    text: submittedDay.review,
-                    rating: submittedDay.rating,
-                    likes: 0,
-                  },
-                  ...challenge.hotReviews.filter((review) => review.id !== `${challenge.id}-review-${day}`),
-                ]
-              : challenge.hotReviews,
-        };
-      }),
+    const updatedProofDays = challenge.proofDays.map((proofDay) =>
+      proofDay.day === day &&
+      (!requiresPhoto || proofDay.photoName.trim() !== "") &&
+      (!requiresGps || proofDay.locationStatus === "granted") &&
+      (!requiresReview || (proofDay.review.trim() !== "" && proofDay.rating > 0))
+        ? { ...proofDay, submitted: true, open: false }
+        : proofDay,
     );
+
+    const submittedDay = updatedProofDays.find((proofDay) => proofDay.day === day);
+    const allSubmitted = updatedProofDays.every((proofDay) => proofDay.submitted);
+    const creatorBonus = allSubmitted && !challenge.creatorBonusAwarded ? updateChallengeCreatorBonus(challenge, currentUserKey) : 0;
+    const completedRecord: CompletedChallengeRecord | null = allSubmitted
+      ? {
+          id: challenge.id,
+          title: challenge.title,
+          reward: challenge.reward,
+          creatorBonus,
+          completedAt: todayKey,
+        }
+      : null;
+
+    const updatedChallenge: Challenge = {
+      ...challenge,
+      joined: true,
+      joinedAt: challenge.joinedAt || todayKey,
+      completed: allSubmitted,
+      progressOpen: !allSubmitted,
+      creatorBonusAwarded: challenge.creatorBonusAwarded || allSubmitted,
+      participants: challenge.joined ? challenge.participants : challenge.participants + 1,
+      proofDays: updatedProofDays,
+      hotReviews:
+        submittedDay && submittedDay.review.trim() !== "" && submittedDay.rating > 0
+          ? [
+              {
+                id: `${challenge.id}-review-${day}`,
+                author: profile.name,
+                text: submittedDay.review,
+                rating: submittedDay.rating,
+                likes: 0,
+              },
+              ...challenge.hotReviews.filter((review) => review.id !== `${challenge.id}-review-${day}`),
+            ]
+          : challenge.hotReviews,
+    };
+
+    setChallenges((current) => current.map((item) => (item.id === challengeId ? updatedChallenge : item)));
 
     if (completedRecord) {
       setCompletedChallengeHistory((current) => [
-        completedRecord!,
-        ...current.filter((record) => record.id !== completedRecord!.id),
+        completedRecord,
+        ...current.filter((record) => record.id !== completedRecord.id),
       ]);
-      setProfile((current) => {
-        const baseDebt = Math.max(current.clearedDebt + current.ecoDebt, DEFAULT_PROFILE.ecoDebt);
-        const nextClearedDebt = Math.min(baseDebt, current.clearedDebt + completedRecord!.reward);
-
-        return {
-          ...current,
-          clearedDebt: nextClearedDebt,
-          ecoDebt: Math.max(0, baseDebt - nextClearedDebt),
-        };
-      });
+      setProfile((current) => applyEcoMoneyReward(current, completedRecord.reward));
     }
   };
 
@@ -1838,8 +1962,10 @@ export default function Home() {
 
           <section className="grid gap-4 md:grid-cols-3">
             <article className="rounded-[1.8rem] bg-white p-6 shadow-[0_12px_30px_rgba(65,91,62,0.08)]">
-              <p className="text-sm font-bold text-[#66806b]">남은 에코머니 빚</p>
-              <p className="mt-2 text-[2.4rem] font-black tracking-[-0.05em] text-[#1d3f28]">{profile.ecoDebt.toLocaleString()} EM</p>
+              <p className="text-sm font-bold text-[#66806b]">{hasEcoDebt ? "남은 에코머니 빚" : "보유 EM"}</p>
+              <p className="mt-2 text-[2.4rem] font-black tracking-[-0.05em] text-[#1d3f28]">
+                {(hasEcoDebt ? profile.ecoDebt : profile.ecoMoney).toLocaleString()} EM
+              </p>
             </article>
 
             <article className="rounded-[1.8rem] bg-white p-6 shadow-[0_12px_30px_rgba(65,91,62,0.08)]">
@@ -1902,7 +2028,12 @@ export default function Home() {
     }
 
     if (activeTab === "map") {
-      return <KakaoMapSection />;
+      return (
+        <KakaoMapSection
+          completedTodayActionKeys={completedTodayMapActionKeys}
+          onCompleteAction={completeMapAction}
+        />
+      );
     }
 
     if (activeTab === "mission") {
@@ -2038,13 +2169,19 @@ export default function Home() {
               <div className="mt-4 space-y-4">
                 {activeChallenges.map((challenge) => {
                   const completedDays = challenge.proofDays.filter((day) => day.submitted).length;
+                  const activeDay = getChallengeActiveDay(challenge, todayKey);
 
                   return (
                     <article key={challenge.id} className="rounded-[1.4rem] bg-white p-5">
                       <div className="flex items-start justify-between gap-3">
                         <div>
                           <p className="text-[1.25rem] font-black text-[#21452f]">{challenge.title}</p>
-                          <p className="mt-1 text-sm text-[#5d725e]">{completedDays}/{challenge.durationDays}일 인증 완료</p>
+                          <div className="mt-2 flex flex-wrap gap-2 text-sm font-black">
+                            <span className="rounded-full bg-[#f3f8ea] px-3 py-2 text-[#2c6a41]">
+                              {completedDays}/{challenge.durationDays}일 인증 완료
+                            </span>
+                            <span className="rounded-full bg-[#fff4cf] px-3 py-2 text-[#8b6422]">복구 {challenge.reward} EM</span>
+                          </div>
                         </div>
                         <div className="flex gap-2">
                           <button type="button" onClick={() => toggleChallengeProgress(challenge.id)} className="rounded-full bg-[#2c6a41] px-4 py-2 text-sm font-black text-white">
@@ -2066,6 +2203,7 @@ export default function Home() {
                                   key={dayProof.day}
                                   dayProof={dayProof}
                                   requiredProofMethods={challenge.proofMethods}
+                                  isActiveDay={dayProof.day === activeDay}
                                   onOpen={() => openChallengeDayProof(challenge.id, dayProof.day)}
                                   onPhotoChange={(photoName) => updateChallengeDayPhoto(challenge.id, dayProof.day, photoName)}
                                   onVerifyLocation={() => verifyChallengeDayLocation(challenge.id, dayProof.day)}
@@ -2320,8 +2458,10 @@ export default function Home() {
 
         <section className="grid gap-4 md:grid-cols-3">
           <div className="rounded-[1.5rem] bg-[#f5faef] p-5">
-            <p className="text-sm font-bold text-[#5f745f]">남은 빚</p>
-            <p className="mt-2 text-[1.9rem] font-black text-[#21452f]">{profile.ecoDebt.toLocaleString()} EM</p>
+            <p className="text-sm font-bold text-[#5f745f]">{hasEcoDebt ? "남은 빚" : "보유 EM"}</p>
+            <p className="mt-2 text-[1.9rem] font-black text-[#21452f]">
+              {(hasEcoDebt ? profile.ecoDebt : profile.ecoMoney).toLocaleString()} EM
+            </p>
           </div>
           <div className="rounded-[1.5rem] bg-[#eef7ea] p-5">
             <p className="text-sm font-bold text-[#5f745f]">차감한 빚</p>
@@ -2340,6 +2480,7 @@ export default function Home() {
             <p>학교/팀: {profile.school}</p>
             <p>완료한 미션 수: {completedMissionHistory.length}개</p>
             <p>완료한 챌린지 수: {completedChallengeHistory.length}개</p>
+            <p>완료한 지도 활동 수: {completedMapActionHistory.length}개</p>
           </div>
         </section>
 
@@ -2355,6 +2496,29 @@ export default function Home() {
               ))
             ) : (
               <div className="rounded-[1.2rem] bg-white px-4 py-4 text-base text-[#5d725e]">아직 완료한 미션이 없어요.</div>
+            )}
+          </div>
+        </section>
+
+        <section className="rounded-[1.5rem] bg-[#f8fbf4] p-5">
+          <p className="text-sm font-bold text-[#5d725e]">완료한 지도 활동</p>
+          <div className="mt-4 space-y-3">
+            {completedMapActionHistory.length > 0 ? (
+              completedMapActionHistory.map((action) => (
+                <div
+                  key={`${action.placeId}-${action.action}-${action.completedAt}`}
+                  className="rounded-[1.2rem] bg-white px-4 py-4"
+                >
+                  <p className="text-base font-black text-[#21452f]">{action.placeName}</p>
+                  <p className="mt-1 text-sm text-[#5d725e]">
+                    {getMapActionLabel(action.action)} · {action.reward} EM · {formatDateLabel(action.completedAt)}
+                  </p>
+                </div>
+              ))
+            ) : (
+              <div className="rounded-[1.2rem] bg-white px-4 py-4 text-base text-[#5d725e]">
+                아직 완료한 지도 활동이 없어요.
+              </div>
             )}
           </div>
         </section>

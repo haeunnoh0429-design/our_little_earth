@@ -19,7 +19,14 @@ const TRASH_BIN_MARKER_COLOR = "#f59e0b";
 type MapStatus = "loading" | "ready" | "error";
 type LocationStatus = "idle" | "loading" | "granted" | "denied" | "unsupported";
 type MarkerLayerStatus = "idle" | "loading" | "ready" | "error";
-type DestinationKind = "trash-bin" | "personal-cup" | "deposit-cup";
+export type DestinationKind = "trash-bin" | "personal-cup" | "deposit-cup";
+
+export type MapActionCompletion = {
+  placeId: string;
+  placeName: string;
+  action: DestinationKind;
+  reward: number;
+};
 
 type Coordinates = {
   lat: number;
@@ -38,6 +45,21 @@ type SelectedPlace = {
 type TrashBinApiResponse = {
   trashBins: TrashBin[];
 };
+
+type KakaoMapSectionProps = {
+  completedTodayActionKeys: string[];
+  onCompleteAction: (completion: MapActionCompletion) => void;
+};
+
+const MAP_ACTION_REWARDS: Record<DestinationKind, number> = {
+  "deposit-cup": 80,
+  "personal-cup": 60,
+  "trash-bin": 70,
+};
+
+export function createMapActionKey(placeId: string, action: DestinationKind) {
+  return `${placeId}:${action}`;
+}
 
 function buildMarkerImage(
   kakao: typeof window.kakao,
@@ -179,7 +201,10 @@ function getAvailableActions(store: Cafe): DestinationKind[] {
   return actions;
 }
 
-export function KakaoMapSection() {
+export function KakaoMapSection({
+  completedTodayActionKeys,
+  onCompleteAction,
+}: KakaoMapSectionProps) {
   const mapRef = useRef<HTMLDivElement | null>(null);
   const kakaoRef = useRef<typeof window.kakao | null>(null);
   const mapInstanceRef = useRef<kakao.maps.Map | null>(null);
@@ -544,6 +569,34 @@ export function KakaoMapSection() {
   const proofReady = proofPhotoName.trim() !== "";
   const isActivePlaceSelected =
     selectedPlace !== null && activePlaceId === selectedPlace.id;
+  const selectedActionReward = selectedAction ? MAP_ACTION_REWARDS[selectedAction] : 0;
+  const selectedActionCompletionKey =
+    selectedPlace && selectedAction
+      ? createMapActionKey(selectedPlace.id, selectedAction)
+      : null;
+  const selectedActionCompleted =
+    selectedActionCompletionKey !== null &&
+    completedTodayActionKeys.includes(selectedActionCompletionKey);
+  const canCompleteSelectedAction =
+    selectedPlace !== null &&
+    selectedAction !== null &&
+    isActivePlaceSelected &&
+    isCheckedIn &&
+    proofReady &&
+    !selectedActionCompleted;
+
+  const completeSelectedAction = () => {
+    if (!selectedPlace || !selectedAction || !canCompleteSelectedAction) {
+      return;
+    }
+
+    onCompleteAction({
+      placeId: selectedPlace.id,
+      placeName: selectedPlace.name,
+      action: selectedAction,
+      reward: MAP_ACTION_REWARDS[selectedAction],
+    });
+  };
 
   return (
     <section className="rounded-[1.9rem] bg-white p-4 shadow-[0_10px_30px_rgba(69,95,63,0.08)]">
@@ -654,6 +707,9 @@ export function KakaoMapSection() {
                 <div className="mt-4 rounded-[1.2rem] bg-white p-4 text-sm text-[#46604c]">
                   <p className="font-black text-[#21452f]">필수 인증</p>
                   <p className="mt-2">{getActionProofGuide(selectedAction)}</p>
+                  <p className="mt-2 font-black text-[#2c6a41]">
+                    완료 보상 {selectedActionReward} EM
+                  </p>
 
                   {!isActivePlaceSelected ? (
                     <p className="mt-3 text-[#6f7c69]">
@@ -706,6 +762,21 @@ export function KakaoMapSection() {
                       GPS 체크인과 사진 준비가 모두 완료됐어요.
                     </p>
                   ) : null}
+
+                  {selectedActionCompleted ? (
+                    <p className="mt-3 rounded-[1rem] bg-[#eef7ea] px-4 py-3 font-black text-[#2c6a41]">
+                      오늘 이 장소의 이 행동 보상을 이미 받았어요.
+                    </p>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={completeSelectedAction}
+                      disabled={!canCompleteSelectedAction}
+                      className="mt-4 w-full rounded-[1.1rem] bg-[#2c6a41] px-4 py-3 text-sm font-black text-white disabled:cursor-not-allowed disabled:bg-[#a9bea9]"
+                    >
+                      인증 완료하고 {selectedActionReward} EM 받기
+                    </button>
+                  )}
                 </div>
               ) : null}
             </section>
