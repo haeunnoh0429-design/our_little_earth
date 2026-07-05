@@ -162,7 +162,7 @@ const TAB_ITEMS: Array<{ id: TabId; label: string }> = [
 ];
 
 const gradeOptions = [1, 2, 3];
-const classOptions = Array.from({ length: 10 }, (_, index) => index + 1);
+const classOptions = Array.from({ length: 6 }, (_, index) => index + 1);
 const registeredUsersStorageKey = "ole-registered-users";
 const globalChallengesStorageKey = "ole-challenges";
 const creatorBonusRate = 0.1;
@@ -906,7 +906,7 @@ function AuthScreen({
           </p>
         ) : null}
 
-        <button type="submit" className="ole-button w-full px-5 py-4 text-base font-black text-white">
+        <button type="submit" className="w-full rounded-[0.8rem] bg-[#2a5d3b] px-5 py-4 text-base font-black text-white transition hover:bg-[#214b30]">
           {mode === "signup" ? "회원가입" : "로그인"}
         </button>
 
@@ -2144,7 +2144,7 @@ export default function Home() {
                   {profile.name}님의 지구
                 </h1>
                 <p className="mt-3 text-[0.95rem] leading-6 text-[#5a7460]">
-                  오늘의 행동으로 빚을 줄이고, 우리 반의 탄소발자국도 함께 가볍게 만들어 봐요.
+                  오늘도 우리의 지구를 지켜요!
                 </p>
               </div>
               <div className="relative flex h-52 w-52 shrink-0 items-center justify-center self-center sm:h-56 sm:w-56">
@@ -2202,7 +2202,7 @@ export default function Home() {
                   {hasCheckedInToday ? "오늘 기록을 저장했어요" : "오늘 사용량을 기록해요"}
                 </h2>
               </div>
-              <button type="button" onClick={() => setIsCheckinModalOpen(true)} className="ole-button w-full px-5 py-4 text-base font-black text-white sm:w-auto sm:shrink-0">
+              <button type="button" onClick={() => setIsCheckinModalOpen(true)} className="w-full rounded-[0.8rem] bg-[#2a5d3b] px-5 py-4 text-base font-black text-white transition hover:bg-[#214b30] sm:w-auto sm:shrink-0">
                 {hasCheckedInToday ? "체크인 수정" : "체크인"}
               </button>
             </div>
@@ -2253,7 +2253,7 @@ export default function Home() {
                   샤워는 10분 초과분만 계산돼요. 다음날 입력값 기준으로 빚이 반영됩니다.
                 </div>
 
-                <button type="button" onClick={handleCheckinSave} className="ole-button mt-5 w-full px-5 py-4 text-base font-black text-white">
+                <button type="button" onClick={handleCheckinSave} className="mt-5 w-full rounded-[0.8rem] bg-[#2a5d3b] px-5 py-4 text-base font-black text-white transition hover:bg-[#214b30]">
                   {hasCheckedInToday ? "다시 저장" : "체크인 저장"}
                 </button>
               </div>
@@ -2381,7 +2381,7 @@ export default function Home() {
             <p className="text-sm font-black uppercase tracking-normal text-[#4d7b50]">Challenge</p>
             <h2 className="mt-3 text-[2rem] font-black tracking-normal text-[#21452f]">챌린지</h2>
             <p className="mt-3 text-base leading-7 text-[#456754]">
-              친구들이 만든 활동에 참여하고, 오늘 할 수 있는 행동부터 하나씩 실천해요.
+              친구들이 만든 활동에 참여하고, 함께 보호활동을 실천해요!
             </p>
           </section>
 

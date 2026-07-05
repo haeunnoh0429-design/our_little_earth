@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { loadKakaoMap } from "@/lib/load-kakao-map";
 import { mockCafes } from "@/lib/mock-cafes";
 import type { Cafe } from "@/types/cafe";
@@ -215,6 +215,7 @@ export function KakaoMapSection({
   const currentLocationMarkerRef = useRef<kakao.maps.Marker | null>(null);
   const storeMarkersRef = useRef<kakao.maps.Marker[]>([]);
   const trashBinMarkersRef = useRef<kakao.maps.Marker[]>([]);
+  const hasRequestedInitialLocationRef = useRef(false);
 
   const [mapStatus, setMapStatus] = useState<MapStatus>("loading");
   const [locationStatus, setLocationStatus] = useState<LocationStatus>("idle");
@@ -509,7 +510,7 @@ export function KakaoMapSection({
   const isCheckedIn =
     distanceMeters !== null && distanceMeters <= CHECK_IN_RADIUS_METERS;
 
-  const moveToCurrentLocation = () => {
+  const moveToCurrentLocation = useCallback(() => {
     if (!navigator.geolocation) {
       setLocationStatus("unsupported");
       return;
@@ -559,7 +560,16 @@ export function KakaoMapSection({
         maximumAge: 0,
       },
     );
-  };
+  }, []);
+
+  useEffect(() => {
+    if (mapStatus !== "ready" || hasRequestedInitialLocationRef.current) {
+      return;
+    }
+
+    hasRequestedInitialLocationRef.current = true;
+    moveToCurrentLocation();
+  }, [mapStatus, moveToCurrentLocation]);
 
   const startCheckInFlow = () => {
     if (!selectedPlace) {
@@ -639,7 +649,7 @@ export function KakaoMapSection({
       {mapStatus === "ready" ? (
         <div className="mt-3 space-y-3">
           <div className="border-l-4 border-[#79c85b] bg-[#fffef8] px-4 py-3 text-sm text-[#5d6f60]">
-            현재 위치를 먼저 확인한 뒤, 지도에서 새 장소를 눌러 주세요.
+            지도를 열면 현재 위치를 자동으로 표시해요. 주변 장소를 눌러 체크인을 시작해 주세요.
           </div>
 
           <div className="grid gap-2 text-sm text-[#415540] sm:grid-cols-3">
@@ -665,14 +675,6 @@ export function KakaoMapSection({
               분리수거함 {trashBinCount}곳
             </div>
           </div>
-
-          <button
-            onClick={moveToCurrentLocation}
-            className="ole-button w-full px-4 py-3 text-sm font-black text-white"
-          >
-            현재 위치 확인하기
-          </button>
-
           {selectedPlace ? (
             <section
               key={selectedPlace.id}
