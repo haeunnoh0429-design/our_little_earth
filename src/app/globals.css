@@ -22,7 +22,7 @@
   --color-accent: var(--accent);
   --color-accent-strong: var(--accent-strong);
   --color-muted: var(--muted);
-  --font-sans: var(--font-geist-sans);
+  --font-sans: var(--font-soft-sans);
   --font-mono: var(--font-geist-mono);
 }
 
@@ -41,11 +41,11 @@ body {
     var(--background);
   color: var(--foreground);
   font-family:
+    var(--font-soft-sans),
     "Apple SD Gothic Neo",
     "Malgun Gothic",
     "맑은 고딕",
     "Noto Sans KR",
-    var(--font-geist-sans),
     Arial,
     Helvetica,
     sans-serif;

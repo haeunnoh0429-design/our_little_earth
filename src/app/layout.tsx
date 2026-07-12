@@ -1,9 +1,10 @@
 import type { Metadata, Viewport } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { IBM_Plex_Sans_KR, Geist_Mono } from "next/font/google";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const softSans = IBM_Plex_Sans_KR({
+  weight: ["400", "500", "600", "700"],
+  variable: "--font-soft-sans",
   subsets: ["latin"],
 });
 
@@ -32,7 +33,7 @@ export default function RootLayout({
   return (
     <html
       lang="ko"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${softSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="flex min-h-dvh flex-col overflow-x-hidden">{children}</body>
     </html>

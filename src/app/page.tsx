@@ -1676,12 +1676,19 @@ export default function Home() {
   const rewardBadgeLabel = hasEcoDebt ? "복구" : "받기";
   const missionTitle = hasEcoDebt ? "에코머니 빚 청산하기" : "에코머니 받기";
   const missionCompletedToday = completedMissionHistory.some((record) => record.completedAt === todayKey);
+  const completedChallengeToday = completedChallengeHistory.some((record) => record.completedAt === todayKey);
   const completedTodayMapActionKeys = completedMapActionHistory
     .filter((record) => record.completedAt === todayKey)
     .map((record) => createMapActionKey(record.placeId, record.action));
   const canDrawMissionToday = missionDrawDate !== todayKey && !missionCompletedToday && !selectedMission;
   const activeChallenges = challenges.filter((challenge) => challenge.joined && !challenge.completed);
   const availableChallenges = challenges.filter((challenge) => !challenge.completed && !challenge.joined);
+  const earthMoodImage =
+    hasCheckedInToday && completedChallengeToday && missionCompletedToday
+      ? "/earth-mood-complete.png"
+      : missionCompletedToday
+        ? "/earth-mood-mission.png"
+        : "/earth-mood-start.png";
   const challengeDraftDurationDays = Number(challengeDraft.durationDays);
   const challengeRewardDetails =
     Number.isFinite(challengeDraftDurationDays) &&
@@ -2540,12 +2547,12 @@ export default function Home() {
                   오늘도 우리의 지구를 지켜요!
                 </p>
               </div>
-              <div className="absolute right-0 top-0 h-28 w-28 min-[390px]:h-32 min-[390px]:w-32 sm:h-40 sm:w-40">
+              <div className="absolute right-0 top-0 h-24 w-24 min-[390px]:h-28 min-[390px]:w-28 sm:h-32 sm:w-32">
                 <Image
-                  src="/earth-save-me-character.png"
-                  alt="세이브 미 팻말을 든 지구 캐릭터"
+                  src={earthMoodImage}
+                  alt="오늘 활동 상태를 보여주는 지구 캐릭터"
                   fill
-                  sizes="(min-width: 640px) 10rem, 8rem"
+                  sizes="(min-width: 640px) 8rem, 7rem"
                   className="object-contain"
                   priority
                 />
