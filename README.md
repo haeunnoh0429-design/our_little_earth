@@ -35,7 +35,34 @@ copy .env.local.example .env.local
 1. Create a Firebase project.
 2. Register a web app.
 3. Copy the web config values into `.env.local`.
-4. Use `src/lib/firebase.ts` as the shared initializer.
+4. In Authentication > Sign-in method, enable Email/Password.
+5. Create a Firestore database.
+6. Use `src/lib/firebase.ts` as the shared initializer.
+
+The student UI does not ask for a real email address. Students sign up with
+grade, class, student number, name, and a 6+ character password. The app builds
+an internal Firebase Auth email from the grade/class/student number so the same
+student can log in from another device without owning an email account.
+
+Use Firestore rules that let signed-in students read the shared ranking list,
+while only allowing each student to write their own profile document:
+
+```js
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /users/{userId} {
+      allow read: if request.auth != null;
+      allow create, update, delete: if request.auth != null && request.auth.uid == userId;
+
+      match /appState/{documentId} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+      }
+    }
+  }
+}
+```
 
 ## Kakao Map setup
 
@@ -100,14 +127,16 @@ later without changing the UI contract.
   - Current status: route is implemented, but the main preview page still uses local mock mission state
 - Firebase Firestore
   - Shared initializer: `src/lib/firebase.ts`
-  - Current status before this feedback: initialized only, no app read/write flow was using `db`
-  - Current status after this feedback: `src/app/page.tsx` includes a Firestore connection check that performs a real read request so teammates can confirm the SDK is wired correctly
+  - Auth and profile flow: `src/app/page.tsx` creates Firebase Auth accounts and stores student profiles in `users/{uid}`
+  - Student-facing login uses grade/class/student number/name/password, not real student email addresses
 
 ## Current persistence status
 
-- User login/session, selected missions, completed missions, and profile are currently stored in `localStorage`
-- Challenge state is currently kept in React state in `src/app/page.tsx`
-- Firestore is not yet the main source of truth for user, mission, or challenge data
+- User login/session is handled by Firebase Auth
+- Student profile and ranking scores are stored in Firestore at `users/{uid}`
+- Selected missions, completed missions, daily check-ins, challenge progress, and map action history are stored in Firestore at `users/{uid}/appState/main`
+- Existing browser `localStorage` progress is migrated into Firestore the first time a signed-in student loads the app
+- Challenge state is still managed in React state while the app is open, then persisted to the signed-in student's Firestore app state
 
 ## Notes
 

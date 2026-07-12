@@ -1,3 +1,8 @@
+import {
+  calculateChallengeRewardDetails,
+  formatChallengeRewardReason,
+} from "@/lib/challenge-reward-rules";
+
 const OPENAI_API_URL = "https://api.openai.com/v1/responses";
 const DEFAULT_OPENAI_MODEL =
   process.env.OPENAI_CHALLENGE_MODEL ??
@@ -63,12 +68,14 @@ function extractOutputText(responseBody: unknown) {
 }
 
 function createChallengeRewardPrompt(input: ChallengeRewardRequest) {
+  const details = calculateChallengeRewardDetails(input);
+
   return [
     "학생용 친환경 챌린지의 보상 에코머니를 정해주세요.",
-    "반드시 30 이상 70 이하의 정수만 선택하세요.",
-    "난이도, 기간, 장소, 인증 방식이 많을수록 보상이 커질 수 있습니다.",
-    "보상은 과도하게 높지 않게 현실적으로 정해 주세요.",
-    "사유는 한국어 한두 문장으로 짧게 적어 주세요.",
+    `보상 점수는 아래 기준표로 이미 ${details.reward} EM으로 확정되었습니다.`,
+    "응답의 reward는 반드시 확정 점수와 같은 정수로 보내세요.",
+    "사유는 한국어로 기준별 가산점과 왜 그 점수인지 학생이 이해할 수 있게 자세히 적어 주세요.",
+    `계산 요약: ${formatChallengeRewardReason(details)}`,
     `제목: ${input.title}`,
     `설명: ${input.description}`,
     `장소: ${input.location}`,
@@ -81,10 +88,14 @@ function createChallengeRewardPrompt(input: ChallengeRewardRequest) {
 export async function suggestChallengeReward(
   input: ChallengeRewardRequest,
 ): Promise<ChallengeRewardResult> {
+  const details = calculateChallengeRewardDetails(input);
   const apiKey = process.env.OPENAI_API_KEY;
 
   if (!apiKey) {
-    throw new Error("OPENAI_API_KEY is missing.");
+    return {
+      reward: details.reward,
+      reason: formatChallengeRewardReason(details),
+    };
   }
 
   const response = await fetch(OPENAI_API_URL, {
@@ -96,7 +107,7 @@ export async function suggestChallengeReward(
     body: JSON.stringify({
       model: DEFAULT_OPENAI_MODEL,
       instructions:
-        "당신은 학생용 친환경 챌린지의 적절한 보상 에코머니를 정하는 도우미입니다. 안전하고 현실적인 범위로만 점수를 제안하세요.",
+        "당신은 학생용 친환경 챌린지 보상 기준을 설명하는 도우미입니다. 점수는 제공된 기준표의 확정 점수에서 바꾸지 말고, 이유를 명확하고 현실적으로 설명하세요.",
       input: createChallengeRewardPrompt(input),
       text: {
         format: {
@@ -110,7 +121,6 @@ export async function suggestChallengeReward(
               reward: {
                 type: "integer",
                 minimum: 30,
-                maximum: 70,
               },
               reason: {
                 type: "string",
@@ -142,7 +152,7 @@ export async function suggestChallengeReward(
   }
 
   return {
-    reward: Math.max(30, Math.min(70, Math.round(parsed.reward))),
-    reason: parsed.reason,
+    reward: details.reward,
+    reason: parsed.reason || formatChallengeRewardReason(details),
   };
 }

@@ -1,14 +1,25 @@
 "use client";
 
 import Image from "next/image";
-import { type FormEvent, useEffect, useEffectEvent, useMemo, useState } from "react";
+import { type FormEvent, useCallback, useEffect, useEffectEvent, useMemo, useState } from "react";
 import {
   createMapActionKey,
   KakaoMapSection,
   type MapActionCompletion,
 } from "@/components/map/kakao-map-section";
+import { calculateChallengeRewardDetails } from "@/lib/challenge-reward-rules";
+import { auth, db } from "@/lib/firebase";
 import { loadKakaoMap } from "@/lib/load-kakao-map";
 import type { DailyMission } from "@/types/mission";
+import { FirebaseError } from "firebase/app";
+import {
+  createUserWithEmailAndPassword,
+  deleteUser,
+  onAuthStateChanged,
+  signInWithEmailAndPassword,
+  signOut,
+} from "firebase/auth";
+import { collection, doc, getDoc, onSnapshot, setDoc } from "firebase/firestore";
 
 type MissionApiResponse = {
   mission: DailyMission;
@@ -25,7 +36,9 @@ type ChallengeDifficulty = "easy" | "medium" | "hard";
 type LoginForm = {
   grade: string;
   classRoom: string;
+  studentNumber: string;
   name: string;
+  password: string;
 };
 
 type SignupAnswers = {
@@ -37,8 +50,28 @@ type SignupAnswers = {
   unplug: number | null;
 };
 
-type RegisteredUser = LoginForm & {
+type StudentIdentity = Omit<LoginForm, "password">;
+
+type RegisteredUser = StudentIdentity & {
+  uid: string;
   initialDebt: number;
+  profile?: Partial<UserProfile>;
+};
+
+type StoredUserDocument = RegisteredUser & {
+  profile?: Partial<UserProfile>;
+};
+
+type StoredAppState = {
+  selectedMission: DailyMission | null;
+  selectedMissionDate: string;
+  missionDrawDate: string;
+  completedMissionHistory: CompletedMissionRecord[];
+  dailyCheckinDraft: DailyCheckinDraft;
+  lastCheckinDate: string;
+  challenges: Challenge[];
+  completedChallengeHistory: CompletedChallengeRecord[];
+  completedMapActionHistory: CompletedMapActionRecord[];
 };
 
 type SignupQuestion = {
@@ -163,8 +196,12 @@ const TAB_ITEMS: Array<{ id: TabId; label: string }> = [
 
 const gradeOptions = [1, 2, 3];
 const classOptions = Array.from({ length: 6 }, (_, index) => index + 1);
+const showerMinuteOptions = ["0", "5", "10", "15", "20", "25", "30", "40", "50", "60"];
+const petBottleCountOptions = ["0", "1", "2", "3", "4", "5"];
+const carMinuteOptions = ["0", "10", "20", "30", "40", "50", "60", "90", "120"];
 const registeredUsersStorageKey = "ole-registered-users";
 const globalChallengesStorageKey = "ole-challenges";
+const rememberedLoginStorageKey = "ole-remembered-login";
 const creatorBonusRate = 0.1;
 
 const signupQuestions: SignupQuestion[] = [
@@ -172,54 +209,54 @@ const signupQuestions: SignupQuestion[] = [
     key: "transport",
     question: "1. 가까운 거리를 이동할 때 주로 무엇을 이용하나요?",
     options: [
-      { label: "자전거/도보 (+0)", value: 0 },
-      { label: "대중교통 (+300)", value: 300 },
-      { label: "자가용 (+500)", value: 500 },
+      { label: "자전거/도보", value: 300 },
+      { label: "대중교통", value: 400 },
+      { label: "자가용", value: 500 },
     ],
   },
   {
     key: "delivery",
     question: "2. 일주일에 배달 음식이나 포장 음식을 얼마나 이용하나요?",
     options: [
-      { label: "거의 이용하지 않음 (+0)", value: 0 },
-      { label: "1~2회 (+300)", value: 300 },
-      { label: "3회 이상 (+500)", value: 500 },
+      { label: "거의 이용하지 않음", value: 300 },
+      { label: "1~2회", value: 400 },
+      { label: "3회 이상", value: 500 },
     ],
   },
   {
     key: "tumbler",
     question: "3. 외출할 때 텀블러나 다회용기를 챙기나요?",
     options: [
-      { label: "자주 챙김 (+0)", value: 0 },
-      { label: "가끔 챙김 (+300)", value: 300 },
-      { label: "거의 안 챙김 (+500)", value: 500 },
+      { label: "자주 챙김", value: 300 },
+      { label: "가끔 챙김", value: 400 },
+      { label: "거의 안 챙김", value: 500 },
     ],
   },
   {
     key: "recycle",
     question: "4. 분리수거를 얼마나 실천하나요?",
     options: [
-      { label: "기준에 맞춰 잘함 (+0)", value: 0 },
-      { label: "가끔 헷갈리거나 놓침 (+300)", value: 300 },
-      { label: "거의 하지 않음 (+500)", value: 500 },
+      { label: "기준에 맞춰 잘함", value: 300 },
+      { label: "가끔 헷갈리거나 놓침", value: 400 },
+      { label: "거의 하지 않음", value: 500 },
     ],
   },
   {
     key: "plastic",
     question: "5. 하루에 일회용 플라스틱/페트병을 얼마나 사용하나요?",
     options: [
-      { label: "거의 사용하지 않음 (+0)", value: 0 },
-      { label: "1~2개 (+300)", value: 300 },
-      { label: "3개 이상 (+500)", value: 500 },
+      { label: "거의 사용하지 않음", value: 300 },
+      { label: "1~2개", value: 400 },
+      { label: "3개 이상", value: 500 },
     ],
   },
   {
     key: "unplug",
     question: "6. 사용하지 않는 전등, 충전기, 플러그를 잘 끄거나 뽑나요?",
     options: [
-      { label: "자주 실천함 (+0)", value: 0 },
-      { label: "가끔 함 (+300)", value: 300 },
-      { label: "거의 안 함 (+500)", value: 500 },
+      { label: "자주 실천함", value: 300 },
+      { label: "가끔 함", value: 400 },
+      { label: "거의 안 함", value: 500 },
     ],
   },
 ];
@@ -307,17 +344,160 @@ function createEmptyDailyCheckinDraft(date = getTodayKey()): DailyCheckinDraft {
   };
 }
 
-function normalizeIdentity(form: LoginForm) {
+function normalizeIdentity(form: StudentIdentity) {
   return {
     grade: form.grade,
     classRoom: form.classRoom,
+    studentNumber: form.studentNumber.trim(),
     name: form.name.trim(),
   };
 }
 
-function getIdentityKey(form: LoginForm) {
+function getIdentityKey(form: StudentIdentity) {
   const normalized = normalizeIdentity(form);
-  return `${normalized.grade}-${normalized.classRoom}-${normalized.name}`;
+  return `${normalized.grade}-${normalized.classRoom}-${normalized.studentNumber}`;
+}
+
+function buildStudentAuthEmail(form: StudentIdentity) {
+  const normalized = normalizeIdentity(form);
+  return `ole-${normalized.grade}-${normalized.classRoom}-${normalized.studentNumber}@our-little-earth.local`;
+}
+
+function createEmptyLoginForm(): LoginForm {
+  return {
+    grade: "",
+    classRoom: "",
+    studentNumber: "",
+    name: "",
+    password: "",
+  };
+}
+
+function readRememberedLoginForm() {
+  if (typeof window === "undefined") {
+    return createEmptyLoginForm();
+  }
+
+  const saved = window.localStorage.getItem(rememberedLoginStorageKey);
+
+  if (!saved) {
+    return createEmptyLoginForm();
+  }
+
+  try {
+    const parsed = JSON.parse(saved) as Partial<StudentIdentity>;
+
+    return {
+      grade: typeof parsed.grade === "string" ? parsed.grade : "",
+      classRoom: typeof parsed.classRoom === "string" ? parsed.classRoom : "",
+      studentNumber: typeof parsed.studentNumber === "string" ? parsed.studentNumber : "",
+      name: typeof parsed.name === "string" ? parsed.name : "",
+      password: "",
+    };
+  } catch {
+    return createEmptyLoginForm();
+  }
+}
+
+function saveRememberedLoginForm(form: StudentIdentity) {
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  window.localStorage.setItem(rememberedLoginStorageKey, JSON.stringify(normalizeIdentity(form)));
+}
+
+function hasRememberedLoginForm(form: LoginForm) {
+  return form.grade !== "" || form.classRoom !== "" || form.studentNumber !== "" || form.name !== "";
+}
+
+function hasBrokenText(value: string | undefined) {
+  return typeof value === "string" && /[�吏諛媛]/.test(value);
+}
+
+function getDisplayName(user: StudentIdentity, profileName?: string) {
+  if (profileName && !hasBrokenText(profileName)) {
+    return profileName;
+  }
+
+  return hasBrokenText(user.name) || user.name.trim() === "" ? DEFAULT_PROFILE.name : user.name;
+}
+
+function getDisplaySchool(user: StudentIdentity, profileSchool?: string) {
+  if (profileSchool && profileSchool !== DEFAULT_PROFILE.school && !hasBrokenText(profileSchool)) {
+    return profileSchool;
+  }
+
+  return `${user.grade}학년 ${user.classRoom}반`;
+}
+
+function getFirebaseErrorCode(error: unknown) {
+  if (error instanceof FirebaseError) {
+    return error.code;
+  }
+
+  if (typeof error === "object" && error !== null && "code" in error) {
+    const code = (error as { code?: unknown }).code;
+    return typeof code === "string" ? code : "";
+  }
+
+  return "";
+}
+
+function getSignupErrorMessage(error: unknown) {
+  const code = getFirebaseErrorCode(error);
+
+  if (code === "auth/email-already-in-use") {
+    return "이미 가입된 번호예요. 로그인으로 들어가 주세요.";
+  }
+
+  if (code === "auth/operation-not-allowed") {
+    return "Firebase Authentication에서 Email/Password 로그인을 켜 주세요.";
+  }
+
+  if (code === "auth/configuration-not-found") {
+    return "Firebase Authentication 설정을 찾지 못했어요. Firebase 콘솔에서 Authentication을 시작하고 Email/Password를 켜 주세요.";
+  }
+
+  if (code === "auth/invalid-api-key" || code === "auth/api-key-not-valid.-please-pass-a-valid-api-key.") {
+    return "Firebase API 키 설정이 잘못됐어요. Vercel 환경변수를 확인해 주세요.";
+  }
+
+  if (code === "auth/network-request-failed") {
+    return "Firebase에 연결하지 못했어요. 네트워크나 배포 환경변수를 확인해 주세요.";
+  }
+
+  if (code === "permission-denied") {
+    return "Firestore 권한 때문에 학생 정보를 저장하지 못했어요. Firestore Rules를 확인해 주세요.";
+  }
+
+  if (code === "not-found" || code === "failed-precondition") {
+    return "Firestore 데이터베이스가 아직 준비되지 않았어요. Firebase에서 Firestore Database를 만들어 주세요.";
+  }
+
+  return code ? `회원가입에 실패했어요. Firebase 오류: ${code}` : "회원가입에 실패했어요. Firebase 설정을 확인해 주세요.";
+}
+
+function getLoginErrorMessage(error: unknown) {
+  const code = getFirebaseErrorCode(error);
+
+  if (
+    code === "auth/invalid-credential" ||
+    code === "auth/user-not-found" ||
+    code === "auth/wrong-password"
+  ) {
+    return "비밀번호가 맞지 않아요. 학년, 반, 번호, 이름이 맞다면 비밀번호를 다시 확인해 주세요.";
+  }
+
+  if (code === "permission-denied") {
+    return "Firestore 권한 때문에 학생 정보를 읽지 못했어요. Firestore Rules를 확인해 주세요.";
+  }
+
+  if (code === "auth/configuration-not-found") {
+    return "Firebase Authentication 설정을 찾지 못했어요. Firebase 콘솔에서 Authentication을 시작하고 Email/Password를 켜 주세요.";
+  }
+
+  return code ? `로그인에 실패했어요. Firebase 오류: ${code}` : "로그인에 실패했어요. 잠시 후 다시 시도해 주세요.";
 }
 
 function createEmptySignupAnswers(): SignupAnswers {
@@ -394,32 +574,16 @@ function readRegisteredUsers() {
 
       const record = user as Partial<RegisteredUser>;
       return (
+        typeof record.uid === "string" &&
         typeof record.grade === "string" &&
         typeof record.classRoom === "string" &&
+        typeof record.studentNumber === "string" &&
         typeof record.name === "string" &&
         typeof record.initialDebt === "number"
       );
     });
   } catch {
     return [] as RegisteredUser[];
-  }
-}
-
-function readStoredSessionUser() {
-  if (typeof window === "undefined") {
-    return null as RegisteredUser | null;
-  }
-
-  const savedUser = window.localStorage.getItem("ole-session-user");
-
-  if (!savedUser) {
-    return null as RegisteredUser | null;
-  }
-
-  try {
-    return JSON.parse(savedUser) as RegisteredUser;
-  } catch {
-    return null as RegisteredUser | null;
   }
 }
 
@@ -449,6 +613,49 @@ function readStoredProfile(userKey: string | null) {
   } catch {
     return DEFAULT_PROFILE;
   }
+}
+
+function parseStoredUserDocument(data: unknown, uid: string) {
+  if (typeof data !== "object" || data === null) {
+    return null as StoredUserDocument | null;
+  }
+
+  const record = data as Partial<StoredUserDocument>;
+
+  if (
+    typeof record.grade !== "string" ||
+    typeof record.classRoom !== "string" ||
+    typeof record.studentNumber !== "string" ||
+    typeof record.name !== "string" ||
+    typeof record.initialDebt !== "number"
+  ) {
+    return null as StoredUserDocument | null;
+  }
+
+  return {
+    uid,
+    grade: record.grade,
+    classRoom: record.classRoom,
+    studentNumber: record.studentNumber,
+    name: record.name,
+    initialDebt: record.initialDebt,
+    profile: record.profile,
+  };
+}
+
+function getRankingProfile(user: RegisteredUser) {
+  const fallback = readStoredProfile(getIdentityKey(user));
+  return {
+    ...fallback,
+    ...user.profile,
+    name: user.name,
+    school:
+      user.profile?.school ??
+      (fallback.school === DEFAULT_PROFILE.school ? `${user.grade}학년 ${user.classRoom}반` : fallback.school),
+    ecoDebt: user.profile?.ecoDebt ?? fallback.ecoDebt ?? user.initialDebt,
+    ecoMoney: user.profile?.ecoMoney ?? fallback.ecoMoney ?? 0,
+    clearedDebt: user.profile?.clearedDebt ?? fallback.clearedDebt ?? 0,
+  };
 }
 
 function readStoredMission(userKey: string | null) {
@@ -685,6 +892,87 @@ function readStoredCompletedMapActions(userKey: string | null) {
   }
 }
 
+function createLocalAppState(userKey: string): StoredAppState {
+  const selectedMission = readStoredMission(userKey);
+
+  return {
+    selectedMission,
+    selectedMissionDate: selectedMission ? getTodayKey() : "",
+    missionDrawDate: readStoredMissionDrawDate(userKey),
+    completedMissionHistory: readStoredCompletedMissions(userKey),
+    dailyCheckinDraft: readStoredDailyCheckinDraft(userKey),
+    lastCheckinDate: readStoredCheckinDate(userKey),
+    challenges: readStoredChallenges(),
+    completedChallengeHistory: readStoredCompletedChallenges(userKey),
+    completedMapActionHistory: readStoredCompletedMapActions(userKey),
+  };
+}
+
+function parseStoredAppState(data: unknown): StoredAppState | null {
+  if (typeof data !== "object" || data === null) {
+    return null;
+  }
+
+  const record = data as Partial<StoredAppState>;
+  const dailyCheckinDraft =
+    record.dailyCheckinDraft &&
+    typeof record.dailyCheckinDraft.date === "string" &&
+    typeof record.dailyCheckinDraft.showerMinutes === "string" &&
+    typeof record.dailyCheckinDraft.petBottleCount === "string" &&
+    typeof record.dailyCheckinDraft.carMinutes === "string" &&
+    typeof record.dailyCheckinDraft.responded === "boolean"
+      ? record.dailyCheckinDraft
+      : createEmptyDailyCheckinDraft();
+
+  return {
+    selectedMission:
+      record.selectedMission && typeof record.selectedMission === "object"
+        ? (record.selectedMission as DailyMission)
+        : null,
+    selectedMissionDate: typeof record.selectedMissionDate === "string" ? record.selectedMissionDate : "",
+    missionDrawDate: typeof record.missionDrawDate === "string" ? record.missionDrawDate : "",
+    completedMissionHistory: Array.isArray(record.completedMissionHistory)
+      ? record.completedMissionHistory
+      : [],
+    dailyCheckinDraft,
+    lastCheckinDate: typeof record.lastCheckinDate === "string" ? record.lastCheckinDate : "",
+    challenges: Array.isArray(record.challenges)
+      ? (record.challenges as Challenge[])
+      : initialChallenges.map(createFreshChallengeState),
+    completedChallengeHistory: Array.isArray(record.completedChallengeHistory)
+      ? record.completedChallengeHistory
+      : [],
+    completedMapActionHistory: Array.isArray(record.completedMapActionHistory)
+      ? record.completedMapActionHistory
+      : [],
+  };
+}
+
+async function readUserAppState(uid: string, userKey: string) {
+  const appStateRef = doc(db, "users", uid, "appState", "main");
+  const appStateSnapshot = await getDoc(appStateRef);
+  const firestoreState = parseStoredAppState(appStateSnapshot.data());
+
+  if (firestoreState) {
+    return firestoreState;
+  }
+
+  const localState = createLocalAppState(userKey);
+  const now = new Date().toISOString();
+
+  await setDoc(
+    appStateRef,
+    {
+      ...localState,
+      migratedFromLocalStorageAt: now,
+      updatedAt: now,
+    },
+    { merge: true },
+  );
+
+  return localState;
+}
+
 function renderStars(rating: number) {
   return "★".repeat(clampRating(rating)) + "☆".repeat(5 - clampRating(rating));
 }
@@ -750,17 +1038,6 @@ function canUseChallengeDay(challenge: Challenge, day: number, todayKey: string)
   return challenge.joined && !challenge.completed && day === getChallengeActiveDay(challenge, todayKey);
 }
 
-function awardDebtReduction(userKey: string | null, amount: number) {
-  if (typeof window === "undefined" || !userKey || amount <= 0) {
-    return;
-  }
-
-  const stored = readStoredProfile(userKey);
-  const nextProfile = applyEcoMoneyReward(stored, amount);
-
-  window.localStorage.setItem(`ole-profile-${userKey}`, JSON.stringify(nextProfile));
-}
-
 function updateChallengeCreatorBonus(challenge: Challenge, currentUserKey: string | null) {
   const bonus = Math.round(challenge.reward * challenge.creatorBonusRate);
 
@@ -768,7 +1045,6 @@ function updateChallengeCreatorBonus(challenge: Challenge, currentUserKey: strin
     return bonus;
   }
 
-  awardDebtReduction(challenge.creatorKey, bonus);
   return bonus;
 }
 
@@ -777,7 +1053,9 @@ function AuthScreen({
   form,
   signupAnswers,
   notice,
+  rememberLogin,
   onChange,
+  onRememberLoginChange,
   onSignupAnswerChange,
   onSwitchMode,
   onSubmit,
@@ -786,25 +1064,27 @@ function AuthScreen({
   form: LoginForm;
   signupAnswers: SignupAnswers;
   notice: string;
+  rememberLogin: boolean;
   onChange: (field: keyof LoginForm, value: string) => void;
+  onRememberLoginChange: (value: boolean) => void;
   onSignupAnswerChange: (field: keyof SignupAnswers, value: number) => void;
   onSwitchMode: (mode: AuthMode) => void;
   onSubmit: (event: FormEvent<HTMLFormElement>) => void;
 }) {
   return (
     <section className="ole-card overflow-hidden">
-      <div className="ole-sticker p-8">
-        <div className="flex items-center justify-between gap-4">
+      <div className="ole-sticker p-5 sm:p-8">
+        <div className="flex flex-col items-start justify-between gap-4 min-[390px]:flex-row min-[390px]:items-center">
           <div className="max-w-[20rem]">
             <p className="text-base font-bold text-[#55735d]">Our Little Earth</p>
-            <h1 className="mt-2 text-[2rem] font-black leading-tight tracking-normal text-[#183522]">
+            <h1 className="mt-2 text-[1.75rem] font-black leading-tight tracking-normal text-[#183522] min-[390px]:text-[2rem]">
               {mode === "signup" ? "회원가입하고 시작하기" : "로그인하고 이어가기"}
             </h1>
             <p className="mt-3 text-base leading-7 text-[#5a7460]">
-              학년, 반, 이름으로 가볍게 시작하고 우리 반의 지구를 함께 키워요.
+              학년, 반, 번호와 비밀번호로 가볍게 시작하고 우리 반의 지구를 함께 키워요.
             </p>
           </div>
-          <div className="relative h-32 w-32 shrink-0 rounded-[1.1rem] bg-white/70 p-3 shadow-[0_8px_0_rgba(64,119,71,0.10)]">
+          <div className="relative h-28 w-28 shrink-0 self-center rounded-[1.1rem] bg-white/70 p-3 shadow-[0_8px_0_rgba(64,119,71,0.10)] min-[390px]:h-32 min-[390px]:w-32">
             <Image
               src="/earth-save-me-character.png"
               alt="세이브 미 팻말을 든 지구 캐릭터"
@@ -817,7 +1097,7 @@ function AuthScreen({
         </div>
       </div>
 
-      <form onSubmit={onSubmit} className="space-y-5 p-8">
+      <form onSubmit={onSubmit} className="space-y-5 p-5 sm:p-8">
         <label className="block">
           <span className="mb-2 block text-base font-bold text-[#26412d]">학년</span>
           <select
@@ -864,6 +1144,46 @@ function AuthScreen({
           />
         </label>
 
+        <label className="flex items-start gap-3 rounded-[0.8rem] border border-[#dbe7d7] bg-[#fffef8] px-4 py-3">
+          <input
+            type="checkbox"
+            checked={rememberLogin}
+            onChange={(event) => onRememberLoginChange(event.target.checked)}
+            className="mt-1 h-4 w-4 accent-[#2a5d3b]"
+          />
+          <span>
+            <span className="block text-sm font-black text-[#26412d]">내 로그인 정보 기억하기</span>
+            <span className="mt-1 block text-xs leading-5 text-[#6b7d6b]">학년, 반, 번호, 이름만 저장해요. 비밀번호는 저장하지 않아요.</span>
+          </span>
+        </label>
+
+        <label className="block">
+          <span className="mb-2 block text-base font-bold text-[#26412d]">출석번호</span>
+          <input
+            type="number"
+            min="1"
+            inputMode="numeric"
+            value={form.studentNumber}
+            onChange={(event) => onChange("studentNumber", event.target.value)}
+            placeholder="예: 12"
+            className="ole-field w-full px-5 py-4 text-base text-[#1f3526]"
+            required
+          />
+        </label>
+
+        <label className="block">
+          <span className="mb-2 block text-base font-bold text-[#26412d]">비밀번호</span>
+          <input
+            type="password"
+            minLength={6}
+            value={form.password}
+            onChange={(event) => onChange("password", event.target.value)}
+            placeholder="6자리 이상"
+            className="ole-field w-full px-5 py-4 text-base text-[#1f3526]"
+            required
+          />
+        </label>
+
         {mode === "signup" ? (
           <div className="ole-soft space-y-4 p-5">
             <div>
@@ -893,10 +1213,6 @@ function AuthScreen({
                 </select>
               </label>
             ))}
-
-            <div className="border-t border-[#d9e6c8] pt-4 text-base font-black text-[#2a5d3b]">
-              현재 설정된 초기 빚: {calculateInitialDebt(signupAnswers).toLocaleString()} EM
-            </div>
           </div>
         ) : null}
 
@@ -938,9 +1254,6 @@ function MissionCompleteCelebration() {
           <h3 className="mt-3 text-[1.6rem] font-black leading-tight text-[#21452f]">
             오늘의 미션 완료!
           </h3>
-          <p className="mt-2 text-sm leading-6 text-[#5d725e]">
-            지구가 방금 박수쳤어요. 오늘 실천은 완료됐고, 내일 또 새로운 미션에 도전할 수 있어요.
-          </p>
           <div className="mt-4 flex flex-wrap gap-2 text-xs font-black">
             <span className="rounded-full bg-white/85 px-3 py-2 text-[#2c6a41]">에코 행동 저장 완료</span>
             <span className="rounded-full bg-white/85 px-3 py-2 text-[#94612b]">내일 다시 도전</span>
@@ -1119,7 +1432,8 @@ function ProofDayCard({
 export default function Home() {
   const [authMode, setAuthMode] = useState<AuthMode>("login");
   const [authNotice, setAuthNotice] = useState("");
-  const [loginForm, setLoginForm] = useState<LoginForm>({ grade: "", classRoom: "", name: "" });
+  const [loginForm, setLoginForm] = useState<LoginForm>(readRememberedLoginForm);
+  const [rememberLogin, setRememberLogin] = useState(() => hasRememberedLoginForm(readRememberedLoginForm()));
   const [signupAnswers, setSignupAnswers] = useState<SignupAnswers>(createEmptySignupAnswers());
   const [registeredUsers, setRegisteredUsers] = useState<RegisteredUser[]>([]);
   const [currentUser, setCurrentUser] = useState<RegisteredUser | null>(null);
@@ -1129,6 +1443,7 @@ export default function Home() {
   const [missionDrawDate, setMissionDrawDate] = useState("");
   const [missionReason, setMissionReason] = useState("");
   const [isMissionLoading, setIsMissionLoading] = useState(false);
+  const [isMissionDetailOpen, setIsMissionDetailOpen] = useState(true);
   const [missionVerification, setMissionVerification] = useState<MissionVerificationState>(createEmptyMissionVerification);
   const [completedMissionHistory, setCompletedMissionHistory] = useState<CompletedMissionRecord[]>([]);
   const [dailyCheckinDraft, setDailyCheckinDraft] = useState<DailyCheckinDraft>(createEmptyDailyCheckinDraft);
@@ -1158,154 +1473,164 @@ export default function Home() {
   const currentUserKey = currentUser ? getIdentityKey(currentUser) : null;
   const todayKey = getTodayKey();
 
-  useEffect(() => {
-    const timeoutId = window.setTimeout(() => {
-      const storedUsers = readRegisteredUsers();
-      const storedUser = readStoredSessionUser();
+  const loadUserState = useCallback((user: RegisteredUser, firebaseProfile?: Partial<UserProfile>, appState?: StoredAppState) => {
+    const userKey = getIdentityKey(user);
+    const storedAppState = appState ?? createLocalAppState(userKey);
+    const storedProfile = {
+      ...readStoredProfile(userKey),
+      ...firebaseProfile,
+    };
+    const selectedMission =
+      storedAppState.selectedMission && storedAppState.selectedMissionDate === getTodayKey()
+        ? storedAppState.selectedMission
+        : null;
 
-      setRegisteredUsers(storedUsers);
-      setChallenges(readStoredChallenges());
-
-      if (storedUser) {
-        const userKey = getIdentityKey(storedUser);
-        const storedProfile = readStoredProfile(userKey);
-
-        setCurrentUser(storedUser);
-        setProfile({
-          ...storedProfile,
-          name: storedUser.name,
-          ecoDebt: storedProfile.ecoDebt ?? storedUser.initialDebt,
-          ecoMoney: storedProfile.ecoMoney ?? 0,
-          school:
-            storedProfile.school === DEFAULT_PROFILE.school
-              ? `${storedUser.grade}학년 ${storedUser.classRoom}반`
-              : storedProfile.school,
-        });
-        setSelectedMission(readStoredMission(userKey));
-        setMissionDrawDate(readStoredMissionDrawDate(userKey));
-        setMissionVerification(createEmptyMissionVerification());
-        setCompletedMissionHistory(readStoredCompletedMissions(userKey));
-        setDailyCheckinDraft(readStoredDailyCheckinDraft(userKey));
-        setLastCheckinDate(readStoredCheckinDate(userKey));
-        setCompletedChallengeHistory(readStoredCompletedChallenges(userKey));
-        setCompletedMapActionHistory(readStoredCompletedMapActions(userKey));
-      }
-
-      setHasHydrated(true);
-    }, 0);
-
-    return () => window.clearTimeout(timeoutId);
+    setCurrentUser(user);
+    setProfile({
+      ...storedProfile,
+      name: getDisplayName(user, storedProfile.name),
+      ecoDebt: storedProfile.ecoDebt ?? user.initialDebt,
+      ecoMoney: storedProfile.ecoMoney ?? 0,
+      school: getDisplaySchool(user, storedProfile.school),
+    });
+    setSelectedMission(selectedMission);
+    setMissionDrawDate(storedAppState.missionDrawDate);
+    setMissionReason("");
+    setMissionVerification(createEmptyMissionVerification());
+    setCompletedMissionHistory(storedAppState.completedMissionHistory);
+    setDailyCheckinDraft(storedAppState.dailyCheckinDraft);
+    setLastCheckinDate(storedAppState.lastCheckinDate);
+    setCompletedChallengeHistory(storedAppState.completedChallengeHistory);
+    setCompletedMapActionHistory(storedAppState.completedMapActionHistory);
+    setChallenges(storedAppState.challenges);
+    setActiveTab("home");
   }, []);
 
   useEffect(() => {
-    if (!hasHydrated || !currentUserKey) {
-      return;
-    }
+    let isActive = true;
 
-    window.localStorage.setItem(`ole-profile-${currentUserKey}`, JSON.stringify(profile));
-  }, [currentUserKey, hasHydrated, profile]);
+    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      const storedUsers = readRegisteredUsers();
 
-  useEffect(() => {
-    if (!hasHydrated || !currentUserKey) {
-      return;
-    }
+      setRegisteredUsers(storedUsers);
+      setChallenges(initialChallenges.map(createFreshChallengeState));
 
-    if (selectedMission) {
-      window.localStorage.setItem(`ole-selected-mission-${currentUserKey}`, JSON.stringify(selectedMission));
-      window.localStorage.setItem(`ole-selected-mission-date-${currentUserKey}`, todayKey);
-      return;
-    }
+      if (!firebaseUser) {
+        if (isActive) {
+          setHasHydrated(true);
+        }
+        return;
+      }
 
-    window.localStorage.removeItem(`ole-selected-mission-${currentUserKey}`);
-    window.localStorage.removeItem(`ole-selected-mission-date-${currentUserKey}`);
-  }, [currentUserKey, hasHydrated, selectedMission, todayKey]);
+      try {
+        const userSnapshot = await getDoc(doc(db, "users", firebaseUser.uid));
+        const storedUser = parseStoredUserDocument(userSnapshot.data(), firebaseUser.uid);
 
-  useEffect(() => {
-    if (!hasHydrated || !currentUserKey) {
-      return;
-    }
+        if (!isActive) {
+          return;
+        }
 
-    if (missionDrawDate) {
-      window.localStorage.setItem(`ole-mission-draw-date-${currentUserKey}`, missionDrawDate);
-      return;
-    }
+        if (!storedUser) {
+          setAuthNotice("학생 프로필을 찾지 못했어요. 다시 로그인해 주세요.");
+          await signOut(auth);
+          return;
+        }
 
-    window.localStorage.removeItem(`ole-mission-draw-date-${currentUserKey}`);
-  }, [currentUserKey, hasHydrated, missionDrawDate]);
+        const appState = await readUserAppState(firebaseUser.uid, getIdentityKey(storedUser));
 
-  useEffect(() => {
-    if (!hasHydrated || !currentUserKey) {
-      return;
-    }
+        if (!isActive) {
+          return;
+        }
 
-    window.localStorage.setItem(`ole-completed-missions-${currentUserKey}`, JSON.stringify(completedMissionHistory));
-  }, [completedMissionHistory, currentUserKey, hasHydrated]);
+        loadUserState(storedUser, storedUser.profile, appState);
+      } catch {
+        if (isActive) {
+          setAuthNotice("로그인 정보를 불러오지 못했어요. 잠시 후 다시 시도해 주세요.");
+        }
+      } finally {
+        if (isActive) {
+          setHasHydrated(true);
+        }
+      }
+    });
 
-  useEffect(() => {
-    if (!hasHydrated || !currentUserKey) {
-      return;
-    }
-
-    window.localStorage.setItem(`ole-daily-checkin-draft-${currentUserKey}`, JSON.stringify(dailyCheckinDraft));
-  }, [currentUserKey, dailyCheckinDraft, hasHydrated]);
-
-  useEffect(() => {
-    if (!hasHydrated || !currentUserKey) {
-      return;
-    }
-
-    if (lastCheckinDate) {
-      window.localStorage.setItem(`ole-daily-checkin-${currentUserKey}`, lastCheckinDate);
-      return;
-    }
-
-    window.localStorage.removeItem(`ole-daily-checkin-${currentUserKey}`);
-  }, [currentUserKey, hasHydrated, lastCheckinDate]);
+    return () => {
+      isActive = false;
+      unsubscribe();
+    };
+  }, [loadUserState]);
 
   useEffect(() => {
-    if (!hasHydrated || !currentUserKey) {
+    if (!hasHydrated || !currentUser) {
       return;
     }
 
-    window.localStorage.setItem(`ole-completed-challenges-${currentUserKey}`, JSON.stringify(completedChallengeHistory));
-  }, [completedChallengeHistory, currentUserKey, hasHydrated]);
+    const unsubscribe = onSnapshot(
+      collection(db, "users"),
+      (snapshot) => {
+        const firestoreUsers = snapshot.docs
+          .map((userDocument) => parseStoredUserDocument(userDocument.data(), userDocument.id))
+          .filter((user): user is RegisteredUser => user !== null);
 
-  useEffect(() => {
-    if (!hasHydrated || !currentUserKey) {
-      return;
-    }
+        setRegisteredUsers(firestoreUsers);
+      },
+      () => {
+        setAuthNotice("랭킹 정보를 불러오지 못했어요. Firestore 읽기 권한을 확인해 주세요.");
+      },
+    );
 
-    window.localStorage.setItem(`ole-completed-map-actions-${currentUserKey}`, JSON.stringify(completedMapActionHistory));
-  }, [completedMapActionHistory, currentUserKey, hasHydrated]);
-
-  useEffect(() => {
-    if (!hasHydrated) {
-      return;
-    }
-
-    window.localStorage.setItem(registeredUsersStorageKey, JSON.stringify(registeredUsers));
-  }, [hasHydrated, registeredUsers]);
-
-  useEffect(() => {
-    if (!hasHydrated) {
-      return;
-    }
-
-    window.localStorage.setItem(globalChallengesStorageKey, JSON.stringify(challenges));
-  }, [challenges, hasHydrated]);
-
-  useEffect(() => {
-    if (!hasHydrated) {
-      return;
-    }
-
-    if (!currentUser) {
-      window.localStorage.removeItem("ole-session-user");
-      return;
-    }
-
-    window.localStorage.setItem("ole-session-user", JSON.stringify(currentUser));
+    return unsubscribe;
   }, [currentUser, hasHydrated]);
+
+  useEffect(() => {
+    if (!hasHydrated || !currentUser) {
+      return;
+    }
+
+    void setDoc(
+      doc(db, "users", currentUser.uid),
+      {
+        profile,
+        updatedAt: new Date().toISOString(),
+      },
+      { merge: true },
+    );
+  }, [currentUser, hasHydrated, profile]);
+
+  useEffect(() => {
+    if (!hasHydrated || !currentUser) {
+      return;
+    }
+
+    void setDoc(
+      doc(db, "users", currentUser.uid, "appState", "main"),
+      {
+        selectedMission,
+        selectedMissionDate: selectedMission ? todayKey : "",
+        missionDrawDate,
+        completedMissionHistory,
+        dailyCheckinDraft,
+        lastCheckinDate,
+        challenges,
+        completedChallengeHistory,
+        completedMapActionHistory,
+        updatedAt: new Date().toISOString(),
+      },
+      { merge: true },
+    );
+  }, [
+    challenges,
+    completedChallengeHistory,
+    completedMapActionHistory,
+    completedMissionHistory,
+    currentUser,
+    dailyCheckinDraft,
+    hasHydrated,
+    lastCheckinDate,
+    missionDrawDate,
+    selectedMission,
+    todayKey,
+  ]);
 
   const reconcileDailyCheckin = useEffectEvent(() => {
     if (!currentUser) {
@@ -1357,18 +1682,30 @@ export default function Home() {
   const canDrawMissionToday = missionDrawDate !== todayKey && !missionCompletedToday && !selectedMission;
   const activeChallenges = challenges.filter((challenge) => challenge.joined && !challenge.completed);
   const availableChallenges = challenges.filter((challenge) => !challenge.completed && !challenge.joined);
+  const challengeDraftDurationDays = Number(challengeDraft.durationDays);
+  const challengeRewardDetails =
+    Number.isFinite(challengeDraftDurationDays) &&
+    challengeDraftDurationDays >= 1 &&
+    challengeDraft.proofMethods.length > 0
+      ? calculateChallengeRewardDetails({
+          location: challengeDraft.location,
+          durationDays: challengeDraftDurationDays,
+          difficulty: challengeDraft.difficulty,
+          proofMethods: challengeDraft.proofMethods,
+        })
+      : null;
 
   const rankingUsers = useMemo(() => {
     return registeredUsers.map((user) => {
       const userKey = getIdentityKey(user);
-      const storedProfile = readStoredProfile(userKey);
+      const rankingProfile = getRankingProfile(user);
       const isCurrentUser = currentUserKey === userKey;
 
       return {
         ...user,
         className: `${user.grade}학년 ${user.classRoom}반`,
-        clearedDebt: isCurrentUser ? profile.clearedDebt : storedProfile.clearedDebt,
-        ecoDebt: isCurrentUser ? profile.ecoDebt : storedProfile.ecoDebt,
+        clearedDebt: isCurrentUser ? profile.clearedDebt : rankingProfile.clearedDebt,
+        ecoDebt: isCurrentUser ? profile.ecoDebt : rankingProfile.ecoDebt,
       };
     });
   }, [currentUserKey, profile.clearedDebt, profile.ecoDebt, registeredUsers]);
@@ -1383,79 +1720,127 @@ export default function Home() {
     setAuthNotice("");
   };
 
-  const loadUserState = (user: RegisteredUser) => {
-    const userKey = getIdentityKey(user);
-    const storedProfile = readStoredProfile(userKey);
+  const handleRememberLoginChange = (value: boolean) => {
+    setRememberLogin(value);
 
-    setCurrentUser(user);
-    setProfile({
-      ...storedProfile,
-      name: user.name,
-      ecoDebt: storedProfile.ecoDebt ?? user.initialDebt,
-      ecoMoney: storedProfile.ecoMoney ?? 0,
-      school: storedProfile.school === DEFAULT_PROFILE.school ? `${user.grade}학년 ${user.classRoom}반` : storedProfile.school,
-    });
-    setSelectedMission(readStoredMission(userKey));
-    setMissionDrawDate(readStoredMissionDrawDate(userKey));
-    setMissionReason("");
-    setMissionVerification(createEmptyMissionVerification());
-    setCompletedMissionHistory(readStoredCompletedMissions(userKey));
-    setDailyCheckinDraft(readStoredDailyCheckinDraft(userKey));
-    setLastCheckinDate(readStoredCheckinDate(userKey));
-    setCompletedChallengeHistory(readStoredCompletedChallenges(userKey));
-    setCompletedMapActionHistory(readStoredCompletedMapActions(userKey));
-    setChallenges(readStoredChallenges());
-    setActiveTab("home");
+    if (!value && typeof window !== "undefined") {
+      window.localStorage.removeItem(rememberedLoginStorageKey);
+    }
   };
 
-  const handleAuthSubmit = (event: FormEvent<HTMLFormElement>) => {
+  const handleAuthSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
     const normalizedUser = normalizeIdentity(loginForm);
-    const existingUser = registeredUsers.find((user) => getIdentityKey(user) === getIdentityKey(normalizedUser));
+    const studentEmail = buildStudentAuthEmail(normalizedUser);
+    const password = loginForm.password.trim();
+
+    if (password.length < 6) {
+      setAuthNotice("비밀번호는 6자리 이상으로 정해 주세요.");
+      return;
+    }
 
     if (authMode === "signup") {
-      if (existingUser) {
-        loadUserState(existingUser);
-        setAuthNotice("이미 가입된 사용자라서 바로 로그인했어요.");
+      let createdUserCredential: Awaited<ReturnType<typeof createUserWithEmailAndPassword>> | null = null;
+
+      try {
+        const userCredential = await createUserWithEmailAndPassword(auth, studentEmail, password);
+        createdUserCredential = userCredential;
+        const initialDebt = calculateInitialDebt(signupAnswers);
+        const nextProfile: UserProfile = {
+          name: normalizedUser.name,
+          school: `${normalizedUser.grade}학년 ${normalizedUser.classRoom}반`,
+          ecoDebt: initialDebt,
+          ecoMoney: 0,
+          clearedDebt: 0,
+        };
+        const nextUser: RegisteredUser = {
+          ...normalizedUser,
+          uid: userCredential.user.uid,
+          initialDebt,
+          profile: nextProfile,
+        };
+
+        await setDoc(doc(db, "users", nextUser.uid), {
+          ...nextUser,
+          profile: nextProfile,
+          createdAt: new Date().toISOString(),
+        });
+        await setDoc(doc(db, "users", nextUser.uid, "appState", "main"), {
+          selectedMission: null,
+          selectedMissionDate: "",
+          missionDrawDate: "",
+          completedMissionHistory: [],
+          dailyCheckinDraft: createEmptyDailyCheckinDraft(),
+          lastCheckinDate: "",
+          challenges: initialChallenges.map(createFreshChallengeState),
+          completedChallengeHistory: [],
+          completedMapActionHistory: [],
+          updatedAt: new Date().toISOString(),
+        });
+
+        setRegisteredUsers((current) => {
+          const nextUsers = current.filter((user) => getIdentityKey(user) !== getIdentityKey(nextUser));
+          return [...nextUsers, nextUser];
+        });
+        setCurrentUser(nextUser);
+        setProfile(nextProfile);
+        setSelectedMission(null);
+        setMissionDrawDate("");
+        setMissionReason("");
+        setMissionVerification(createEmptyMissionVerification());
+        setCompletedMissionHistory([]);
+        setDailyCheckinDraft(createEmptyDailyCheckinDraft());
+        setLastCheckinDate("");
+        setCompletedChallengeHistory([]);
+        setCompletedMapActionHistory([]);
+        setActiveTab("home");
+        if (rememberLogin) {
+          saveRememberedLoginForm(normalizedUser);
+        }
+        setAuthNotice("회원가입이 완료됐어요.");
+      } catch (error) {
+        if (createdUserCredential) {
+          try {
+            await deleteUser(createdUserCredential.user);
+          } catch {
+            // If cleanup fails, keep the original Firebase error visible to the user.
+          }
+        }
+
+        setAuthNotice(getSignupErrorMessage(error));
+      }
+      return;
+    }
+
+    try {
+      const userCredential = await signInWithEmailAndPassword(auth, studentEmail, password);
+      const userSnapshot = await getDoc(doc(db, "users", userCredential.user.uid));
+      const storedUser = parseStoredUserDocument(userSnapshot.data(), userCredential.user.uid);
+
+      if (!storedUser) {
+        setAuthNotice("로그인은 되었지만 학생 프로필을 찾지 못했어요. 관리자에게 계정 연결을 확인해 달라고 해 주세요.");
         return;
       }
 
-      const initialDebt = calculateInitialDebt(signupAnswers);
-      const nextUser: RegisteredUser = { ...normalizedUser, initialDebt };
-      setRegisteredUsers((current) => [...current, nextUser]);
-      setCurrentUser(nextUser);
-      setProfile({
-        name: nextUser.name,
-        school: `${nextUser.grade}학년 ${nextUser.classRoom}반`,
-        ecoDebt: initialDebt,
-        ecoMoney: 0,
-        clearedDebt: 0,
+      setRegisteredUsers((current) => {
+        const nextUsers = current.filter((user) => getIdentityKey(user) !== getIdentityKey(storedUser));
+        return [...nextUsers, storedUser];
       });
-      setSelectedMission(null);
-      setMissionDrawDate("");
-      setMissionReason("");
-      setMissionVerification(createEmptyMissionVerification());
-      setCompletedMissionHistory([]);
-      setDailyCheckinDraft(createEmptyDailyCheckinDraft());
-      setLastCheckinDate("");
-      setCompletedChallengeHistory([]);
-      setCompletedMapActionHistory([]);
-      setActiveTab("home");
-      setAuthNotice("회원가입이 완료됐어요.");
-      return;
-    }
+      const appState = await readUserAppState(userCredential.user.uid, getIdentityKey(storedUser));
 
-    if (!existingUser) {
-      setAuthNotice("가입된 계정이 없어요. 먼저 회원가입해 주세요.");
-      return;
+      loadUserState(storedUser, storedUser.profile, appState);
+      if (rememberLogin) {
+        saveRememberedLoginForm(normalizedUser);
+      }
+      setAuthNotice("");
+    } catch (error) {
+      setAuthNotice(getLoginErrorMessage(error));
     }
-
-    loadUserState(existingUser);
-    setAuthNotice("");
   };
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    await signOut(auth);
     setCurrentUser(null);
     setActiveTab("home");
     setAuthMode("login");
@@ -1469,7 +1854,7 @@ export default function Home() {
     setCompletedChallengeHistory([]);
     setCompletedMapActionHistory([]);
     setProfile(DEFAULT_PROFILE);
-    setLoginForm({ grade: "", classRoom: "", name: "" });
+    setLoginForm(rememberLogin ? readRememberedLoginForm() : createEmptyLoginForm());
     setSignupAnswers(createEmptySignupAnswers());
     setAuthNotice("로그아웃됐어요. 다시 로그인해 주세요.");
   };
@@ -1505,6 +1890,7 @@ export default function Home() {
 
       const result = (await response.json()) as MissionApiResponse;
       setSelectedMission(result.mission);
+      setIsMissionDetailOpen(true);
       setMissionDrawDate(todayKey);
       setMissionVerification(createEmptyMissionVerification());
       setMissionReason(result.reason);
@@ -1534,6 +1920,7 @@ export default function Home() {
     setProfile((current) => applyEcoMoneyReward(current, selectedMission.ecoMoney));
 
     setSelectedMission(null);
+    setIsMissionDetailOpen(true);
     setMissionVerification(createEmptyMissionVerification());
     setMissionReason("오늘의 미션을 완료했어요. 내일 새로운 미션을 받아볼 수 있어요.");
   };
@@ -2039,21 +2426,27 @@ export default function Home() {
         <div>
           <p className="text-base font-bold text-[#66806b]">오늘의 미션</p>
           <h2 className="mt-1 text-[1.9rem] font-black tracking-normal text-[#203826]">{missionTitle}</h2>
-          <p className="mt-2 text-base leading-7 text-[#69806d]">하루에 하나만 뽑을 수 있고, 완료하면 내일까지 잠겨요.</p>
         </div>
 
         {selectedMission ? (
-          <article className="ole-soft p-6">
-            <p className="text-base font-bold text-[#53735c]">{selectedMission.category}</p>
-            <h3 className="mt-2 text-[1.6rem] font-black tracking-normal text-[#1f3f27]">{selectedMission.title}</h3>
-            <p className="mt-3 text-base leading-7 text-[#627563]">{selectedMission.summary}</p>
+          <article className={`ole-soft relative ${isMissionDetailOpen ? "p-6 pr-24" : "p-3.5 pr-20"}`}>
+            <p className={isMissionDetailOpen ? "text-base font-bold text-[#53735c]" : "text-xs font-bold text-[#53735c]"}>{selectedMission.category}</p>
+            <h3 className={isMissionDetailOpen ? "mt-2 text-[1.6rem] font-black tracking-normal text-[#1f3f27]" : "mt-1 text-[1.05rem] font-black tracking-normal text-[#1f3f27]"}>{selectedMission.title}</h3>
+            {isMissionDetailOpen ? <p className="mt-3 text-base leading-7 text-[#627563]">{selectedMission.summary}</p> : null}
+            <button
+              type="button"
+              onClick={() => setIsMissionDetailOpen((current) => !current)}
+              className="absolute right-4 top-4 rounded-full bg-white px-4 py-2 text-xs font-black text-[#2c6a41] ring-1 ring-[#d5e5c9]"
+            >
+              {isMissionDetailOpen ? "접기" : "펼치기"}
+            </button>
 
-            <div className="mt-5 grid gap-3 sm:grid-cols-2">
+            <div className={isMissionDetailOpen ? "mt-5 grid gap-3 sm:grid-cols-2" : "hidden"}>
               <div className="border-l-4 border-[#8fcf66] bg-[#fffef8] px-4 py-4 text-base text-[#46604c]">{rewardAmountLabel} {selectedMission.ecoMoney} EM</div>
               <div className="border-l-4 border-[#8fcf66] bg-[#fffef8] px-4 py-4 text-base text-[#46604c]">예상 시간 {selectedMission.durationMinutes}분</div>
             </div>
 
-            <div className="mt-4 border-t border-[#d9e6c8] pt-4 text-base leading-7 text-[#55735d]">
+            <div className={isMissionDetailOpen ? "mt-4 border-t border-[#d9e6c8] pt-4 text-base leading-7 text-[#55735d]" : "hidden"}>
               <p className="font-black text-[#24482f]">인증 방법</p>
               <p className="mt-2">{selectedMission.proofGuide}</p>
               <p className="mt-2 text-sm text-[#6d816e]">
@@ -2061,7 +2454,7 @@ export default function Home() {
               </p>
             </div>
 
-            <div className="mt-4 border-t border-[#d9e6c8] pt-4">
+            <div className={isMissionDetailOpen ? "mt-4 border-t border-[#d9e6c8] pt-4" : "hidden"}>
               <label className="block">
                 <span className="mb-2 block text-sm font-black text-[#47614d]">사진 인증</span>
                 <input
@@ -2098,7 +2491,7 @@ export default function Home() {
             <button
               onClick={completeSelectedMission}
               disabled={!canCompleteMission}
-              className="ole-button mt-5 w-full px-5 py-4 text-base font-black text-white disabled:cursor-not-allowed disabled:bg-[#a9bea9]"
+              className={`${isMissionDetailOpen ? "ole-button mt-5 w-full px-5 py-4 text-base font-black text-white" : "hidden"} disabled:cursor-not-allowed disabled:bg-[#a9bea9]`}
             >
               인증 완료하고 {rewardActionLabel}
             </button>
@@ -2135,70 +2528,68 @@ export default function Home() {
   const renderContent = () => {
     if (activeTab === "home") {
       return (
-        <div className="space-y-6">
-          <section className="ole-sticker relative overflow-hidden p-6">
-            <div className="relative flex flex-col items-start gap-4 sm:flex-row sm:items-center sm:justify-between">
-              <div className="max-w-[17rem]">
+        <div className="space-y-4 sm:space-y-6">
+          <section className="ole-sticker relative overflow-hidden p-5 sm:p-6">
+            <div className="relative min-h-28 pr-28 min-[390px]:pr-32 sm:min-h-32 sm:pr-40">
+              <div className="min-w-0">
                 <p className="text-sm font-bold text-[#55735d]">{profile.school}</p>
-                <h1 className="mt-2 text-[2rem] font-black leading-tight tracking-normal text-[#183522]">
+                <h1 className="mt-2 break-keep text-[1.75rem] font-black leading-tight tracking-normal text-[#183522] min-[390px]:text-[2rem]">
                   {profile.name}님의 지구
                 </h1>
-                <p className="mt-3 text-[0.95rem] leading-6 text-[#5a7460]">
+                <p className="mt-3 break-keep text-[0.95rem] leading-6 text-[#5a7460]">
                   오늘도 우리의 지구를 지켜요!
                 </p>
               </div>
-              <div className="relative flex h-52 w-52 shrink-0 items-center justify-center self-center sm:h-56 sm:w-56">
-                <div className="relative h-52 w-52 sm:h-56 sm:w-56">
-                  <Image
-                    src="/earth-save-me-character.png"
-                    alt="세이브 미 팻말을 든 지구 캐릭터"
-                    fill
-                    sizes="(min-width: 640px) 14rem, 13rem"
-                    className="object-contain"
-                    priority
-                  />
-                </div>
+              <div className="absolute right-0 top-0 h-28 w-28 min-[390px]:h-32 min-[390px]:w-32 sm:h-40 sm:w-40">
+                <Image
+                  src="/earth-save-me-character.png"
+                  alt="세이브 미 팻말을 든 지구 캐릭터"
+                  fill
+                  sizes="(min-width: 640px) 10rem, 8rem"
+                  className="object-contain"
+                  priority
+                />
               </div>
             </div>
-          </section>
 
-          <section className="grid gap-4 md:grid-cols-3">
-            <article className="ole-card-flat p-5">
-              <p className="text-sm font-bold text-[#66806b]">{hasEcoDebt ? "남은 에코머니 빚" : "보유 EM"}</p>
-              <p className="mt-2 text-[2.15rem] font-black tracking-normal text-[#1d3f28]">
-                {(hasEcoDebt ? profile.ecoDebt : profile.ecoMoney).toLocaleString()} EM
-              </p>
-            </article>
+            <div className="mt-4 grid w-full grid-cols-2 gap-3">
+              <div className="min-w-0 overflow-hidden rounded-[0.95rem] bg-white/70 p-3.5 ring-1 ring-[#d8e8c9]">
+                <p className="truncate text-xs font-bold text-[#66806b] sm:text-sm">{hasEcoDebt ? "남은 빚" : "보유 EM"}</p>
+                <p className="mt-1 truncate whitespace-nowrap text-[1.18rem] font-black tracking-normal text-[#1d3f28] min-[390px]:text-[1.35rem] sm:text-[1.55rem]">
+                  {(hasEcoDebt ? profile.ecoDebt : profile.ecoMoney).toLocaleString()} EM
+                </p>
+              </div>
 
-            <article className="ole-card-flat p-5">
-              <p className="text-sm font-bold text-[#66806b]">지금까지 차감한 빚</p>
-              <p className="mt-2 text-[2.15rem] font-black tracking-normal text-[#1d3f28]">{profile.clearedDebt.toLocaleString()} EM</p>
-              <div className="mt-3">
-                <div className="flex items-center justify-between text-xs font-black text-[#66806b]">
-                  <span>전체 청산률</span>
-                  <span>{completionRate}%</span>
+              <div className="min-w-0 overflow-hidden rounded-[0.95rem] bg-white/70 p-3.5 ring-1 ring-[#d8e8c9]">
+                <p className="truncate text-xs font-bold text-[#66806b] sm:text-sm">차감한 빚</p>
+                <p className="mt-1 truncate whitespace-nowrap text-[1.18rem] font-black tracking-normal text-[#1d3f28] min-[390px]:text-[1.35rem] sm:text-[1.55rem]">{profile.clearedDebt.toLocaleString()} EM</p>
+              </div>
+
+              <div className="min-w-0 overflow-hidden rounded-[0.95rem] bg-white/70 p-3.5 ring-1 ring-[#d8e8c9]">
+                <div className="flex items-center justify-between gap-2 text-xs font-black text-[#66806b]">
+                  <span className="truncate">청산률</span>
+                  <span className="shrink-0">{completionRate}%</span>
                 </div>
-                <div className="mt-2 h-3 overflow-hidden rounded-full bg-[#dcead3] shadow-[inset_0_1px_2px_rgba(44,106,65,0.12)]">
+                <div className="mt-2 h-2.5 overflow-hidden rounded-full bg-[#dcead3] shadow-[inset_0_1px_2px_rgba(44,106,65,0.12)]">
                   <div
                     className="h-full rounded-full bg-[linear-gradient(90deg,#79c85b_0%,#ffd76a_100%)]"
                     style={{ width: `${completionRate}%` }}
                   />
                 </div>
               </div>
-            </article>
 
-            <article className="ole-card-flat p-5">
-              <p className="text-sm font-bold text-[#66806b]">예상 탄소발자국 절감</p>
-              <p className="mt-2 text-[2.15rem] font-black tracking-normal text-[#1d3f28]">{carbonFootprintSavedKg} kg</p>
-              <p className="mt-2 text-sm text-[#70806e]">청산한 에코머니를 기준으로 계산한 간단한 지표예요.</p>
-            </article>
+              <div className="min-w-0 overflow-hidden rounded-[0.95rem] bg-white/70 p-3.5 ring-1 ring-[#d8e8c9]">
+                <p className="truncate text-xs font-bold text-[#66806b] sm:text-sm">탄소 절감</p>
+                <p className="mt-1 truncate whitespace-nowrap text-[1.18rem] font-black tracking-normal text-[#1d3f28] min-[390px]:text-[1.35rem] sm:text-[1.55rem]">{carbonFootprintSavedKg} kg</p>
+              </div>
+            </div>
           </section>
 
-          <section className="ole-card border-2 border-[#d0e3bd] p-6">
+          <section className="ole-card border-2 border-[#d0e3bd] p-5 sm:p-6">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
               <div>
                 <p className="text-sm font-bold text-[#66806b]">오늘 체크인</p>
-                <h2 className="mt-1 text-[1.7rem] font-black tracking-normal text-[#1e3826]">
+                <h2 className="mt-1 text-[1.45rem] font-black tracking-normal text-[#1e3826] min-[390px]:text-[1.7rem]">
                   {hasCheckedInToday ? "오늘 기록을 저장했어요" : "오늘 사용량을 기록해요"}
                 </h2>
               </div>
@@ -2208,7 +2599,7 @@ export default function Home() {
             </div>
 
             <div className="mt-4 border-l-4 border-[#8fcf66] bg-[#fffef8] px-4 py-3 text-sm leading-6 text-[#64806a]">
-              응답하지 않으면 다음날 40 EM이 추가돼요.
+              체크인은 하루 동안 쓴 물, 플라스틱, 차량 이동을 기록하는 출석이에요. 응답하지 않으면 다음날 40 EM이 추가돼요.
             </div>
           </section>
 
@@ -2226,27 +2617,57 @@ export default function Home() {
                 </div>
 
                 <div className="mt-5 grid gap-3">
-                  <input
-                    inputMode="numeric"
-                    value={dailyCheckinDraft.showerMinutes}
-                    onChange={(event) => handleCheckinDraftChange("showerMinutes", event.target.value)}
-                    placeholder="샤워 시간 (분)"
-                    className="ole-field px-4 py-4 text-base text-[#1f3526] placeholder:text-[#8ca08f]"
-                  />
-                  <input
-                    inputMode="numeric"
-                    value={dailyCheckinDraft.petBottleCount}
-                    onChange={(event) => handleCheckinDraftChange("petBottleCount", event.target.value)}
-                    placeholder="페트병 사용 (개)"
-                    className="ole-field px-4 py-4 text-base text-[#1f3526] placeholder:text-[#8ca08f]"
-                  />
-                  <input
-                    inputMode="numeric"
-                    value={dailyCheckinDraft.carMinutes}
-                    onChange={(event) => handleCheckinDraftChange("carMinutes", event.target.value)}
-                    placeholder="차 이용 시간 (분)"
-                    className="ole-field px-4 py-4 text-base text-[#1f3526] placeholder:text-[#8ca08f]"
-                  />
+                  <label className="block">
+                    <span className="mb-2 block text-sm font-black text-[#47614d]">샤워 시간</span>
+                    <select
+                      value={dailyCheckinDraft.showerMinutes}
+                      onChange={(event) => handleCheckinDraftChange("showerMinutes", event.target.value)}
+                      aria-label="샤워 시간, 분 단위"
+                      className="ole-field w-full px-4 py-4 text-base text-[#1f3526]"
+                    >
+                      <option value="">선택해 주세요</option>
+                      {showerMinuteOptions.map((minute) => (
+                        <option key={`shower-${minute}`} value={minute}>
+                          {minute}분
+                        </option>
+                      ))}
+                    </select>
+                    <span className="mt-1 block text-xs font-bold text-[#7b8f7b]">분 단위로 입력해요.</span>
+                  </label>
+                  <label className="block">
+                    <span className="mb-2 block text-sm font-black text-[#47614d]">페트병 사용</span>
+                    <select
+                      value={dailyCheckinDraft.petBottleCount}
+                      onChange={(event) => handleCheckinDraftChange("petBottleCount", event.target.value)}
+                      aria-label="페트병 사용 개수"
+                      className="ole-field w-full px-4 py-4 text-base text-[#1f3526]"
+                    >
+                      <option value="">선택해 주세요</option>
+                      {petBottleCountOptions.map((count) => (
+                        <option key={`pet-bottle-${count}`} value={count}>
+                          {count}개
+                        </option>
+                      ))}
+                    </select>
+                    <span className="mt-1 block text-xs font-bold text-[#7b8f7b]">개수로 입력해요.</span>
+                  </label>
+                  <label className="block">
+                    <span className="mb-2 block text-sm font-black text-[#47614d]">차 이용 시간</span>
+                    <select
+                      value={dailyCheckinDraft.carMinutes}
+                      onChange={(event) => handleCheckinDraftChange("carMinutes", event.target.value)}
+                      aria-label="차 이용 시간, 분 단위"
+                      className="ole-field w-full px-4 py-4 text-base text-[#1f3526]"
+                    >
+                      <option value="">선택해 주세요</option>
+                      {carMinuteOptions.map((minute) => (
+                        <option key={`car-${minute}`} value={minute}>
+                          {minute}분
+                        </option>
+                      ))}
+                    </select>
+                    <span className="mt-1 block text-xs font-bold text-[#7b8f7b]">분 단위로 입력해요.</span>
+                  </label>
                 </div>
 
                 <div className="mt-4 border-t border-[#d9e6c8] pt-4 text-sm leading-6 text-[#64806a]">
@@ -2281,21 +2702,27 @@ export default function Home() {
           <div>
             <p className="text-base font-bold text-[#66806b]">오늘의 미션</p>
             <h2 className="mt-1 text-[1.9rem] font-black tracking-normal text-[#203826]">{missionTitle}</h2>
-            <p className="mt-2 text-base leading-7 text-[#69806d]">하루에 하나만 뽑을 수 있고, 완료하면 내일까지 잠겨요.</p>
-          </div>
+            </div>
 
           {selectedMission ? (
-            <article className="ole-soft p-6">
-              <p className="text-base font-bold text-[#53735c]">{selectedMission.category}</p>
-              <h3 className="mt-2 text-[1.6rem] font-black tracking-normal text-[#1f3f27]">{selectedMission.title}</h3>
-              <p className="mt-3 text-base leading-7 text-[#627563]">{selectedMission.summary}</p>
+            <article className={`ole-soft relative ${isMissionDetailOpen ? "p-6 pr-24" : "p-3.5 pr-20"}`}>
+              <p className={isMissionDetailOpen ? "text-base font-bold text-[#53735c]" : "text-xs font-bold text-[#53735c]"}>{selectedMission.category}</p>
+              <h3 className={isMissionDetailOpen ? "mt-2 text-[1.6rem] font-black tracking-normal text-[#1f3f27]" : "mt-1 text-[1.05rem] font-black tracking-normal text-[#1f3f27]"}>{selectedMission.title}</h3>
+              {isMissionDetailOpen ? <p className="mt-3 text-base leading-7 text-[#627563]">{selectedMission.summary}</p> : null}
+              <button
+                type="button"
+                onClick={() => setIsMissionDetailOpen((current) => !current)}
+                className="absolute right-4 top-4 rounded-full bg-white px-4 py-2 text-xs font-black text-[#2c6a41] ring-1 ring-[#d5e5c9]"
+              >
+                {isMissionDetailOpen ? "접기" : "펼치기"}
+              </button>
 
-              <div className="mt-5 grid gap-3 sm:grid-cols-2">
+              <div className={isMissionDetailOpen ? "mt-5 grid gap-3 sm:grid-cols-2" : "hidden"}>
                 <div className="border-l-4 border-[#8fcf66] bg-[#fffef8] px-4 py-4 text-base text-[#46604c]">{rewardAmountLabel} {selectedMission.ecoMoney} EM</div>
                 <div className="border-l-4 border-[#8fcf66] bg-[#fffef8] px-4 py-4 text-base text-[#46604c]">예상 시간 {selectedMission.durationMinutes}분</div>
               </div>
 
-              <div className="mt-4 border-t border-[#d9e6c8] pt-4 text-base leading-7 text-[#55735d]">
+              <div className={isMissionDetailOpen ? "mt-4 border-t border-[#d9e6c8] pt-4 text-base leading-7 text-[#55735d]" : "hidden"}>
                 <p className="font-black text-[#24482f]">인증 방법</p>
                 <p className="mt-2">{selectedMission.proofGuide}</p>
                 <p className="mt-2 text-sm text-[#6d816e]">
@@ -2303,7 +2730,7 @@ export default function Home() {
                 </p>
               </div>
 
-              <div className="mt-4 border-t border-[#d9e6c8] pt-4">
+              <div className={isMissionDetailOpen ? "mt-4 border-t border-[#d9e6c8] pt-4" : "hidden"}>
                 <label className="block">
                   <span className="mb-2 block text-sm font-black text-[#47614d]">사진 인증</span>
                   <input
@@ -2340,7 +2767,7 @@ export default function Home() {
               <button
                 onClick={completeSelectedMission}
                 disabled={!canCompleteMission}
-                className="ole-button mt-5 w-full px-5 py-4 text-base font-black text-white disabled:cursor-not-allowed disabled:bg-[#a9bea9]"
+                className={`${isMissionDetailOpen ? "ole-button mt-5 w-full px-5 py-4 text-base font-black text-white" : "hidden"} disabled:cursor-not-allowed disabled:bg-[#a9bea9]`}
               >
                 인증 완료하고 {rewardActionLabel}
               </button>
@@ -2381,7 +2808,7 @@ export default function Home() {
             <p className="text-sm font-black uppercase tracking-normal text-[#4d7b50]">Challenge</p>
             <h2 className="mt-3 text-[2rem] font-black tracking-normal text-[#21452f]">챌린지</h2>
             <p className="mt-3 text-base leading-7 text-[#456754]">
-              친구들이 만든 활동에 참여하고, 함께 보호활동을 실천해요!
+              기간, 장소, 인증 기준이 정해진 활동만 만들 수 있어요. 참여한 친구는 하루에 한 번 인증해요.
             </p>
           </section>
 
@@ -2391,11 +2818,11 @@ export default function Home() {
                 <p className="text-sm font-bold text-[#5d725e]">새 챌린지 만들기</p>
                 <h3 className="mt-1 text-[1.45rem] font-black text-[#21452f]">친구들이 참여할 활동 제안하기</h3>
               </div>
-              <button type="button" onClick={() => setIsChallengeComposerOpen(true)} className="rounded-[0.8rem] bg-[#2c6a41] px-5 py-4 text-base font-black text-white">
-                챌린지 만들기
+              <button type="button" onClick={() => setIsChallengeComposerOpen(true)} className="min-w-[6.5rem] rounded-[0.8rem] bg-[#2c6a41] px-5 py-3 text-base font-black leading-tight text-white">
+                <span className="block whitespace-nowrap">챌린지</span>
+                <span className="block whitespace-nowrap">만들기</span>
               </button>
             </div>
-            <p className="mt-4 text-sm leading-6 text-[#5d725e]">토글 대신 팝업으로 열리고, 기간은 숫자만 입력할 수 있어요.</p>
           </section>
 
           {activeChallenges.length > 0 ? (
@@ -2421,10 +2848,10 @@ export default function Home() {
                           </div>
                         </div>
                         <div className="flex gap-2">
-                          <button type="button" onClick={() => toggleChallengeProgress(challenge.id)} className="rounded-full bg-[#2c6a41] px-4 py-2 text-sm font-black text-white">
+                          <button type="button" onClick={() => toggleChallengeProgress(challenge.id)} className="rounded-[0.8rem] bg-[#245c37] px-4 py-2.5 text-sm font-black text-white shadow-[0_3px_0_rgba(31,67,42,0.20)]">
                             {challenge.progressOpen ? "접기" : "열기"}
                           </button>
-                          <button type="button" onClick={() => handleGiveUpChallenge(challenge.id)} className="rounded-full bg-[#ffe6dd] px-4 py-2 text-sm font-black text-[#9a4d2d]">
+                          <button type="button" onClick={() => handleGiveUpChallenge(challenge.id)} className="rounded-[0.8rem] border border-[#f0b79f] bg-white px-4 py-2.5 text-sm font-black text-[#9a4d2d]">
                             그만하기
                           </button>
                         </div>
@@ -2496,15 +2923,17 @@ export default function Home() {
 
           <section className="space-y-4">
             {availableChallenges.map((challenge) => (
-              <article key={challenge.id} className="ole-card-flat p-5">
+              <article key={challenge.id} className="ole-card-flat border-l-4 border-[#79c85b] p-5">
                 <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-                  <div>
+                  <div className="min-w-0">
+                    <p className="mb-2 inline-flex rounded-full bg-[#eef7ea] px-3 py-1 text-xs font-black text-[#2c6a41]">
+                      완료 보상 {challenge.reward} EM
+                    </p>
                     <p className="text-[1.3rem] font-black text-[#21452f]">{challenge.title}</p>
                     <p className="mt-1 text-sm font-bold text-[#6b7d6b]">만든 사람: {challenge.creator}</p>
                     <div className="mt-3 flex flex-wrap gap-2 text-sm font-black">
                       <span className="rounded-full bg-white px-3 py-2 text-[#2c6a41]">참여자 {challenge.participants}명</span>
                       <span className="rounded-full bg-white px-3 py-2 text-[#8b6422]">{challenge.durationDays}일 챌린지</span>
-                      <span className="rounded-full bg-white px-3 py-2 text-[#8b6422]">완료 보상 {challenge.reward} EM</span>
                     </div>
                   </div>
 
@@ -2512,11 +2941,11 @@ export default function Home() {
                     <button
                       type="button"
                       onClick={() => toggleAvailableChallengeDetail(challenge.id)}
-                      className="rounded-full bg-[#eef5e8] px-3 py-2 text-xs font-black text-[#2c6a41]"
+                      className="rounded-[0.75rem] border border-[#c9dec2] bg-white px-4 py-2.5 text-sm font-black text-[#2c6a41]"
                     >
                       {openChallengeDetailIds.includes(challenge.id) ? "간략히" : "자세히 보기"}
                     </button>
-                    <button type="button" onClick={() => handleJoinChallenge(challenge.id)} className="rounded-[0.8rem] bg-[#fff8cf] px-5 py-4 text-base font-black text-[#2c6a41] shadow-[0_4px_0_rgba(139,100,34,0.16)]">
+                    <button type="button" onClick={() => handleJoinChallenge(challenge.id)} className="rounded-[0.8rem] bg-[#245c37] px-5 py-4 text-base font-black text-white shadow-[0_4px_0_rgba(31,67,42,0.22)]">
                       참여하기
                     </button>
                   </div>
@@ -2574,24 +3003,33 @@ export default function Home() {
                 </div>
 
                 <div className="mt-5 grid gap-4">
-                  <input
-                    value={challengeDraft.title}
-                    onChange={(event) => handleDraftChange("title", event.target.value)}
-                    placeholder="챌린지 이름"
-                    className="ole-field px-4 py-4 text-base text-[#1f3828]"
-                  />
-                  <textarea
-                    value={challengeDraft.description}
-                    onChange={(event) => handleDraftChange("description", event.target.value)}
-                    placeholder="챌린지 설명"
-                    className="ole-field min-h-28 px-4 py-4 text-base text-[#1f3828]"
-                  />
-                  <input
-                    value={challengeDraft.location}
-                    onChange={(event) => handleDraftChange("location", event.target.value)}
-                    placeholder="실천 장소 예: 운동장, 학교 앞 공원, 교실"
-                    className="ole-field px-4 py-4 text-base text-[#1f3828]"
-                  />
+                  <label className="block">
+                    <span className="mb-2 block text-sm font-black text-[#47614d]">챌린지 이름</span>
+                    <input
+                      value={challengeDraft.title}
+                      onChange={(event) => handleDraftChange("title", event.target.value)}
+                      placeholder="예: 점심시간 잔반 줄이기"
+                      className="ole-field w-full px-4 py-4 text-base text-[#1f3828]"
+                    />
+                  </label>
+                  <label className="block">
+                    <span className="mb-2 block text-sm font-black text-[#47614d]">참여자가 해야 할 일</span>
+                    <textarea
+                      value={challengeDraft.description}
+                      onChange={(event) => handleDraftChange("description", event.target.value)}
+                      placeholder="예: 급식 후 남긴 음식이 없도록 먹고, 식판 사진과 짧은 후기를 남겨요."
+                      className="ole-field min-h-28 w-full px-4 py-4 text-base text-[#1f3828]"
+                    />
+                  </label>
+                  <label className="block">
+                    <span className="mb-2 block text-sm font-black text-[#47614d]">실천 장소</span>
+                    <input
+                      value={challengeDraft.location}
+                      onChange={(event) => handleDraftChange("location", event.target.value)}
+                      placeholder="예: 급식실, 교실, 학교 앞 공원"
+                      className="ole-field w-full px-4 py-4 text-base text-[#1f3828]"
+                    />
+                  </label>
 
                   <div className="grid gap-2">
                     <p className="text-sm font-black text-[#47614d]">난이도</p>
@@ -2613,6 +3051,7 @@ export default function Home() {
 
                   <div className="grid gap-2">
                     <p className="text-sm font-black text-[#47614d]">인증 방식</p>
+                    <p className="text-xs leading-5 text-[#6c816f]">참여자가 제출해야 하는 자료를 고르세요. 사진, GPS, 후기 중 최소 1개가 필요해요.</p>
                     <div className="grid grid-cols-3 gap-2">
                       {(["photo", "gps", "review"] as const).map((method) => (
                         <button
@@ -2630,14 +3069,18 @@ export default function Home() {
                   </div>
 
                   <div className="grid gap-4 md:grid-cols-2">
-                    <input
-                      value={challengeDraft.durationDays}
-                      onChange={(event) => handleDraftChange("durationDays", sanitizeDigits(event.target.value))}
-                      placeholder="기간(일)"
-                      inputMode="numeric"
-                      type="text"
-                      className="ole-field px-4 py-4 text-base text-[#1f3828]"
-                    />
+                    <label className="block">
+                      <span className="mb-2 block text-sm font-black text-[#47614d]">진행 기간</span>
+                      <input
+                        value={challengeDraft.durationDays}
+                        onChange={(event) => handleDraftChange("durationDays", sanitizeDigits(event.target.value))}
+                        placeholder="예: 7"
+                        inputMode="numeric"
+                        type="text"
+                        className="ole-field w-full px-4 py-4 text-base text-[#1f3828]"
+                      />
+                      <span className="mt-1 block text-xs font-bold text-[#7b8f7b]">며칠 동안 매일 인증할지 숫자로 입력해요.</span>
+                    </label>
                     <div className="ole-soft px-4 py-4 text-sm text-[#1f3828]">
                       {isChallengeRewardLoading ? (
                         <span className="font-black text-[#2c6a41]">추천 보상 계산 중...</span>
@@ -2646,10 +3089,41 @@ export default function Home() {
                           <p className="font-black text-[#2c6a41]">추천 보상 {challengeRewardSuggestion} EM</p>
                           {challengeRewardReason ? <p className="mt-1 leading-6 text-[#5d725e]">{challengeRewardReason}</p> : null}
                         </>
+                      ) : challengeRewardDetails !== null ? (
+                        <>
+                          <p className="font-black text-[#2c6a41]">예상 보상 {challengeRewardDetails.reward} EM</p>
+                          <p className="mt-1 leading-6 text-[#5d725e]">{challengeRewardDetails.summary}</p>
+                        </>
                       ) : (
-                        <p className="leading-6 text-[#5d725e]">생성할 때 30~70 EM 안에서 추천 보상을 정해줘요.</p>
+                        <p className="leading-6 text-[#5d725e]">기간과 인증 방식을 입력하면 기준표로 보상을 계산해요. 긴 챌린지는 70 EM을 넘어갈 수 있어요.</p>
                       )}
                     </div>
+                  </div>
+
+                  <div className="rounded-[0.9rem] border border-[#d9e6c8] bg-[#fffef8] p-4 text-sm text-[#4c654f]">
+                    <p className="font-black text-[#21452f]">보상 기준</p>
+                    <p className="mt-1 leading-6">기본 30 EM에서 시작하고, 난이도·진행 기간·인증 방식·장소 구체성을 더해요. 기간이 길수록 매일 인증해야 하는 부담이 커서 기간 보상을 가장 크게 반영해요.</p>
+                    {challengeRewardDetails !== null ? (
+                      <div className="mt-3 grid gap-2">
+                        {challengeRewardDetails.items.map((item) => (
+                          <div key={item.label} className="rounded-[0.75rem] bg-white px-3 py-3 ring-1 ring-[#e0ead7]">
+                            <div className="flex items-center justify-between gap-3">
+                              <span className="font-black text-[#2c6a41]">{item.label}</span>
+                              <span className="font-black text-[#8b6422]">+{item.points} EM</span>
+                            </div>
+                            <p className="mt-1 leading-6 text-[#5d725e]">{item.reason}</p>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <ul className="mt-3 space-y-1.5 leading-6">
+                        <li>기본 보상: +30 EM</li>
+                        <li>난이도: 쉬움 +0, 보통 +8, 어려움 +16 EM</li>
+                        <li>기간: 1~3일 +8, 4~7일 +25, 8~14일 +55, 15~30일 +90, 31일 이상 +140 EM</li>
+                        <li>인증: 사진 +4, GPS +6, 후기 +4 EM</li>
+                        <li>장소 구체성: 구체적인 장소 입력 시 +4 EM</li>
+                      </ul>
+                    )}
                   </div>
 
                   {challengeRewardError ? <p className="text-sm font-bold text-[#b13a3a]">{challengeRewardError}</p> : null}
@@ -2677,9 +3151,11 @@ export default function Home() {
         return scores;
       }, {});
       const classRanking = Object.entries(classScoreMap).map(([className, score]) => ({ className, score })).sort((a, b) => b.score - a.score);
-      const studentRanking = [...rankingUsers].map((user) => ({ name: user.name, score: user.clearedDebt })).sort((a, b) => b.score - a.score);
+      const studentRanking = [...rankingUsers]
+        .map((user) => ({ uid: user.uid, name: user.name, score: user.clearedDebt }))
+        .sort((a, b) => b.score - a.score);
       const myClassRank = classRanking.findIndex((item) => item.className === myClassName) + 1;
-      const myStudentRank = studentRanking.findIndex((item) => item.name === profile.name) + 1;
+      const myStudentRank = currentUser ? studentRanking.findIndex((item) => item.uid === currentUser.uid) + 1 : 0;
 
       return (
         <section className="ole-card space-y-4 p-6">
@@ -2714,7 +3190,7 @@ export default function Home() {
             <p className="text-sm font-bold text-[#7d6731]">개인 랭킹</p>
             <div className="mt-4 space-y-2">
               {studentRanking.map((item, index) => (
-                <div key={item.name} className={`flex items-center justify-between border-l-4 px-4 py-4 ${item.name === profile.name ? "border-[#94612b] bg-[#fff0bf]" : "border-[#ead99f] bg-[#fffef8]"}`}>
+                <div key={item.uid} className={`flex items-center justify-between border-l-4 px-4 py-4 ${item.uid === currentUser?.uid ? "border-[#94612b] bg-[#fff0bf]" : "border-[#ead99f] bg-[#fffef8]"}`}>
                   <p className="text-base font-black text-[#46391a]">{index + 1}. {item.name}</p>
                   <p className="text-base font-black text-[#94612b]">{item.score}점</p>
                 </div>
@@ -2820,9 +3296,9 @@ export default function Home() {
 
   if (!hasHydrated) {
     return (
-      <main className="min-h-screen px-4 py-6 text-[#1f3526]">
-        <div className="mx-auto flex min-h-[calc(100vh-3rem)] max-w-2xl items-center">
-          <section className="ole-card w-full overflow-hidden p-8">
+      <main className="min-h-dvh w-full overflow-x-hidden px-3 py-4 text-[#1f3526] sm:px-4 sm:py-6">
+        <div className="mx-auto flex min-h-[calc(100dvh-2rem)] max-w-[430px] items-center sm:min-h-[calc(100dvh-3rem)]">
+          <section className="ole-card w-full overflow-hidden p-5 sm:p-8">
             <p className="text-base font-bold text-[#55735d]">Our Little Earth</p>
             <h1 className="mt-2 text-[2rem] font-black leading-tight text-[#183522]">불러오는 중</h1>
             <p className="mt-3 text-base leading-7 text-[#5a7460]">저장된 활동을 확인하고 있어요.</p>
@@ -2834,14 +3310,16 @@ export default function Home() {
 
   if (!isLoggedIn) {
     return (
-      <main className="min-h-screen px-4 py-6 text-[#1f3526]">
-        <div className="mx-auto flex min-h-[calc(100vh-3rem)] max-w-2xl items-center">
-          <AuthScreen
+      <main className="min-h-dvh w-full overflow-x-hidden px-3 py-4 text-[#1f3526] sm:px-4 sm:py-6">
+        <div className="mx-auto flex min-h-[calc(100dvh-2rem)] max-w-[430px] items-center sm:min-h-[calc(100dvh-3rem)]">
+        <AuthScreen
             mode={authMode}
             form={loginForm}
             signupAnswers={signupAnswers}
             notice={authNotice}
+            rememberLogin={rememberLogin}
             onChange={handleAuthChange}
+            onRememberLoginChange={handleRememberLoginChange}
             onSignupAnswerChange={handleSignupAnswerChange}
             onSwitchMode={setAuthMode}
             onSubmit={handleAuthSubmit}
@@ -2852,8 +3330,8 @@ export default function Home() {
   }
 
   return (
-    <main className="min-h-screen px-4 pb-32 pt-6 text-[#1f3526]">
-      <div className="mx-auto max-w-2xl">
+    <main className="min-h-dvh w-full overflow-x-hidden px-3 pb-[calc(6.75rem+env(safe-area-inset-bottom))] pt-4 text-[#1f3526] sm:px-4 sm:pt-6">
+      <div className="mx-auto max-w-[430px]">
         <div className="mb-4 flex items-center justify-between">
           <p className="text-base font-bold text-[#68806d]">Our Little Earth</p>
           <button onClick={handleLogout} className="rounded-full bg-white px-5 py-3 text-sm font-black text-[#6a7f6d] shadow-[0_8px_24px_rgba(65,91,62,0.10)]">
@@ -2864,13 +3342,13 @@ export default function Home() {
         {renderContent()}
       </div>
 
-      <nav className="fixed inset-x-0 bottom-0 mx-auto max-w-2xl px-4 pb-5">
-        <div className="grid grid-cols-5 rounded-[0.9rem] border border-[#deead7] bg-[#fffef8]/95 p-2 shadow-[0_10px_0_rgba(44,106,65,0.10),0_18px_45px_rgba(45,79,56,0.14)] backdrop-blur">
+      <nav className="fixed inset-x-0 bottom-0 z-30 mx-auto max-w-[430px] px-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))]">
+        <div className="grid grid-cols-5 rounded-[0.9rem] border border-[#deead7] bg-[#fffef8]/95 p-1.5 shadow-[0_8px_0_rgba(44,106,65,0.10),0_14px_36px_rgba(45,79,56,0.14)] backdrop-blur">
           {TAB_ITEMS.map((tab) => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`rounded-[0.85rem] px-2 py-4 text-sm font-black transition ${
+              className={`min-h-12 rounded-[0.85rem] px-1 py-3 text-[0.78rem] font-black transition min-[390px]:text-sm ${
                 activeTab === tab.id ? "bg-[#e4f3db] text-[#21422b]" : "text-[#71836f]"
               }`}
             >

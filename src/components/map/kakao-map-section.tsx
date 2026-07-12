@@ -215,7 +215,6 @@ export function KakaoMapSection({
   const currentLocationMarkerRef = useRef<kakao.maps.Marker | null>(null);
   const storeMarkersRef = useRef<kakao.maps.Marker[]>([]);
   const trashBinMarkersRef = useRef<kakao.maps.Marker[]>([]);
-  const hasRequestedInitialLocationRef = useRef(false);
 
   const [mapStatus, setMapStatus] = useState<MapStatus>("loading");
   const [locationStatus, setLocationStatus] = useState<LocationStatus>("idle");
@@ -223,12 +222,14 @@ export function KakaoMapSection({
   const [trashBinStatus, setTrashBinStatus] = useState<MarkerLayerStatus>("idle");
   const [errorMessage, setErrorMessage] = useState("");
   const [coordinates, setCoordinates] = useState<Coordinates | null>(null);
+  const [currentLocationAddress, setCurrentLocationAddress] = useState("");
   const [storeCount, setStoreCount] = useState(0);
   const [trashBinCount, setTrashBinCount] = useState(0);
   const [selectedPlace, setSelectedPlace] = useState<SelectedPlace | null>(null);
   const [selectedAction, setSelectedAction] = useState<DestinationKind | null>(null);
   const [activePlaceId, setActivePlaceId] = useState<string | null>(null);
   const [proofPhotoName, setProofPhotoName] = useState("");
+  const [copiedAddress, setCopiedAddress] = useState<"selected" | "current" | "">("");
 
   const depositCupCount = mockCafes.filter((store) => store.depositCupSupported).length;
   const personalCupDiscountCount = mockCafes.filter(
@@ -266,6 +267,7 @@ export function KakaoMapSection({
         });
 
         map.relayout();
+        window.setTimeout(() => map.relayout(), 0);
         mapInstanceRef.current = map;
         setMapStatus("ready");
 
@@ -334,6 +336,7 @@ export function KakaoMapSection({
 
                   kakao.maps.event.addListener(marker, "click", () => {
                     infoWindow.open(map, marker);
+                    map.setCenter(new kakao.maps.LatLng(position.lat, position.lng));
                     setSelectedPlace({
                       id: store.name,
                       name: store.name,
@@ -444,6 +447,7 @@ export function KakaoMapSection({
 
                   kakao.maps.event.addListener(marker, "click", () => {
                     infoWindow.open(map, marker);
+                    map.setCenter(new kakao.maps.LatLng(position.lat, position.lng));
                     setSelectedPlace({
                       id: trashBin.id,
                       name: `${trashBin.district || "분리수거함"} 분리수거함`,
@@ -525,6 +529,7 @@ export function KakaoMapSection({
 
     setLocationStatus("loading");
     setErrorMessage("");
+    setCurrentLocationAddress("");
 
     navigator.geolocation.getCurrentPosition(
       (position) => {
@@ -546,10 +551,30 @@ export function KakaoMapSection({
         map.setCenter(currentCenter);
         map.setLevel(4);
         setCoordinates(nextCoordinates);
+        setCurrentLocationAddress("주소 확인 중...");
         setLocationStatus("granted");
+
+        const geocoder = new kakao.maps.services.Geocoder();
+        geocoder.coord2Address(
+          nextCoordinates.lng,
+          nextCoordinates.lat,
+          (result, status) => {
+            if (status !== kakao.maps.services.Status.OK || result.length === 0) {
+              setCurrentLocationAddress("주소를 찾지 못했어요.");
+              return;
+            }
+
+            setCurrentLocationAddress(
+              result[0].road_address?.address_name ??
+                result[0].address?.address_name ??
+                "주소를 찾지 못했어요.",
+            );
+          },
+        );
       },
       (error) => {
         setLocationStatus("denied");
+        setCurrentLocationAddress("");
         setErrorMessage(
           `현재 위치를 가져오지 못했어요. 코드: ${error.code}, 메시지: ${error.message}`,
         );
@@ -562,15 +587,6 @@ export function KakaoMapSection({
     );
   }, []);
 
-  useEffect(() => {
-    if (mapStatus !== "ready" || hasRequestedInitialLocationRef.current) {
-      return;
-    }
-
-    hasRequestedInitialLocationRef.current = true;
-    moveToCurrentLocation();
-  }, [mapStatus, moveToCurrentLocation]);
-
   const startCheckInFlow = () => {
     if (!selectedPlace) {
       return;
@@ -578,6 +594,7 @@ export function KakaoMapSection({
 
     setActivePlaceId(selectedPlace.id);
     setProofPhotoName("");
+    moveToCurrentLocation();
   };
 
   const proofReady = proofPhotoName.trim() !== "";
@@ -612,22 +629,33 @@ export function KakaoMapSection({
     });
   };
 
+  const copyAddress = (address: string, type: "selected" | "current") => {
+    if (!navigator.clipboard || address.trim() === "") {
+      return;
+    }
+
+    void navigator.clipboard.writeText(address).then(() => {
+      setCopiedAddress(type);
+      window.setTimeout(() => setCopiedAddress(""), 1600);
+    });
+  };
+
   return (
     <section className="ole-card p-4">
       <div className="flex items-start justify-between gap-3">
         <div>
           <p className="text-xs font-bold text-[#6f806d]">지도</p>
-          <h2 className="mt-1 text-[1.7rem] font-black tracking-normal text-[#24382a]">
+          <h2 className="mt-1 text-[1.45rem] font-black tracking-normal text-[#24382a] min-[390px]:text-[1.7rem]">
             갈 장소를 고르고 체크인하기
           </h2>
           <p className="mt-2 text-sm leading-6 text-[#6f7c69]">
-            새 장소를 누르면 그 장소 정보만 보이고, `장소로 이동`을 눌렀을 때부터 체크인과 인증을 시작해요.
+            마커를 선택한 뒤 체크인을 시작하세요. 현재 위치는 도로명 주소로 확인하고 복사할 수 있어요.
           </p>
         </div>
       </div>
 
       <div className="mt-4 overflow-hidden rounded-[0.95rem] border border-[#cddfbd] bg-[#eef5e8] shadow-[0_6px_0_rgba(62,117,67,0.10)]">
-        <div ref={mapRef} className="h-[320px] w-full" />
+        <div ref={mapRef} className="h-[min(42dvh,320px)] min-h-[260px] w-full" />
       </div>
 
       {mapStatus === "loading" ? (
@@ -648,9 +676,14 @@ export function KakaoMapSection({
 
       {mapStatus === "ready" ? (
         <div className="mt-3 space-y-3">
-          <div className="border-l-4 border-[#79c85b] bg-[#fffef8] px-4 py-3 text-sm text-[#5d6f60]">
-            지도를 열면 현재 위치를 자동으로 표시해요. 주변 장소를 눌러 체크인을 시작해 주세요.
-          </div>
+          <button
+            type="button"
+            onClick={moveToCurrentLocation}
+            disabled={locationStatus === "loading"}
+            className="ole-button w-full px-4 py-3 text-sm font-black text-white disabled:cursor-not-allowed disabled:bg-[#a9bea9]"
+          >
+            {locationStatus === "loading" ? "현재 위치 확인 중..." : "현재 위치 확인하기"}
+          </button>
 
           <div className="grid gap-2 text-sm text-[#415540] sm:grid-cols-3">
             <div className="rounded-[1rem] bg-[#eef7ea] px-4 py-3">
@@ -682,7 +715,16 @@ export function KakaoMapSection({
             >
               <p className="text-xs font-bold text-[#5d725e]">선택한 장소</p>
               <h3 className="mt-1 text-lg font-black text-[#21452f]">{selectedPlace.name}</h3>
-              <p className="mt-2 text-sm leading-6 text-[#5d725e]">{selectedPlace.address}</p>
+              <div className="mt-2 flex items-start gap-2">
+                <p className="min-w-0 flex-1 text-sm leading-6 text-[#5d725e]">{selectedPlace.address}</p>
+                <button
+                  type="button"
+                  onClick={() => copyAddress(selectedPlace.address, "selected")}
+                  className="shrink-0 rounded-full bg-[#eef5e8] px-3 py-1.5 text-xs font-black text-[#2c6a41] ring-1 ring-[#d5e5c9]"
+                >
+                  {copiedAddress === "selected" ? "복사됨" : "복사"}
+                </button>
+              </div>
 
               <div className="mt-4 flex flex-wrap gap-2">
                 {selectedPlace.availableActions.map((action) => (
@@ -706,10 +748,10 @@ export function KakaoMapSection({
                 onClick={startCheckInFlow}
                 className="ole-button mt-4 w-full px-4 py-3 text-sm font-black text-white"
               >
-                장소로 이동
+                체크인 시작
               </button>
 
-              {selectedAction ? (
+              {selectedAction && isActivePlaceSelected ? (
                 <div className="mt-4 border-t border-[#d9e6c8] pt-4 text-sm text-[#46604c]">
                   <p className="font-black text-[#21452f]">필수 인증</p>
                   <p className="mt-2">{getActionProofGuide(selectedAction)}</p>
@@ -818,9 +860,18 @@ export function KakaoMapSection({
           {locationStatus === "granted" && coordinates ? (
             <div className="rounded-[1rem] bg-[#eef7ea] px-4 py-3 text-sm text-[#2c6540]">
               <p className="font-bold">현재 위치를 지도에 표시했어요.</p>
-              <p className="mt-1">
-                위도 {coordinates.lat.toFixed(5)}, 경도 {coordinates.lng.toFixed(5)}
-              </p>
+              <div className="mt-1 flex items-start gap-2">
+                <p className="min-w-0 flex-1">{currentLocationAddress || "주소 확인 중..."}</p>
+                {currentLocationAddress && currentLocationAddress !== "주소 확인 중..." ? (
+                  <button
+                    type="button"
+                    onClick={() => copyAddress(currentLocationAddress, "current")}
+                    className="shrink-0 rounded-full bg-white px-3 py-1.5 text-xs font-black text-[#2c6a41] ring-1 ring-[#cfe2c6]"
+                  >
+                    {copiedAddress === "current" ? "복사됨" : "복사"}
+                  </button>
+                ) : null}
+              </div>
             </div>
           ) : null}
 
