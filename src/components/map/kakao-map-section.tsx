@@ -51,6 +51,8 @@ type KakaoMapSectionProps = {
   rewardActionLabel: string;
   rewardAmountLabel: string;
   onCompleteAction: (completion: MapActionCompletion) => void;
+  challengeLocationSelectionMode?: boolean;
+  onChallengeLocationSelect?: (address: string) => void;
 };
 
 const MAP_ACTION_REWARDS: Record<DestinationKind, number> = {
@@ -174,7 +176,25 @@ function getActionLabel(kind: DestinationKind) {
     return "개인컵 사용";
   }
 
-  return "다회용컵 보증금제 매장";
+  return "다회용컵 보증금제";
+}
+
+function getActionButtonClass(kind: DestinationKind, isSelected: boolean) {
+  if (kind === "trash-bin") {
+    return isSelected
+      ? "bg-[#fff0d2] text-[#c56a00] ring-1 ring-[#f5bd67]"
+      : "bg-white text-[#d97706] ring-1 ring-[#f4cf91]";
+  }
+
+  if (kind === "personal-cup") {
+    return isSelected
+      ? "bg-[#dbeafe] text-[#1d4ed8] ring-1 ring-[#93b4f5]"
+      : "bg-white text-[#2563eb] ring-1 ring-[#b7cdf8]";
+  }
+
+  return isSelected
+    ? "bg-[#dcf3e4] text-[#247447] ring-1 ring-[#8bc8a2]"
+    : "bg-white text-[#2f855a] ring-1 ring-[#acd6bb]";
 }
 
 function getActionProofGuide(kind: DestinationKind) {
@@ -208,6 +228,8 @@ export function KakaoMapSection({
   rewardActionLabel,
   rewardAmountLabel,
   onCompleteAction,
+  challengeLocationSelectionMode = false,
+  onChallengeLocationSelect,
 }: KakaoMapSectionProps) {
   const mapRef = useRef<HTMLDivElement | null>(null);
   const kakaoRef = useRef<typeof window.kakao | null>(null);
@@ -215,6 +237,7 @@ export function KakaoMapSection({
   const currentLocationMarkerRef = useRef<kakao.maps.Marker | null>(null);
   const storeMarkersRef = useRef<kakao.maps.Marker[]>([]);
   const trashBinMarkersRef = useRef<kakao.maps.Marker[]>([]);
+  const challengeLocationMarkerRef = useRef<kakao.maps.Marker | null>(null);
 
   const [mapStatus, setMapStatus] = useState<MapStatus>("loading");
   const [locationStatus, setLocationStatus] = useState<LocationStatus>("idle");
@@ -238,6 +261,35 @@ export function KakaoMapSection({
 
   const origin =
     typeof window === "undefined" ? "unknown" : window.location.origin;
+
+  useEffect(() => {
+    const kakao = kakaoRef.current;
+    const map = mapInstanceRef.current;
+    if (!challengeLocationSelectionMode || !kakao || !map || !onChallengeLocationSelect) return;
+
+    const handleMapClick = (event?: { latLng: kakao.maps.LatLng }) => {
+      if (!event) return;
+      const latitude = event.latLng.getLat();
+      const longitude = event.latLng.getLng();
+
+      challengeLocationMarkerRef.current?.setMap(null);
+      challengeLocationMarkerRef.current = new kakao.maps.Marker({ map, position: event.latLng });
+
+      const geocoder = new kakao.maps.services.Geocoder();
+      geocoder.coord2Address(longitude, latitude, (result, status) => {
+        const address =
+          status === kakao.maps.services.Status.OK && result.length > 0
+            ? result[0].road_address?.address_name ??
+              result[0].address?.address_name ??
+              `${latitude.toFixed(5)}, ${longitude.toFixed(5)}`
+            : `${latitude.toFixed(5)}, ${longitude.toFixed(5)}`;
+        onChallengeLocationSelect(address);
+      });
+    };
+
+    kakao.maps.event.addListener(map, "click", handleMapClick);
+    return () => kakao.maps.event.removeListener(map, "click", handleMapClick);
+  }, [challengeLocationSelectionMode, mapStatus, onChallengeLocationSelect]);
 
   useEffect(() => {
     let isMounted = true;
@@ -646,10 +698,12 @@ export function KakaoMapSection({
         <div>
           <p className="text-xs font-bold text-[#6f806d]">지도</p>
           <h2 className="mt-1 text-[1.45rem] font-black tracking-normal text-[#24382a] min-[390px]:text-[1.7rem]">
-            갈 장소를 고르고 체크인하기
+            {challengeLocationSelectionMode ? "지도에서 실천 장소 선택하기" : "갈 장소를 고르고 체크인하기"}
           </h2>
           <p className="mt-2 text-sm leading-6 text-[#6f7c69]">
-            마커를 선택한 뒤 체크인을 시작하세요. 현재 위치는 도로명 주소로 확인하고 복사할 수 있어요.
+            {challengeLocationSelectionMode
+              ? "지도 위 원하는 위치를 누르면 주소를 저장하고 챌린지 만들기로 돌아가요."
+              : "마커를 선택한 뒤 체크인을 시작하세요. 현재 위치는 도로명 주소로 확인하고 복사할 수 있어요."}
           </p>
         </div>
       </div>
@@ -732,11 +786,10 @@ export function KakaoMapSection({
                     key={action}
                     type="button"
                     onClick={() => setSelectedAction(action)}
-                    className={`rounded-full px-4 py-2 text-xs font-black ${
-                      selectedAction === action
-                        ? "bg-[#2c6a41] text-white"
-                        : "bg-white text-[#2c6a41]"
-                    }`}
+                    className={`rounded-full px-4 py-2 text-xs font-black ${getActionButtonClass(
+                      action,
+                      selectedAction === action,
+                    )}`}
                   >
                     {getActionLabel(action)}
                   </button>
@@ -820,7 +873,7 @@ export function KakaoMapSection({
                       type="button"
                       onClick={completeSelectedAction}
                       disabled={!canCompleteSelectedAction}
-                      className="ole-button mt-4 w-full px-4 py-3 text-sm font-black text-white disabled:cursor-not-allowed disabled:bg-[#a9bea9]"
+                      className="mt-4 w-full rounded-[0.8rem] bg-[#2a5d3b] px-4 py-3 text-sm font-black text-white transition hover:bg-[#214b30] disabled:cursor-not-allowed disabled:bg-[#a9bea9]"
                     >
                       인증 완료하고 {rewardActionLabel}
                     </button>

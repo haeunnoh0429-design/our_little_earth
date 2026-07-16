@@ -86,6 +86,7 @@ type ChallengeReview = {
   text: string;
   rating: number;
   likes: number;
+  likedBy: string[];
 };
 
 type ChallengeDayProof = {
@@ -116,6 +117,8 @@ type Challenge = {
   durationDays: number;
   creatorBonusRate: number;
   creatorBonusAwarded: boolean;
+  likes: number;
+  likedBy: string[];
   hotReviews: ChallengeReview[];
   joined: boolean;
   joinedAt: string;
@@ -127,8 +130,9 @@ type Challenge = {
 type ChallengeDraft = {
   title: string;
   description: string;
+  checklist: string[];
   location: string;
-  difficulty: ChallengeDifficulty;
+  difficulty: ChallengeDifficulty | "";
   proofMethods: ChallengeProofMethod[];
   durationDays: string;
 };
@@ -203,6 +207,70 @@ const registeredUsersStorageKey = "ole-registered-users";
 const globalChallengesStorageKey = "ole-challenges";
 const rememberedLoginStorageKey = "ole-remembered-login";
 const creatorBonusRate = 0.1;
+const excludedRankingUserNames = new Set(["강교빈"]);
+const mockChallengeCreators: Record<string, string> = {
+  "challenge-1": "3학년 6반 김지효",
+  "challenge-2": "3학년 5반 백현서",
+  "challenge-3": "3학년 2반 장은서",
+};
+
+// 랭킹 화면 시연용 샘플 사용자입니다. 회원가입 및 Firestore 사용자 데이터에는 포함되지 않습니다.
+const MOCK_RANKING_USERS: RegisteredUser[] = [
+  {
+    uid: "mock-ranking-3-6-kim-jihyo",
+    grade: "3",
+    classRoom: "6",
+    studentNumber: "1",
+    name: "김지효",
+    initialDebt: 3200,
+    profile: { clearedDebt: 268, ecoDebt: 2932 },
+  },
+  {
+    uid: "mock-ranking-3-5-baek-hyeonseo",
+    grade: "3",
+    classRoom: "5",
+    studentNumber: "1",
+    name: "백현서",
+    initialDebt: 3200,
+    profile: { clearedDebt: 251, ecoDebt: 2949 },
+  },
+  {
+    uid: "mock-ranking-3-2-jang-eunseo",
+    grade: "3",
+    classRoom: "2",
+    studentNumber: "1",
+    name: "장은서",
+    initialDebt: 3200,
+    profile: { clearedDebt: 239, ecoDebt: 2961 },
+  },
+  {
+    uid: "mock-ranking-3-1-heo-jeongin",
+    grade: "3",
+    classRoom: "1",
+    studentNumber: "1",
+    name: "허정인",
+    initialDebt: 3200,
+    profile: { clearedDebt: 224, ecoDebt: 2976 },
+  },
+  {
+    uid: "mock-ranking-3-2-kim-jiyul",
+    grade: "3",
+    classRoom: "2",
+    studentNumber: "2",
+    name: "김지율",
+    initialDebt: 3200,
+    profile: { clearedDebt: 213, ecoDebt: 2987 },
+  },
+  {
+    uid: "mock-ranking-3-2-park-haeun",
+    grade: "3",
+    classRoom: "2",
+    studentNumber: "3",
+    name: "박하은",
+    initialDebt: 3200,
+    profile: { clearedDebt: 198, ecoDebt: 3002 },
+  },
+];
 
 const signupQuestions: SignupQuestion[] = [
   {
@@ -270,7 +338,7 @@ const challengeDifficultyLabels: Record<ChallengeDifficulty, string> = {
 const challengeProofMethodLabels: Record<ChallengeProofMethod, string> = {
   photo: "사진",
   gps: "GPS",
-  review: "후기",
+  review: "선택 평가",
 };
 
 function createProofDays(durationDays: number): ChallengeDayProof[] {
@@ -745,6 +813,9 @@ function readStoredDailyCheckinDraft(userKey: string | null) {
 function createFreshChallengeState(challenge: Challenge): Challenge {
   return {
     ...challenge,
+    likes: challenge.likes,
+    likedBy: challenge.likedBy,
+    hotReviews: challenge.hotReviews.map(normalizeChallengeReview),
     joined: false,
     joinedAt: "",
     completed: false,
@@ -758,7 +829,7 @@ const initialChallenges: Challenge[] = [
   {
     id: "challenge-1",
     title: "우리 학교 플로깅 챌린지",
-    creator: "2학년 3반 박지우",
+    creator: mockChallengeCreators["challenge-1"],
     creatorKey: null,
     description: "등교나 하교 길에 쓰레기 3개 이상 줍고 사진과 후기를 남겨 보세요.",
     location: "학교 주변과 등하굣길",
@@ -769,9 +840,11 @@ const initialChallenges: Challenge[] = [
     durationDays: 1,
     creatorBonusRate,
     creatorBonusAwarded: false,
+    likes: 32,
+    likedBy: [],
     hotReviews: [
-      { id: "review-1", author: "이서준", text: "운동도 되고 길이 깨끗해져서 좋았어요.", rating: 5, likes: 14 },
-      { id: "review-2", author: "최서연", text: "하교길 친구랑 같이 해서 더 재밌었어요.", rating: 4, likes: 9 },
+      { id: "review-1", author: "이서준", text: "운동도 되고 길이 깨끗해져서 좋았어요.", rating: 5, likes: 14, likedBy: [] },
+      { id: "review-2", author: "최서연", text: "하교길 친구랑 같이 해서 더 재밌었어요.", rating: 4, likes: 9, likedBy: [] },
     ],
     joined: false,
     joinedAt: "",
@@ -782,7 +855,7 @@ const initialChallenges: Challenge[] = [
   {
     id: "challenge-2",
     title: "일주일 물 절약 챌린지",
-    creator: "3학년 2반 김하늘",
+    creator: mockChallengeCreators["challenge-2"],
     creatorKey: null,
     description: "7일 동안 매일 물 절약 사진과 후기를 인증하면서 습관을 만드는 챌린지예요.",
     location: "집과 학교 화장실",
@@ -793,9 +866,11 @@ const initialChallenges: Challenge[] = [
     durationDays: 14,
     creatorBonusRate,
     creatorBonusAwarded: false,
+    likes: 41,
+    likedBy: [],
     hotReviews: [
-      { id: "review-3", author: "김하늘", text: "일주일 넘게 하니까 진짜 습관이 생기기 시작했어요.", rating: 5, likes: 22 },
-      { id: "review-4", author: "박지우", text: "매일 인증하니까 친구들이랑 서로 응원하게 돼요.", rating: 4, likes: 17 },
+      { id: "review-3", author: "김하늘", text: "일주일 넘게 하니까 진짜 습관이 생기기 시작했어요.", rating: 5, likes: 22, likedBy: [] },
+      { id: "review-4", author: "박지우", text: "매일 인증하니까 친구들이랑 서로 응원하게 돼요.", rating: 4, likes: 17, likedBy: [] },
     ],
     joined: false,
     joinedAt: "",
@@ -806,7 +881,7 @@ const initialChallenges: Challenge[] = [
   {
     id: "challenge-3",
     title: "우리 반 분리배출 인증전",
-    creator: "1학년 5반 최서연",
+    creator: mockChallengeCreators["challenge-3"],
     creatorKey: null,
     description: "분리배출을 올바르게 한 사진과 별점 후기를 올려 함께 점수를 쌓아요.",
     location: "교실, 집, 분리수거장",
@@ -817,9 +892,11 @@ const initialChallenges: Challenge[] = [
     durationDays: 1,
     creatorBonusRate,
     creatorBonusAwarded: false,
+    likes: 19,
+    likedBy: [],
     hotReviews: [
-      { id: "review-5", author: "김도윤", text: "생각보다 헷갈렸는데 해보니 금방 익숙해졌어요.", rating: 4, likes: 11 },
-      { id: "review-6", author: "정유나", text: "사진을 찍어 올리니 더 꼼꼼하게 하게 돼요.", rating: 5, likes: 8 },
+      { id: "review-5", author: "김도윤", text: "생각보다 헷갈렸는데 해보니 금방 익숙해졌어요.", rating: 4, likes: 11, likedBy: [] },
+      { id: "review-6", author: "정유나", text: "사진을 찍어 올리니 더 꼼꼼하게 하게 돼요.", rating: 5, likes: 8, likedBy: [] },
     ],
     joined: false,
     joinedAt: "",
@@ -828,6 +905,47 @@ const initialChallenges: Challenge[] = [
     proofDays: createProofDays(1),
   },
 ];
+
+function normalizeChallengeReview(review: Partial<ChallengeReview>): ChallengeReview {
+  return {
+    id: typeof review.id === "string" ? review.id : `review-${Date.now()}`,
+    author: typeof review.author === "string" ? review.author : "익명",
+    text: typeof review.text === "string" ? review.text : "",
+    rating: typeof review.rating === "number" ? review.rating : 0,
+    likes: typeof review.likes === "number" ? review.likes : 0,
+    likedBy: Array.isArray(review.likedBy) ? review.likedBy.filter((userKey) => typeof userKey === "string") : [],
+  };
+}
+
+function normalizeStoredChallenge(challenge: Partial<Challenge>): Challenge {
+  const durationDays = typeof challenge.durationDays === "number" && challenge.durationDays > 0 ? challenge.durationDays : 1;
+  const challengeId = typeof challenge.id === "string" ? challenge.id : `challenge-${Date.now()}`;
+  const storedCreator = typeof challenge.creator === "string" ? challenge.creator : "알 수 없음";
+
+  return {
+    id: challengeId,
+    title: typeof challenge.title === "string" ? challenge.title : "이름 없는 챌린지",
+    creator: mockChallengeCreators[challengeId] ?? (storedCreator.includes("강교빈") ? "3학년 2반 김지율" : storedCreator),
+    creatorKey: typeof challenge.creatorKey === "string" ? challenge.creatorKey : null,
+    description: typeof challenge.description === "string" ? challenge.description : "",
+    location: typeof challenge.location === "string" ? challenge.location : "",
+    difficulty: challenge.difficulty ?? "easy",
+    proofMethods: Array.isArray(challenge.proofMethods) ? challenge.proofMethods : ["photo", "review"],
+    participants: typeof challenge.participants === "number" ? challenge.participants : 0,
+    reward: typeof challenge.reward === "number" ? challenge.reward : 0,
+    durationDays,
+    creatorBonusRate: typeof challenge.creatorBonusRate === "number" ? challenge.creatorBonusRate : creatorBonusRate,
+    creatorBonusAwarded: Boolean(challenge.creatorBonusAwarded),
+    likes: typeof challenge.likes === "number" ? challenge.likes : 0,
+    likedBy: Array.isArray(challenge.likedBy) ? challenge.likedBy.filter((userKey) => typeof userKey === "string") : [],
+    hotReviews: Array.isArray(challenge.hotReviews) ? challenge.hotReviews.map(normalizeChallengeReview) : [],
+    joined: Boolean(challenge.joined),
+    joinedAt: typeof challenge.joinedAt === "string" && challenge.joinedAt ? challenge.joinedAt : challenge.joined ? getTodayKey() : "",
+    completed: Boolean(challenge.completed),
+    progressOpen: Boolean(challenge.progressOpen),
+    proofDays: Array.isArray(challenge.proofDays) ? challenge.proofDays : createProofDays(durationDays),
+  };
+}
 
 function readStoredChallenges() {
   if (typeof window === "undefined") {
@@ -843,11 +961,7 @@ function readStoredChallenges() {
   try {
     const parsed = JSON.parse(saved) as unknown;
     return Array.isArray(parsed)
-      ? (parsed as Array<Partial<Challenge>>).map((challenge) => ({
-          ...challenge,
-          joinedAt: typeof challenge.joinedAt === "string" && challenge.joinedAt ? challenge.joinedAt : challenge.joined ? getTodayKey() : "",
-          proofDays: Array.isArray(challenge.proofDays) ? challenge.proofDays : createProofDays(challenge.durationDays ?? 1),
-        })) as Challenge[]
+      ? (parsed as Array<Partial<Challenge>>).map(normalizeStoredChallenge)
       : initialChallenges.map(createFreshChallengeState);
   } catch {
     return initialChallenges.map(createFreshChallengeState);
@@ -937,7 +1051,7 @@ function parseStoredAppState(data: unknown): StoredAppState | null {
     dailyCheckinDraft,
     lastCheckinDate: typeof record.lastCheckinDate === "string" ? record.lastCheckinDate : "",
     challenges: Array.isArray(record.challenges)
-      ? (record.challenges as Challenge[])
+      ? (record.challenges as Array<Partial<Challenge>>).map(normalizeStoredChallenge)
       : initialChallenges.map(createFreshChallengeState),
     completedChallengeHistory: Array.isArray(record.completedChallengeHistory)
       ? record.completedChallengeHistory
@@ -975,6 +1089,13 @@ async function readUserAppState(uid: string, userKey: string) {
 
 function renderStars(rating: number) {
   return "★".repeat(clampRating(rating)) + "☆".repeat(5 - clampRating(rating));
+}
+
+function maskCreatorName(value: string) {
+  const parts = value.split(" ");
+  const name = parts.at(-1) ?? value;
+  const maskedName = name.length <= 1 ? "●" : `${name[0]}${"●".repeat(name.length - 1)}`;
+  return [...parts.slice(0, -1), maskedName].join(" ");
 }
 
 function groupProofDays(proofDays: ChallengeDayProof[]) {
@@ -1073,21 +1194,18 @@ function AuthScreen({
 }) {
   return (
     <section className="ole-card overflow-hidden">
-      <div className="ole-sticker p-5 sm:p-8">
-        <div className="flex flex-col items-start justify-between gap-4 min-[390px]:flex-row min-[390px]:items-center">
+      <div className="ole-sticker p-4 sm:p-6">
+        <div className="flex flex-col items-start justify-between gap-3 min-[390px]:flex-row min-[390px]:items-center">
           <div className="max-w-[20rem]">
-            <p className="text-base font-bold text-[#55735d]">Our Little Earth</p>
-            <h1 className="mt-2 text-[1.75rem] font-black leading-tight tracking-normal text-[#183522] min-[390px]:text-[2rem]">
+            <p className="text-sm font-bold text-[#55735d]">Our Little Earth</p>
+            <h1 className="mt-1 text-[1.55rem] font-black leading-tight tracking-normal text-[#183522] min-[390px]:text-[1.8rem]">
               {mode === "signup" ? "회원가입하고 시작하기" : "로그인하고 이어가기"}
             </h1>
-            <p className="mt-3 text-base leading-7 text-[#5a7460]">
-              학년, 반, 번호와 비밀번호로 가볍게 시작하고 우리 반의 지구를 함께 키워요.
-            </p>
           </div>
-          <div className="relative h-28 w-28 shrink-0 self-center rounded-[1.1rem] bg-white/70 p-3 shadow-[0_8px_0_rgba(64,119,71,0.10)] min-[390px]:h-32 min-[390px]:w-32">
+          <div className="relative h-24 w-24 shrink-0 self-center rounded-[1rem] bg-white/70 p-2.5 shadow-[0_8px_0_rgba(64,119,71,0.10)] min-[390px]:h-28 min-[390px]:w-28">
             <Image
-              src="/earth-save-me-character.png"
-              alt="세이브 미 팻말을 든 지구 캐릭터"
+              src="/earth-mood-start.png"
+              alt="화난 표정의 지구 캐릭터"
               fill
               sizes="8rem"
               className="object-contain p-2"
@@ -1097,13 +1215,13 @@ function AuthScreen({
         </div>
       </div>
 
-      <form onSubmit={onSubmit} className="space-y-5 p-5 sm:p-8">
+      <form onSubmit={onSubmit} className="space-y-4 p-4 sm:p-6">
         <label className="block">
-          <span className="mb-2 block text-base font-bold text-[#26412d]">학년</span>
+          <span className="mb-1.5 block text-sm font-bold text-[#26412d]">학년</span>
           <select
             value={form.grade}
             onChange={(event) => onChange("grade", event.target.value)}
-            className="ole-field w-full px-5 py-4 text-base text-[#1f3526]"
+            className="ole-field w-full px-4 py-3 text-base text-[#1f3526]"
             required
           >
             <option value="">학년 선택</option>
@@ -1116,11 +1234,11 @@ function AuthScreen({
         </label>
 
         <label className="block">
-          <span className="mb-2 block text-base font-bold text-[#26412d]">반</span>
+          <span className="mb-1.5 block text-sm font-bold text-[#26412d]">반</span>
           <select
             value={form.classRoom}
             onChange={(event) => onChange("classRoom", event.target.value)}
-            className="ole-field w-full px-5 py-4 text-base text-[#1f3526]"
+            className="ole-field w-full px-4 py-3 text-base text-[#1f3526]"
             required
           >
             <option value="">반 선택</option>
@@ -1133,18 +1251,18 @@ function AuthScreen({
         </label>
 
         <label className="block">
-          <span className="mb-2 block text-base font-bold text-[#26412d]">이름</span>
+          <span className="mb-1.5 block text-sm font-bold text-[#26412d]">이름</span>
           <input
             type="text"
             value={form.name}
             onChange={(event) => onChange("name", event.target.value)}
             placeholder="이름 입력"
-            className="ole-field w-full px-5 py-4 text-base text-[#1f3526]"
+            className="ole-field w-full px-4 py-3 text-base text-[#1f3526]"
             required
           />
         </label>
 
-        <label className="flex items-start gap-3 rounded-[0.8rem] border border-[#dbe7d7] bg-[#fffef8] px-4 py-3">
+        <label className="flex items-start gap-3 rounded-[0.8rem] border border-[#dbe7d7] bg-[#fffef8] px-4 py-2.5">
           <input
             type="checkbox"
             checked={rememberLogin}
@@ -1158,7 +1276,7 @@ function AuthScreen({
         </label>
 
         <label className="block">
-          <span className="mb-2 block text-base font-bold text-[#26412d]">출석번호</span>
+          <span className="mb-1.5 block text-sm font-bold text-[#26412d]">출석번호</span>
           <input
             type="number"
             min="1"
@@ -1166,26 +1284,26 @@ function AuthScreen({
             value={form.studentNumber}
             onChange={(event) => onChange("studentNumber", event.target.value)}
             placeholder="예: 12"
-            className="ole-field w-full px-5 py-4 text-base text-[#1f3526]"
+            className="ole-field w-full px-4 py-3 text-base text-[#1f3526]"
             required
           />
         </label>
 
         <label className="block">
-          <span className="mb-2 block text-base font-bold text-[#26412d]">비밀번호</span>
+          <span className="mb-1.5 block text-sm font-bold text-[#26412d]">비밀번호</span>
           <input
             type="password"
             minLength={6}
             value={form.password}
             onChange={(event) => onChange("password", event.target.value)}
             placeholder="6자리 이상"
-            className="ole-field w-full px-5 py-4 text-base text-[#1f3526]"
+            className="ole-field w-full px-4 py-3 text-base text-[#1f3526]"
             required
           />
         </label>
 
         {mode === "signup" ? (
-          <div className="ole-soft space-y-4 p-5">
+          <div className="ole-soft space-y-3 p-4">
             <div>
               <p className="text-base font-black text-[#26412d]">초기 빚 설정</p>
               <p className="mt-1 text-sm leading-6 text-[#5a7460]">
@@ -1222,14 +1340,14 @@ function AuthScreen({
           </p>
         ) : null}
 
-        <button type="submit" className="w-full rounded-[0.8rem] bg-[#2a5d3b] px-5 py-4 text-base font-black text-white transition hover:bg-[#214b30]">
+        <button type="submit" className="w-full rounded-[0.8rem] bg-[#2a5d3b] px-5 py-3 text-base font-black text-white transition hover:bg-[#214b30]">
           {mode === "signup" ? "회원가입" : "로그인"}
         </button>
 
         <button
           type="button"
           onClick={() => onSwitchMode(mode === "signup" ? "login" : "signup")}
-          className="w-full rounded-[0.8rem] border border-[#dbe7d7] bg-[#fffef8] px-5 py-4 text-base font-black text-[#24482f]"
+          className="w-full rounded-[0.8rem] border border-[#dbe7d7] bg-[#fffef8] px-5 py-3 text-base font-black text-[#24482f]"
         >
           {mode === "signup" ? "로그인으로 돌아가기" : "회원가입하기"}
         </button>
@@ -1382,7 +1500,7 @@ function ProofDayCard({
                   <p className="text-sm font-black text-[#47614d]">위치 인증</p>
                   <p className="mt-1 text-xs leading-5 text-[#6c816f]">위도, 경도 대신 도로명 주소로 보여줘요.</p>
                 </div>
-                <button type="button" onClick={onVerifyLocation} className="rounded-full bg-[#e8f4dc] px-4 py-2 text-sm font-black text-[#2c6a41]">
+                <button type="button" onClick={onVerifyLocation} className="shrink-0 whitespace-nowrap rounded-full bg-[#e8f4dc] px-4 py-2 text-sm font-black text-[#2c6a41]">
                   {dayProof.locationStatus === "loading" ? "확인 중..." : "현재 위치 인증"}
                 </button>
               </div>
@@ -1454,18 +1572,23 @@ export default function Home() {
   const [challengeDraft, setChallengeDraft] = useState<ChallengeDraft>({
     title: "",
     description: "",
+    checklist: [],
     location: "",
-    difficulty: "medium",
-    proofMethods: ["photo", "review"],
+    difficulty: "",
+    proofMethods: [],
     durationDays: "",
   });
   const [challengeRewardSuggestion, setChallengeRewardSuggestion] = useState<number | null>(null);
   const [challengeRewardReason, setChallengeRewardReason] = useState("");
   const [isChallengeRewardLoading, setIsChallengeRewardLoading] = useState(false);
+  const [isChallengeChecklistLoading, setIsChallengeChecklistLoading] = useState(false);
+  const [isChallengeRewardDetailsOpen, setIsChallengeRewardDetailsOpen] = useState(false);
+  const [isChallengeLocationSelectionMode, setIsChallengeLocationSelectionMode] = useState(false);
   const [challengeRewardError, setChallengeRewardError] = useState("");
   const [isChallengeComposerOpen, setIsChallengeComposerOpen] = useState(false);
   const [isCheckinModalOpen, setIsCheckinModalOpen] = useState(false);
   const [openChallengeDetailIds, setOpenChallengeDetailIds] = useState<string[]>([]);
+  const [expandedChallengeReviewIds, setExpandedChallengeReviewIds] = useState<string[]>([]);
   const [openChallengeWeekKeys, setOpenChallengeWeekKeys] = useState<string[]>([]);
   const [hasHydrated, setHasHydrated] = useState(false);
 
@@ -1683,6 +1806,16 @@ export default function Home() {
   const canDrawMissionToday = missionDrawDate !== todayKey && !missionCompletedToday && !selectedMission;
   const activeChallenges = challenges.filter((challenge) => challenge.joined && !challenge.completed);
   const availableChallenges = challenges.filter((challenge) => !challenge.completed && !challenge.joined);
+  const completedChallengeIds = new Set(completedChallengeHistory.map((record) => record.id));
+  const completedChallenges = challenges.filter((challenge) => challenge.completed || completedChallengeIds.has(challenge.id));
+
+  useEffect(() => {
+    if (hasHydrated && isLoggedIn && activeTab === "home" && !hasCheckedInToday) {
+      const openTimer = window.setTimeout(() => setIsCheckinModalOpen(true), 0);
+      return () => window.clearTimeout(openTimer);
+    }
+  }, [activeTab, hasCheckedInToday, hasHydrated, isLoggedIn]);
+
   const earthMoodImage =
     hasCheckedInToday && completedChallengeToday && missionCompletedToday
       ? "/earth-mood-complete.png"
@@ -1693,6 +1826,7 @@ export default function Home() {
   const challengeRewardDetails =
     Number.isFinite(challengeDraftDurationDays) &&
     challengeDraftDurationDays >= 1 &&
+    challengeDraft.difficulty !== "" &&
     challengeDraft.proofMethods.length > 0
       ? calculateChallengeRewardDetails({
           location: challengeDraft.location,
@@ -1703,7 +1837,14 @@ export default function Home() {
       : null;
 
   const rankingUsers = useMemo(() => {
-    return registeredUsers.map((user) => {
+    const visibleRegisteredUsers = registeredUsers.filter((user) => !excludedRankingUserNames.has(user.name.trim()));
+    const registeredUserKeys = new Set(visibleRegisteredUsers.map(getIdentityKey));
+    const rankingSourceUsers = [
+      ...visibleRegisteredUsers,
+      ...MOCK_RANKING_USERS.filter((user) => !registeredUserKeys.has(getIdentityKey(user))),
+    ];
+
+    return rankingSourceUsers.map((user) => {
       const userKey = getIdentityKey(user);
       const rankingProfile = getRankingProfile(user);
       const isCurrentUser = currentUserKey === userKey;
@@ -1929,7 +2070,7 @@ export default function Home() {
     setSelectedMission(null);
     setIsMissionDetailOpen(true);
     setMissionVerification(createEmptyMissionVerification());
-    setMissionReason("오늘의 미션을 완료했어요. 내일 새로운 미션을 받아볼 수 있어요.");
+    setMissionReason("오늘의 미션을 완료했어요.");
   };
 
   const completeMapAction = (completion: MapActionCompletion) => {
@@ -1955,7 +2096,11 @@ export default function Home() {
   };
 
   const handleDraftChange = (field: keyof ChallengeDraft, value: string | ChallengeDifficulty) => {
-    setChallengeDraft((current) => ({ ...current, [field]: value }));
+    setChallengeDraft((current) => ({
+      ...current,
+      [field]: value,
+      checklist: field === "title" || field === "description" ? [] : current.checklist,
+    }));
     setChallengeRewardSuggestion(null);
     setChallengeRewardReason("");
     setChallengeRewardError("");
@@ -2031,8 +2176,57 @@ export default function Home() {
     );
   };
 
+  const requestChallengeChecklist = async () => {
+    if (!challengeDraft.title.trim() || !challengeDraft.description.trim()) {
+      setChallengeRewardError("챌린지 제목과 해야 할 일을 먼저 입력해 주세요.");
+      return;
+    }
+
+    setIsChallengeChecklistLoading(true);
+    setChallengeRewardError("");
+
+    try {
+      const response = await fetch("/api/challenge-checklist", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: challengeDraft.title.trim(),
+          description: challengeDraft.description.trim(),
+        }),
+      });
+      const payload = (await response.json()) as {
+        checklist?: string[];
+        difficulty?: ChallengeDifficulty;
+        error?: string;
+      };
+      if (
+        !response.ok ||
+        !Array.isArray(payload.checklist) ||
+        !payload.difficulty ||
+        !["easy", "medium", "hard"].includes(payload.difficulty)
+      ) {
+        throw new Error(payload.error ?? "체크리스트를 만들지 못했어요.");
+      }
+      setChallengeDraft((current) => ({
+        ...current,
+        checklist: payload.checklist ?? [],
+        difficulty: payload.difficulty ?? "",
+      }));
+    } catch (error) {
+      setChallengeRewardError(error instanceof Error ? error.message : "체크리스트 생성 중 오류가 발생했어요.");
+    } finally {
+      setIsChallengeChecklistLoading(false);
+    }
+  };
+
   const toggleAvailableChallengeDetail = (challengeId: string) => {
     setOpenChallengeDetailIds((current) =>
+      current.includes(challengeId) ? current.filter((id) => id !== challengeId) : [...current, challengeId],
+    );
+  };
+
+  const toggleChallengeReviews = (challengeId: string) => {
+    setExpandedChallengeReviewIds((current) =>
       current.includes(challengeId) ? current.filter((id) => id !== challengeId) : [...current, challengeId],
     );
   };
@@ -2079,6 +2273,69 @@ export default function Home() {
       ),
     );
     setOpenChallengeWeekKeys((current) => current.filter((key) => !key.startsWith(`${challengeId}:`)));
+  };
+
+  const hasCompletedChallenge = (challengeId: string) =>
+    completedChallengeHistory.some((record) => record.id === challengeId) ||
+    challenges.some((challenge) => challenge.id === challengeId && challenge.completed);
+
+  const toggleChallengeLike = (challengeId: string) => {
+    if (!currentUserKey) {
+      return;
+    }
+
+    setChallenges((current) =>
+      current.map((challenge) => {
+        if (challenge.id !== challengeId) {
+          return challenge;
+        }
+
+        const liked = challenge.likedBy.includes(currentUserKey);
+        const likedBy = liked
+          ? challenge.likedBy.filter((userKey) => userKey !== currentUserKey)
+          : [...challenge.likedBy, currentUserKey];
+
+        return {
+          ...challenge,
+          likes: Math.max(0, challenge.likes + (liked ? -1 : 1)),
+          likedBy,
+        };
+      }),
+    );
+  };
+
+  const toggleChallengeReviewLike = (challengeId: string, reviewId: string) => {
+    if (!currentUserKey || !hasCompletedChallenge(challengeId)) {
+      return;
+    }
+
+    setChallenges((current) =>
+      current.map((challenge) => {
+        if (challenge.id !== challengeId) {
+          return challenge;
+        }
+
+        return {
+          ...challenge,
+          hotReviews: challenge.hotReviews.map((review) => {
+            if (review.id !== reviewId) {
+              return review;
+            }
+
+            const liked = review.likedBy.includes(currentUserKey);
+            const likedBy = liked
+              ? review.likedBy.filter((userKey) => userKey !== currentUserKey)
+              : [...review.likedBy, currentUserKey];
+
+            return {
+              ...review,
+              likes: Math.max(0, review.likes + (liked ? -1 : 1)),
+              likedBy,
+            };
+          }),
+        };
+      }),
+    );
   };
 
   const openChallengeDayProof = (challengeId: string, day: number) => {
@@ -2235,16 +2492,18 @@ export default function Home() {
 
   const requestChallengeRewardSuggestion = async () => {
     const durationDays = Number(challengeDraft.durationDays);
+    const selectedDifficulty = challengeDraft.difficulty;
 
     if (
       challengeDraft.title.trim() === "" ||
       challengeDraft.description.trim() === "" ||
       challengeDraft.location.trim() === "" ||
+      selectedDifficulty === "" ||
       !Number.isFinite(durationDays) ||
       durationDays < 1 ||
       challengeDraft.proofMethods.length === 0
     ) {
-      setChallengeRewardError("제목, 설명, 장소, 기간, 인증 방식을 먼저 입력해 주세요.");
+      setChallengeRewardError("AI 체크리스트와 난이도, 장소, 기간, 인증 방식을 먼저 정해 주세요.");
       return null;
     }
 
@@ -2260,7 +2519,7 @@ export default function Home() {
           description: challengeDraft.description.trim(),
           location: challengeDraft.location.trim(),
           durationDays,
-          difficulty: challengeDraft.difficulty,
+          difficulty: selectedDifficulty,
           proofMethods: challengeDraft.proofMethods,
         }),
       });
@@ -2285,16 +2544,18 @@ export default function Home() {
   const handleCreateChallenge = () => {
     void (async () => {
       const durationDays = Number(challengeDraft.durationDays);
+      const selectedDifficulty = challengeDraft.difficulty;
 
       if (
         challengeDraft.title.trim() === "" ||
         challengeDraft.description.trim() === "" ||
         challengeDraft.location.trim() === "" ||
+        selectedDifficulty === "" ||
         !Number.isFinite(durationDays) ||
         durationDays < 1 ||
         challengeDraft.proofMethods.length === 0
       ) {
-        setChallengeRewardError("제목, 설명, 장소, 기간, 인증 방식을 모두 입력해 주세요.");
+        setChallengeRewardError("AI 체크리스트와 난이도, 장소, 기간, 인증 방식을 모두 정해 주세요.");
         return;
       }
 
@@ -2311,15 +2572,20 @@ export default function Home() {
         title: challengeDraft.title.trim(),
         creator,
         creatorKey: currentUserKey,
-        description: challengeDraft.description.trim(),
+        description:
+          challengeDraft.checklist.length > 0
+            ? challengeDraft.checklist.map((item) => `□ ${item}`).join("\n")
+            : challengeDraft.description.trim(),
         location: challengeDraft.location.trim(),
-        difficulty: challengeDraft.difficulty,
+        difficulty: selectedDifficulty,
         proofMethods: challengeDraft.proofMethods,
         participants: 0,
         reward,
         durationDays,
         creatorBonusRate,
         creatorBonusAwarded: false,
+        likes: 0,
+        likedBy: [],
         hotReviews: [],
         joined: false,
         joinedAt: "",
@@ -2332,9 +2598,10 @@ export default function Home() {
       setChallengeDraft({
         title: "",
         description: "",
+        checklist: [],
         location: "",
-        difficulty: "medium",
-        proofMethods: ["photo", "review"],
+        difficulty: "",
+        proofMethods: [],
         durationDays: "",
       });
       setChallengeRewardSuggestion(null);
@@ -2395,6 +2662,7 @@ export default function Home() {
                 text: submittedDay.review,
                 rating: submittedDay.rating,
                 likes: 0,
+                likedBy: [],
               },
               ...challenge.hotReviews.filter((review) => review.id !== `${challenge.id}-review-${day}`),
             ]
@@ -2418,6 +2686,13 @@ export default function Home() {
       rewardActionLabel={rewardActionLabel}
       rewardAmountLabel={rewardAmountLabel}
       onCompleteAction={completeMapAction}
+      challengeLocationSelectionMode={isChallengeLocationSelectionMode}
+      onChallengeLocationSelect={(address) => {
+        setChallengeDraft((current) => ({ ...current, location: address }));
+        setIsChallengeLocationSelectionMode(false);
+        setActiveTab("challenge");
+        setIsChallengeComposerOpen(true);
+      }}
     />
   );
 
@@ -2436,52 +2711,52 @@ export default function Home() {
         </div>
 
         {selectedMission ? (
-          <article className={`ole-soft relative ${isMissionDetailOpen ? "p-6 pr-24" : "p-3.5 pr-20"}`}>
-            <p className={isMissionDetailOpen ? "text-base font-bold text-[#53735c]" : "text-xs font-bold text-[#53735c]"}>{selectedMission.category}</p>
-            <h3 className={isMissionDetailOpen ? "mt-2 text-[1.6rem] font-black tracking-normal text-[#1f3f27]" : "mt-1 text-[1.05rem] font-black tracking-normal text-[#1f3f27]"}>{selectedMission.title}</h3>
-            {isMissionDetailOpen ? <p className="mt-3 text-base leading-7 text-[#627563]">{selectedMission.summary}</p> : null}
-            <button
-              type="button"
-              onClick={() => setIsMissionDetailOpen((current) => !current)}
-              className="absolute right-4 top-4 rounded-full bg-white px-4 py-2 text-xs font-black text-[#2c6a41] ring-1 ring-[#d5e5c9]"
-            >
-              {isMissionDetailOpen ? "접기" : "펼치기"}
-            </button>
-
-            <div className={isMissionDetailOpen ? "mt-5 grid gap-3 sm:grid-cols-2" : "hidden"}>
-              <div className="border-l-4 border-[#8fcf66] bg-[#fffef8] px-4 py-4 text-base text-[#46604c]">{rewardAmountLabel} {selectedMission.ecoMoney} EM</div>
-              <div className="border-l-4 border-[#8fcf66] bg-[#fffef8] px-4 py-4 text-base text-[#46604c]">예상 시간 {selectedMission.durationMinutes}분</div>
+          <article className={`ole-soft ${isMissionDetailOpen ? "p-5" : "p-3.5"}`}>
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0 flex-1">
+                <h3 className={isMissionDetailOpen ? "mt-2 break-keep text-[1.6rem] font-black tracking-normal text-[#1f3f27]" : "mt-1 break-keep text-[1.05rem] font-black tracking-normal text-[#1f3f27]"}>{selectedMission.title}</h3>
+                {isMissionDetailOpen ? <p className="mt-2 break-keep text-base leading-6 text-[#627563]">{selectedMission.summary}</p> : null}
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsMissionDetailOpen((current) => !current)}
+                className="shrink-0 self-start px-0 py-0 text-[0.72rem] font-bold text-[#6a7f6d] underline underline-offset-2 [font-family:'Apple_SD_Gothic_Neo','Malgun_Gothic',Arial,sans-serif]"
+              >
+                {isMissionDetailOpen ? "접기" : "펼치기"}
+              </button>
             </div>
 
-            <div className={isMissionDetailOpen ? "mt-4 border-t border-[#d9e6c8] pt-4 text-base leading-7 text-[#55735d]" : "hidden"}>
+            <div className={isMissionDetailOpen ? "mt-3 grid gap-2 sm:grid-cols-2" : "hidden"}>
+              <div className="border-l-4 border-[#8fcf66] bg-[#fffef8] px-4 py-3 text-base text-[#46604c]">{rewardAmountLabel} {selectedMission.ecoMoney} EM</div>
+              <div className="border-l-4 border-[#8fcf66] bg-[#fffef8] px-4 py-3 text-base text-[#46604c]">예상 시간 {selectedMission.durationMinutes}분</div>
+            </div>
+
+            <div className={isMissionDetailOpen ? "mt-3 border-t border-[#d9e6c8] pt-3 text-base leading-6 text-[#55735d]" : "hidden"}>
               <p className="font-black text-[#24482f]">인증 방법</p>
-              <p className="mt-2">{selectedMission.proofGuide}</p>
-              <p className="mt-2 text-sm text-[#6d816e]">
-                {needsGpsProof ? "사진 인증과 현재 위치 인증이 모두 필요해요." : "사진 인증이 필요해요."}
-              </p>
+              <p className="mt-1">{selectedMission.proofGuide}</p>
             </div>
 
-            <div className={isMissionDetailOpen ? "mt-4 border-t border-[#d9e6c8] pt-4" : "hidden"}>
+            <div className={isMissionDetailOpen ? "mt-3 border-t border-[#d9e6c8] pt-3" : "hidden"}>
               <label className="block">
-                <span className="mb-2 block text-sm font-black text-[#47614d]">사진 인증</span>
+                <span className="mb-2 block text-base font-black text-[#47614d]">사진 인증</span>
                 <input
                   type="file"
                   accept="image/*"
                   onChange={(event) => handleMissionPhotoChange(event.target.files?.[0]?.name ?? "")}
-                  className="block w-full text-sm text-[#47614d] file:mr-3 file:rounded-full file:border-0 file:bg-[#e8f4dc] file:px-4 file:py-3 file:text-sm file:font-black file:text-[#2c6a41]"
+                  className="block w-full text-sm text-[#47614d] file:mr-3 file:rounded-full file:border-0 file:bg-[#e8f4dc] file:px-4 file:py-2 file:text-sm file:font-black file:text-[#2c6a41]"
                 />
               </label>
 
               {missionVerification.photoName ? <p className="mt-3 text-sm text-[#5d725e]">선택한 사진: {missionVerification.photoName}</p> : null}
 
               {needsGpsProof ? (
-                <div className="mt-4 ole-card-flat p-4">
+                <div className="mt-3 ole-card-flat p-3">
                   <div className="flex items-center justify-between gap-3">
                     <div>
-                      <p className="text-sm font-black text-[#47614d]">위치 인증</p>
+                      <p className="text-base font-black text-[#47614d]">위치 인증</p>
                       <p className="mt-1 text-xs leading-5 text-[#6c816f]">야외 미션이라 도로명 주소까지 함께 확인해요.</p>
                     </div>
-                    <button type="button" onClick={verifyMissionLocation} className="rounded-full bg-[#e8f4dc] px-4 py-2 text-sm font-black text-[#2c6a41]">
+                    <button type="button" onClick={verifyMissionLocation} className="shrink-0 whitespace-nowrap rounded-full bg-[#e8f4dc] px-4 py-2 text-sm font-black text-[#2c6a41]">
                       {missionVerification.locationStatus === "loading" ? "확인 중..." : "현재 위치 인증"}
                     </button>
                   </div>
@@ -2498,7 +2773,7 @@ export default function Home() {
             <button
               onClick={completeSelectedMission}
               disabled={!canCompleteMission}
-              className={`${isMissionDetailOpen ? "ole-button mt-5 w-full px-5 py-4 text-base font-black text-white" : "hidden"} disabled:cursor-not-allowed disabled:bg-[#a9bea9]`}
+              className={`${isMissionDetailOpen ? "mt-4 w-full rounded-[0.8rem] bg-[#2a5d3b] px-5 py-3 text-base font-black text-white transition hover:bg-[#214b30]" : "hidden"} disabled:cursor-not-allowed disabled:bg-[#a9bea9]`}
             >
               인증 완료하고 {rewardActionLabel}
             </button>
@@ -2540,10 +2815,10 @@ export default function Home() {
             <div className="relative min-h-28 pr-28 min-[390px]:pr-32 sm:min-h-32 sm:pr-40">
               <div className="min-w-0">
                 <p className="text-sm font-bold text-[#55735d]">{profile.school}</p>
-                <h1 className="mt-2 break-keep text-[1.75rem] font-black leading-tight tracking-normal text-[#183522] min-[390px]:text-[2rem]">
+                <h1 className="mt-2 text-[1.75rem] font-black leading-tight tracking-normal text-[#183522] min-[390px]:text-[2rem]">
                   {profile.name}님의 지구
                 </h1>
-                <p className="mt-3 break-keep text-[0.95rem] leading-6 text-[#5a7460]">
+                <p className="mt-3 text-[0.95rem] leading-6 text-[#5a7460]">
                   오늘도 우리의 지구를 지켜요!
                 </p>
               </div>
@@ -2561,20 +2836,20 @@ export default function Home() {
 
             <div className="mt-4 grid w-full grid-cols-2 gap-3">
               <div className="min-w-0 overflow-hidden rounded-[0.95rem] bg-white/70 p-3.5 ring-1 ring-[#d8e8c9]">
-                <p className="truncate text-xs font-bold text-[#66806b] sm:text-sm">{hasEcoDebt ? "남은 빚" : "보유 EM"}</p>
-                <p className="mt-1 truncate whitespace-nowrap text-[1.18rem] font-black tracking-normal text-[#1d3f28] min-[390px]:text-[1.35rem] sm:text-[1.55rem]">
+                <p className="text-xs font-bold text-[#66806b] sm:text-sm">{hasEcoDebt ? "남은 빚" : "보유 EM"}</p>
+                <p className="mt-1 text-[1.18rem] font-black leading-tight tracking-normal text-[#1d3f28] min-[390px]:text-[1.35rem] sm:text-[1.55rem]">
                   {(hasEcoDebt ? profile.ecoDebt : profile.ecoMoney).toLocaleString()} EM
                 </p>
               </div>
 
               <div className="min-w-0 overflow-hidden rounded-[0.95rem] bg-white/70 p-3.5 ring-1 ring-[#d8e8c9]">
-                <p className="truncate text-xs font-bold text-[#66806b] sm:text-sm">차감한 빚</p>
-                <p className="mt-1 truncate whitespace-nowrap text-[1.18rem] font-black tracking-normal text-[#1d3f28] min-[390px]:text-[1.35rem] sm:text-[1.55rem]">{profile.clearedDebt.toLocaleString()} EM</p>
+                <p className="text-xs font-bold text-[#66806b] sm:text-sm">차감한 빚</p>
+                <p className="mt-1 text-[1.18rem] font-black leading-tight tracking-normal text-[#1d3f28] min-[390px]:text-[1.35rem] sm:text-[1.55rem]">{profile.clearedDebt.toLocaleString()} EM</p>
               </div>
 
               <div className="min-w-0 overflow-hidden rounded-[0.95rem] bg-white/70 p-3.5 ring-1 ring-[#d8e8c9]">
                 <div className="flex items-center justify-between gap-2 text-xs font-black text-[#66806b]">
-                  <span className="truncate">청산률</span>
+                  <span>청산률</span>
                   <span className="shrink-0">{completionRate}%</span>
                 </div>
                 <div className="mt-2 h-2.5 overflow-hidden rounded-full bg-[#dcead3] shadow-[inset_0_1px_2px_rgba(44,106,65,0.12)]">
@@ -2586,8 +2861,8 @@ export default function Home() {
               </div>
 
               <div className="min-w-0 overflow-hidden rounded-[0.95rem] bg-white/70 p-3.5 ring-1 ring-[#d8e8c9]">
-                <p className="truncate text-xs font-bold text-[#66806b] sm:text-sm">탄소 절감</p>
-                <p className="mt-1 truncate whitespace-nowrap text-[1.18rem] font-black tracking-normal text-[#1d3f28] min-[390px]:text-[1.35rem] sm:text-[1.55rem]">{carbonFootprintSavedKg} kg</p>
+                <p className="text-xs font-bold text-[#66806b] sm:text-sm">탄소 절감</p>
+                <p className="mt-1 text-[1.18rem] font-black leading-tight tracking-normal text-[#1d3f28] min-[390px]:text-[1.35rem] sm:text-[1.55rem]">{carbonFootprintSavedKg} kg</p>
               </div>
             </div>
           </section>
@@ -2601,7 +2876,7 @@ export default function Home() {
                 </h2>
               </div>
               <button type="button" onClick={() => setIsCheckinModalOpen(true)} className="w-full rounded-[0.8rem] bg-[#2a5d3b] px-5 py-4 text-base font-black text-white transition hover:bg-[#214b30] sm:w-auto sm:shrink-0">
-                {hasCheckedInToday ? "체크인 수정" : "체크인"}
+                {hasCheckedInToday ? "체크아웃" : "체크인"}
               </button>
             </div>
 
@@ -2618,9 +2893,11 @@ export default function Home() {
                     <p className="text-sm font-bold text-[#5d725e]">오늘 체크인</p>
                     <h3 className="mt-1 text-[1.6rem] font-black text-[#21452f]">단위를 보고 기록해요</h3>
                   </div>
-                  <button type="button" onClick={() => setIsCheckinModalOpen(false)} className="rounded-full bg-[#eef5e8] px-4 py-2 text-sm font-black text-[#2c6a41]">
-                    닫기
-                  </button>
+                  {hasCheckedInToday ? (
+                    <button type="button" onClick={() => setIsCheckinModalOpen(false)} className="rounded-full bg-[#eef5e8] px-4 py-2 text-sm font-black text-[#2c6a41]">
+                      닫기
+                    </button>
+                  ) : null}
                 </div>
 
                 <div className="mt-5 grid gap-3">
@@ -2633,9 +2910,9 @@ export default function Home() {
                       className="ole-field w-full px-4 py-4 text-base text-[#1f3526]"
                     >
                       <option value="">선택해 주세요</option>
-                      {showerMinuteOptions.map((minute) => (
+                      {showerMinuteOptions.map((minute, index) => (
                         <option key={`shower-${minute}`} value={minute}>
-                          {minute}분
+                          {minute}분{index === showerMinuteOptions.length - 1 ? " 이상" : ""}
                         </option>
                       ))}
                     </select>
@@ -2650,9 +2927,9 @@ export default function Home() {
                       className="ole-field w-full px-4 py-4 text-base text-[#1f3526]"
                     >
                       <option value="">선택해 주세요</option>
-                      {petBottleCountOptions.map((count) => (
+                      {petBottleCountOptions.map((count, index) => (
                         <option key={`pet-bottle-${count}`} value={count}>
-                          {count}개
+                          {count}개{index === petBottleCountOptions.length - 1 ? " 이상" : ""}
                         </option>
                       ))}
                     </select>
@@ -2667,9 +2944,9 @@ export default function Home() {
                       className="ole-field w-full px-4 py-4 text-base text-[#1f3526]"
                     >
                       <option value="">선택해 주세요</option>
-                      {carMinuteOptions.map((minute) => (
+                      {carMinuteOptions.map((minute, index) => (
                         <option key={`car-${minute}`} value={minute}>
-                          {minute}분
+                          {minute}분{index === carMinuteOptions.length - 1 ? " 이상" : ""}
                         </option>
                       ))}
                     </select>
@@ -2712,52 +2989,52 @@ export default function Home() {
             </div>
 
           {selectedMission ? (
-            <article className={`ole-soft relative ${isMissionDetailOpen ? "p-6 pr-24" : "p-3.5 pr-20"}`}>
-              <p className={isMissionDetailOpen ? "text-base font-bold text-[#53735c]" : "text-xs font-bold text-[#53735c]"}>{selectedMission.category}</p>
-              <h3 className={isMissionDetailOpen ? "mt-2 text-[1.6rem] font-black tracking-normal text-[#1f3f27]" : "mt-1 text-[1.05rem] font-black tracking-normal text-[#1f3f27]"}>{selectedMission.title}</h3>
-              {isMissionDetailOpen ? <p className="mt-3 text-base leading-7 text-[#627563]">{selectedMission.summary}</p> : null}
-              <button
-                type="button"
-                onClick={() => setIsMissionDetailOpen((current) => !current)}
-                className="absolute right-4 top-4 rounded-full bg-white px-4 py-2 text-xs font-black text-[#2c6a41] ring-1 ring-[#d5e5c9]"
-              >
-                {isMissionDetailOpen ? "접기" : "펼치기"}
-              </button>
-
-              <div className={isMissionDetailOpen ? "mt-5 grid gap-3 sm:grid-cols-2" : "hidden"}>
-                <div className="border-l-4 border-[#8fcf66] bg-[#fffef8] px-4 py-4 text-base text-[#46604c]">{rewardAmountLabel} {selectedMission.ecoMoney} EM</div>
-                <div className="border-l-4 border-[#8fcf66] bg-[#fffef8] px-4 py-4 text-base text-[#46604c]">예상 시간 {selectedMission.durationMinutes}분</div>
+            <article className={`ole-soft ${isMissionDetailOpen ? "p-5" : "p-3.5"}`}>
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0 flex-1">
+                  <h3 className={isMissionDetailOpen ? "mt-2 break-keep text-[1.6rem] font-black tracking-normal text-[#1f3f27]" : "mt-1 break-keep text-[1.05rem] font-black tracking-normal text-[#1f3f27]"}>{selectedMission.title}</h3>
+                  {isMissionDetailOpen ? <p className="mt-2 break-keep text-base leading-6 text-[#627563]">{selectedMission.summary}</p> : null}
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setIsMissionDetailOpen((current) => !current)}
+                  className="shrink-0 self-start px-0 py-0 text-[0.72rem] font-bold text-[#6a7f6d] underline underline-offset-2 [font-family:'Apple_SD_Gothic_Neo','Malgun_Gothic',Arial,sans-serif]"
+                >
+                  {isMissionDetailOpen ? "접기" : "펼치기"}
+                </button>
               </div>
 
-              <div className={isMissionDetailOpen ? "mt-4 border-t border-[#d9e6c8] pt-4 text-base leading-7 text-[#55735d]" : "hidden"}>
+              <div className={isMissionDetailOpen ? "mt-3 grid gap-2 sm:grid-cols-2" : "hidden"}>
+                <div className="border-l-4 border-[#8fcf66] bg-[#fffef8] px-4 py-3 text-base text-[#46604c]">{rewardAmountLabel} {selectedMission.ecoMoney} EM</div>
+                <div className="border-l-4 border-[#8fcf66] bg-[#fffef8] px-4 py-3 text-base text-[#46604c]">예상 시간 {selectedMission.durationMinutes}분</div>
+              </div>
+
+              <div className={isMissionDetailOpen ? "mt-3 border-t border-[#d9e6c8] pt-3 text-base leading-6 text-[#55735d]" : "hidden"}>
                 <p className="font-black text-[#24482f]">인증 방법</p>
-                <p className="mt-2">{selectedMission.proofGuide}</p>
-                <p className="mt-2 text-sm text-[#6d816e]">
-                  {needsGpsProof ? "사진 인증과 현재 위치 인증이 모두 필요해요." : "사진 인증이 필요해요."}
-                </p>
+                <p className="mt-1">{selectedMission.proofGuide}</p>
               </div>
 
-              <div className={isMissionDetailOpen ? "mt-4 border-t border-[#d9e6c8] pt-4" : "hidden"}>
+              <div className={isMissionDetailOpen ? "mt-3 border-t border-[#d9e6c8] pt-3" : "hidden"}>
                 <label className="block">
-                  <span className="mb-2 block text-sm font-black text-[#47614d]">사진 인증</span>
+                  <span className="mb-2 block text-base font-black text-[#47614d]">사진 인증</span>
                   <input
                     type="file"
                     accept="image/*"
                     onChange={(event) => handleMissionPhotoChange(event.target.files?.[0]?.name ?? "")}
-                    className="block w-full text-sm text-[#47614d] file:mr-3 file:rounded-full file:border-0 file:bg-[#e8f4dc] file:px-4 file:py-3 file:text-sm file:font-black file:text-[#2c6a41]"
+                    className="block w-full text-sm text-[#47614d] file:mr-3 file:rounded-full file:border-0 file:bg-[#e8f4dc] file:px-4 file:py-2 file:text-sm file:font-black file:text-[#2c6a41]"
                   />
                 </label>
 
                 {missionVerification.photoName ? <p className="mt-3 text-sm text-[#5d725e]">선택한 사진: {missionVerification.photoName}</p> : null}
 
                 {needsGpsProof ? (
-                  <div className="mt-4 ole-card-flat p-4">
+                  <div className="mt-3 ole-card-flat p-3">
                     <div className="flex items-center justify-between gap-3">
                       <div>
-                        <p className="text-sm font-black text-[#47614d]">위치 인증</p>
+                        <p className="text-base font-black text-[#47614d]">위치 인증</p>
                         <p className="mt-1 text-xs leading-5 text-[#6c816f]">야외 미션이라 도로명 주소까지 함께 확인해요.</p>
                       </div>
-                      <button type="button" onClick={verifyMissionLocation} className="rounded-full bg-[#e8f4dc] px-4 py-2 text-sm font-black text-[#2c6a41]">
+                      <button type="button" onClick={verifyMissionLocation} className="shrink-0 whitespace-nowrap rounded-full bg-[#e8f4dc] px-4 py-2 text-sm font-black text-[#2c6a41]">
                         {missionVerification.locationStatus === "loading" ? "확인 중..." : "현재 위치 인증"}
                       </button>
                     </div>
@@ -2774,7 +3051,7 @@ export default function Home() {
               <button
                 onClick={completeSelectedMission}
                 disabled={!canCompleteMission}
-                className={`${isMissionDetailOpen ? "ole-button mt-5 w-full px-5 py-4 text-base font-black text-white" : "hidden"} disabled:cursor-not-allowed disabled:bg-[#a9bea9]`}
+                className={`${isMissionDetailOpen ? "mt-4 w-full rounded-[0.8rem] bg-[#2a5d3b] px-5 py-3 text-base font-black text-white transition hover:bg-[#214b30]" : "hidden"} disabled:cursor-not-allowed disabled:bg-[#a9bea9]`}
               >
                 인증 완료하고 {rewardActionLabel}
               </button>
@@ -2852,6 +3129,17 @@ export default function Home() {
                               {completedDays}/{challenge.durationDays}일 인증 완료
                             </span>
                             <span className="rounded-full bg-[#fff4cf] px-3 py-2 text-[#8b6422]">{rewardBadgeLabel} {challenge.reward} EM</span>
+                            <button
+                              type="button"
+                              onClick={() => toggleChallengeLike(challenge.id)}
+                              className={`rounded-full px-3 py-2 ${
+                                currentUserKey && challenge.likedBy.includes(currentUserKey)
+                                  ? "bg-[#ffd9df] text-[#a23951]"
+                                  : "bg-white text-[#6b7d6b]"
+                              }`}
+                            >
+                              {currentUserKey && challenge.likedBy.includes(currentUserKey) ? "♥" : "♡"} {challenge.likes}
+                            </button>
                           </div>
                         </div>
                         <div className="flex gap-2">
@@ -2928,7 +3216,92 @@ export default function Home() {
             </section>
           )}
 
-          <section className="space-y-4">
+          {completedChallenges.length > 0 ? (
+            <section className="ole-soft p-5">
+              <p className="text-sm font-bold text-[#5d725e]">완료한 챌린지</p>
+              <div className="mt-4 space-y-4">
+                {completedChallenges.map((challenge) => {
+                  const likedChallenge = currentUserKey ? challenge.likedBy.includes(currentUserKey) : false;
+
+                  return (
+                    <article key={`completed-${challenge.id}`} className="ole-card-flat p-5">
+                      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                        <div>
+                          <p className="text-[1.25rem] font-black text-[#21452f]">{challenge.title}</p>
+                          <p className="mt-2 text-sm font-bold text-[#5d725e]">{challenge.durationDays}일 인증을 완료했어요.</p>
+                          <div className="mt-3 flex flex-wrap gap-2 text-sm font-black">
+                            <span className="rounded-full bg-[#f3f8ea] px-3 py-2 text-[#2c6a41]">👍 추천 높음</span>
+                            <span className="rounded-full bg-[#fff4cf] px-3 py-2 text-[#8b6422]">{rewardBadgeLabel} {challenge.reward} EM</span>
+                          </div>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => toggleChallengeLike(challenge.id)}
+                          className={`rounded-[0.8rem] px-4 py-2.5 text-sm font-black shadow-[0_3px_0_rgba(31,67,42,0.16)] ${
+                            likedChallenge ? "bg-[#f8d765] text-[#5d4513]" : "bg-[#245c37] text-white"
+                          }`}
+                        >
+                          {likedChallenge ? "좋아요 취소" : "챌린지 좋아요"}
+                        </button>
+                      </div>
+
+                      <div className="hidden">
+                        <p className="text-sm font-black text-[#5d725e]">후기</p>
+                        {challenge.hotReviews.length > 0 ? (
+                          <>
+                            {(expandedChallengeReviewIds.includes(challenge.id)
+                              ? challenge.hotReviews
+                              : challenge.hotReviews.slice(0, 3)
+                            ).map((review) => {
+                              const likedReview = currentUserKey ? review.likedBy.includes(currentUserKey) : false;
+
+                              return (
+                                <div key={review.id} className="border-l-4 border-[#d9e6c8] bg-[#fffef8] p-4">
+                                  <div className="flex items-center justify-between gap-3">
+                                    <div>
+                                      <p className="text-sm font-black text-[#21452f]">{review.author}</p>
+                                      <p className="mt-1 text-xs font-bold text-[#8c6c20]">{renderStars(review.rating)}</p>
+                                    </div>
+                                    <button
+                                      type="button"
+                                      onClick={() => toggleChallengeReviewLike(challenge.id, review.id)}
+                                      className={`rounded-full px-3 py-1 text-xs font-black ${
+                                        likedReview ? "bg-[#f8d765] text-[#5d4513]" : "bg-[#eef7ea] text-[#2c6a41]"
+                                      }`}
+                                    >
+                                      좋아요 {review.likes}
+                                    </button>
+                                  </div>
+                                  <p className="mt-2 text-sm leading-6 text-[#5d725e]">{review.text}</p>
+                                </div>
+                              );
+                            })}
+                            {challenge.hotReviews.length > 3 ? (
+                              <button
+                                type="button"
+                                onClick={() => toggleChallengeReviews(challenge.id)}
+                                className="w-full rounded-[0.75rem] border border-[#c9dec2] bg-white px-4 py-3 text-sm font-black text-[#2c6a41]"
+                              >
+                                {expandedChallengeReviewIds.includes(challenge.id)
+                                  ? "후기 접기"
+                                  : `후기 ${challenge.hotReviews.length - 3}개 더보기`}
+                              </button>
+                            ) : null}
+                          </>
+                        ) : (
+                          <div className="border-l-4 border-[#d9e6c8] bg-[#fffef8] p-4 text-sm text-[#5d725e]">
+                            아직 등록된 후기가 없어요.
+                          </div>
+                        )}
+                      </div>
+                    </article>
+                  );
+                })}
+              </div>
+            </section>
+          ) : null}
+
+          <section className="max-h-[42rem] space-y-4 overflow-y-auto pr-1">
             {availableChallenges.map((challenge) => (
               <article key={challenge.id} className="ole-card-flat border-l-4 border-[#79c85b] p-5">
                 <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
@@ -2937,10 +3310,12 @@ export default function Home() {
                       완료 보상 {challenge.reward} EM
                     </p>
                     <p className="text-[1.3rem] font-black text-[#21452f]">{challenge.title}</p>
-                    <p className="mt-1 text-sm font-bold text-[#6b7d6b]">만든 사람: {challenge.creator}</p>
+                    <p className="mt-1 text-sm font-bold text-[#6b7d6b]">만든 사람: {maskCreatorName(challenge.creator)}</p>
                     <div className="mt-3 flex flex-wrap gap-2 text-sm font-black">
-                      <span className="rounded-full bg-white px-3 py-2 text-[#2c6a41]">참여자 {challenge.participants}명</span>
-                      <span className="rounded-full bg-white px-3 py-2 text-[#8b6422]">{challenge.durationDays}일 챌린지</span>
+                      <span className="rounded-full bg-white px-3 py-2 text-[#2c6a41]">👥 {challenge.participants}명</span>
+                      <span className="rounded-full bg-white px-3 py-2 text-[#8b6422]">📅 {challenge.durationDays}일</span>
+                      <span className="rounded-full bg-white px-3 py-2 text-[#2c6a41]">🎁 {challenge.reward} EM</span>
+                      <span className="rounded-full bg-white px-3 py-2 text-[#a23951]">♥ {challenge.likes}</span>
                     </div>
                   </div>
 
@@ -2954,6 +3329,17 @@ export default function Home() {
                     </button>
                     <button type="button" onClick={() => handleJoinChallenge(challenge.id)} className="rounded-[0.8rem] bg-[#245c37] px-5 py-4 text-base font-black text-white shadow-[0_4px_0_rgba(31,67,42,0.22)]">
                       참여하기
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => toggleChallengeLike(challenge.id)}
+                      className={`rounded-[0.75rem] px-4 py-2.5 text-sm font-black ${
+                        currentUserKey && challenge.likedBy.includes(currentUserKey)
+                          ? "bg-[#ffd9df] text-[#a23951]"
+                          : "border border-[#efc8d0] bg-white text-[#a23951]"
+                      }`}
+                    >
+                      {currentUserKey && challenge.likedBy.includes(currentUserKey) ? "♥ 좋아요 취소" : "♡ 좋아요"}
                     </button>
                   </div>
                 </div>
@@ -2969,26 +3355,56 @@ export default function Home() {
                       </span>
                     </div>
 
-                    <div className="mt-5 space-y-3">
-                      <p className="text-sm font-black text-[#5d725e]">후기</p>
+                    <div className="mt-5">
+                      <p className="text-sm font-black text-[#5d725e]">참여 정보</p>
+                      <div className="mt-3 flex flex-wrap gap-2 text-sm font-black">
+                        <span className="rounded-full bg-[#eef7ea] px-3 py-2 text-[#2c6a41]">♿ 접근성 좋음</span>
+                        <span className="rounded-full bg-[#fff4cf] px-3 py-2 text-[#8b6422]">👍 추천</span>
+                        <span className="rounded-full bg-[#eef7ea] px-3 py-2 text-[#2c6a41]">난이도 {challengeDifficultyLabels[challenge.difficulty]}</span>
+                      </div>
+                      <div className="hidden">
                       {challenge.hotReviews.length > 0 ? (
-                        challenge.hotReviews.slice(0, 3).map((review) => (
-                          <div key={review.id} className="border-l-4 border-[#d9e6c8] bg-[#fffef8] p-4">
-                            <div className="flex items-center justify-between gap-3">
-                              <div>
-                                <p className="text-sm font-black text-[#21452f]">{review.author}</p>
-                                <p className="mt-1 text-xs font-bold text-[#8c6c20]">{renderStars(review.rating)}</p>
+                        <>
+                          {(expandedChallengeReviewIds.includes(challenge.id)
+                            ? challenge.hotReviews
+                            : challenge.hotReviews.slice(0, 3)
+                          ).map((review) => (
+                            <div key={review.id} className="border-l-4 border-[#d9e6c8] bg-[#fffef8] p-4">
+                              <div className="flex items-center justify-between gap-3">
+                                <div>
+                                  <p className="text-sm font-black text-[#21452f]">{review.author}</p>
+                                  <p className="mt-1 text-xs font-bold text-[#8c6c20]">{renderStars(review.rating)}</p>
+                                </div>
+                                <button
+                                  type="button"
+                                  onClick={() => toggleChallengeReviewLike(challenge.id, review.id)}
+                                  disabled={!hasCompletedChallenge(challenge.id)}
+                                  className="rounded-full bg-[#eef7ea] px-3 py-1 text-xs font-black text-[#2c6a41] disabled:cursor-not-allowed disabled:opacity-60"
+                                >
+                                  좋아요 {review.likes}
+                                </button>
                               </div>
-                              <p className="text-xs font-black text-[#2c6a41]">좋아요 {review.likes}</p>
+                              <p className="mt-2 text-sm leading-6 text-[#5d725e]">{review.text}</p>
                             </div>
-                            <p className="mt-2 text-sm leading-6 text-[#5d725e]">{review.text}</p>
-                          </div>
-                        ))
+                          ))}
+                          {challenge.hotReviews.length > 3 ? (
+                            <button
+                              type="button"
+                              onClick={() => toggleChallengeReviews(challenge.id)}
+                              className="w-full rounded-[0.75rem] border border-[#c9dec2] bg-white px-4 py-3 text-sm font-black text-[#2c6a41]"
+                            >
+                              {expandedChallengeReviewIds.includes(challenge.id)
+                                ? "후기 접기"
+                                : `후기 ${challenge.hotReviews.length - 3}개 더보기`}
+                            </button>
+                          ) : null}
+                        </>
                       ) : (
                         <div className="border-l-4 border-[#d9e6c8] bg-[#fffef8] p-4 text-sm text-[#5d725e]">
                           아직 등록된 후기가 없어요.
                         </div>
                       )}
+                      </div>
                     </div>
                   </div>
                 ) : null}
@@ -3024,48 +3440,75 @@ export default function Home() {
                     <textarea
                       value={challengeDraft.description}
                       onChange={(event) => handleDraftChange("description", event.target.value)}
-                      placeholder="예: 급식 후 남긴 음식이 없도록 먹고, 식판 사진과 짧은 후기를 남겨요."
+                      placeholder="예: 급식 후 잔반 없이 먹고 식판 사진을 남겨요."
                       className="ole-field min-h-28 w-full px-4 py-4 text-base text-[#1f3828]"
                     />
                   </label>
-                  <label className="block">
-                    <span className="mb-2 block text-sm font-black text-[#47614d]">실천 장소</span>
-                    <input
-                      value={challengeDraft.location}
-                      onChange={(event) => handleDraftChange("location", event.target.value)}
-                      placeholder="예: 급식실, 교실, 학교 앞 공원"
-                      className="ole-field w-full px-4 py-4 text-base text-[#1f3828]"
-                    />
-                  </label>
-
-                  <div className="grid gap-2">
-                    <p className="text-sm font-black text-[#47614d]">난이도</p>
-                    <div className="grid grid-cols-3 gap-2">
-                      {(["easy", "medium", "hard"] as const).map((difficulty) => (
-                        <button
-                          key={difficulty}
-                          type="button"
-                          onClick={() => handleDraftChange("difficulty", difficulty)}
-                          className={`rounded-[0.8rem] px-3 py-4 text-base font-black ${
-                            challengeDraft.difficulty === difficulty ? "bg-[#2c6a41] text-white" : "bg-white text-[#47614d] ring-1 ring-[#d5e5c9]"
-                          }`}
-                        >
-                          {challengeDifficultyLabels[difficulty]}
-                        </button>
-                      ))}
+                  <button
+                    type="button"
+                    onClick={() => void requestChallengeChecklist()}
+                    disabled={isChallengeChecklistLoading}
+                    className="rounded-[0.8rem] bg-[#eef7ea] px-4 py-3 text-sm font-black text-[#2c6a41] disabled:opacity-60"
+                  >
+                    {isChallengeChecklistLoading ? "AI가 정리하는 중..." : "AI로 체크리스트 만들기"}
+                  </button>
+                  {challengeDraft.checklist.length > 0 ? (
+                    <div className="rounded-[0.85rem] border border-[#d9e6c8] bg-[#fffef8] p-4">
+                      <p className="text-sm font-black text-[#21452f]">해야 할 일 체크리스트</p>
+                      <ul className="mt-2 space-y-2 text-sm text-[#526a56]">
+                        {challengeDraft.checklist.map((item, index) => (
+                          <li key={`${item}-${index}`} className="flex gap-2">
+                            <span aria-hidden="true">□</span>
+                            <span>{item}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  ) : null}
+                  <div className="rounded-[0.85rem] border border-[#d9e6c8] bg-[#fffef8] p-4">
+                    <p className="text-sm font-black text-[#47614d]">실천 장소</p>
+                    <p className="mt-2 text-sm leading-6 text-[#647866]">
+                      {challengeDraft.location || "지도에서 위치를 선택하거나 장소 없음을 눌러 주세요."}
+                    </p>
+                    <div className="mt-3 grid grid-cols-2 gap-3">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setIsChallengeComposerOpen(false);
+                          setIsChallengeLocationSelectionMode(true);
+                          setActiveTab("map");
+                        }}
+                        className="rounded-[0.8rem] bg-[#fff1d6] px-4 py-3 text-sm font-black text-[#9a5b16]"
+                      >
+                        지도에서 선택
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleDraftChange("location", "장소 없음")}
+                        className="rounded-[0.8rem] bg-[#eef7ea] px-4 py-3 text-sm font-black text-[#2c6a41]"
+                      >
+                        장소 없음
+                      </button>
                     </div>
                   </div>
 
-                  <div className="grid gap-2">
+                  <div className="rounded-[0.85rem] bg-[#eef7ea] px-4 py-3 text-sm text-[#47614d]">
+                    <span className="font-black">AI 결정 난이도: </span>
+                    {challengeDraft.difficulty
+                      ? challengeDifficultyLabels[challengeDraft.difficulty]
+                      : "체크리스트를 만들면 자동으로 정해져요."}
+                  </div>
+
+                  <div className="grid gap-3">
                     <p className="text-sm font-black text-[#47614d]">인증 방식</p>
-                    <p className="text-xs leading-5 text-[#6c816f]">참여자가 제출해야 하는 자료를 고르세요. 사진, GPS, 후기 중 최소 1개가 필요해요.</p>
-                    <div className="grid grid-cols-3 gap-2">
-                      {(["photo", "gps", "review"] as const).map((method) => (
+                    <p className="text-xs leading-5 text-[#6c816f]">참여자가 제출할 사진, GPS, 접근성·추천·난이도 선택 평가 중 최소 1개를 고르세요.</p>
+                    <div className="grid grid-cols-2 gap-3">
+                      {(["photo", "gps"] as const).map((method) => (
                         <button
                           key={method}
                           type="button"
                           onClick={() => toggleChallengeProofMethod(method)}
-                          className={`rounded-[0.8rem] px-3 py-4 text-base font-black ${
+                          className={`rounded-[0.8rem] px-4 py-4 text-base font-black ${
                             challengeDraft.proofMethods.includes(method) ? "bg-[#2c6a41] text-white" : "bg-white text-[#47614d] ring-1 ring-[#d5e5c9]"
                           }`}
                         >
@@ -3078,15 +3521,18 @@ export default function Home() {
                   <div className="grid gap-4 md:grid-cols-2">
                     <label className="block">
                       <span className="mb-2 block text-sm font-black text-[#47614d]">진행 기간</span>
-                      <input
+                      <select
                         value={challengeDraft.durationDays}
-                        onChange={(event) => handleDraftChange("durationDays", sanitizeDigits(event.target.value))}
-                        placeholder="예: 7"
-                        inputMode="numeric"
-                        type="text"
+                        onChange={(event) => handleDraftChange("durationDays", event.target.value)}
                         className="ole-field w-full px-4 py-4 text-base text-[#1f3828]"
-                      />
-                      <span className="mt-1 block text-xs font-bold text-[#7b8f7b]">며칠 동안 매일 인증할지 숫자로 입력해요.</span>
+                      >
+                        <option value="">기간 선택</option>
+                        {Array.from({ length: 31 }, (_, index) => index + 1).map((day) => (
+                          <option key={day} value={day}>
+                            {day}일
+                          </option>
+                        ))}
+                      </select>
                     </label>
                     <div className="ole-soft px-4 py-4 text-sm text-[#1f3828]">
                       {isChallengeRewardLoading ? (
@@ -3108,7 +3554,16 @@ export default function Home() {
                   </div>
 
                   <div className="rounded-[0.9rem] border border-[#d9e6c8] bg-[#fffef8] p-4 text-sm text-[#4c654f]">
-                    <p className="font-black text-[#21452f]">보상 기준</p>
+                    <button
+                      type="button"
+                      onClick={() => setIsChallengeRewardDetailsOpen((current) => !current)}
+                      className="flex w-full items-center justify-between font-black text-[#21452f]"
+                    >
+                      <span>보상 기준</span>
+                      <span>{isChallengeRewardDetailsOpen ? "접기" : "자세히"}</span>
+                    </button>
+                    {isChallengeRewardDetailsOpen ? (
+                    <>
                     <p className="mt-1 leading-6">기본 30 EM에서 시작하고, 난이도·진행 기간·인증 방식·장소 구체성을 더해요. 기간이 길수록 매일 인증해야 하는 부담이 커서 기간 보상을 가장 크게 반영해요.</p>
                     {challengeRewardDetails !== null ? (
                       <div className="mt-3 grid gap-2">
@@ -3131,6 +3586,8 @@ export default function Home() {
                         <li>장소 구체성: 구체적인 장소 입력 시 +4 EM</li>
                       </ul>
                     )}
+                    </>
+                    ) : null}
                   </div>
 
                   {challengeRewardError ? <p className="text-sm font-bold text-[#b13a3a]">{challengeRewardError}</p> : null}

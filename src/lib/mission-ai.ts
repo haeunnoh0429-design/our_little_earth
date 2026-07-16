@@ -17,6 +17,8 @@ import type {
 
 const OPENAI_API_URL = "https://api.openai.com/v1/responses";
 const DEFAULT_OPENAI_MODEL = process.env.OPENAI_MISSION_MODEL ?? "gpt-4.1-mini";
+const MIN_MISSION_REWARD = 40;
+const MAX_MISSION_REWARD = 80;
 
 export type MissionApiResult = {
   mission: DailyMission;
@@ -106,6 +108,7 @@ function isAiMissionPayload(value: unknown): value is AiMissionPayload {
 function buildMissionFromAi(payload: AiMissionPayload): DailyMission {
   return {
     ...payload,
+    ecoMoney: Math.max(MIN_MISSION_REWARD, Math.min(MAX_MISSION_REWARD, Math.round(payload.ecoMoney))),
     id: `ai-${payload.category}-${payload.title}`
       .toLowerCase()
       .replace(/\s+/g, "-")
@@ -165,9 +168,10 @@ function createMissionPrompt(context: MissionSelectionContext) {
     "카테고리 후보:",
     categoryValues.join(", "),
     "에코머니 규칙:",
-    "- low: 50~70",
-    "- medium: 80~100",
-    "- high: 110~130",
+    "- low: 40~50",
+    "- medium: 55~65",
+    "- high: 70~80",
+    "어떤 경우에도 ecoMoney는 40 이상 80 이하로 정해 주세요.",
     "반드시 순수 JSON 객체만 반환해 주세요.",
   ].join("\n");
 }
@@ -202,7 +206,7 @@ async function requestAiMission(context: MissionSelectionContext) {
               title: { type: "string" },
               category: { type: "string", enum: categoryValues },
               summary: { type: "string" },
-              ecoMoney: { type: "number" },
+              ecoMoney: { type: "number", minimum: MIN_MISSION_REWARD, maximum: MAX_MISSION_REWARD },
               actionDifficulty: { type: "string", enum: difficultyValues },
               proofDifficulty: { type: "string", enum: difficultyValues },
               space: { type: "string", enum: spaceValues },

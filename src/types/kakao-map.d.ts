@@ -2,6 +2,8 @@ declare global {
   namespace kakao.maps {
     class LatLng {
       constructor(latitude: number, longitude: number);
+      getLat(): number;
+      getLng(): number;
     }
 
     class Size {
@@ -35,9 +37,14 @@ declare global {
 
     namespace event {
       function addListener(
-        target: Marker,
+        target: Marker | Map,
         type: string,
-        handler: () => void,
+        handler: (event?: { latLng: LatLng }) => void,
+      ): void;
+      function removeListener(
+        target: Marker | Map,
+        type: string,
+        handler: (event?: { latLng: LatLng }) => void,
       ): void;
     }
 

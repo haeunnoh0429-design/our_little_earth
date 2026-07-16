@@ -51,8 +51,10 @@ body {
     sans-serif;
   min-width: 320px;
   overflow-x: hidden;
+  overflow-wrap: normal;
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
+  word-break: keep-all;
 }
 
 img,
