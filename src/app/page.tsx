@@ -176,6 +176,15 @@ type CompletedChallengeRecord = {
   reward: number;
   creatorBonus: number;
   completedAt: string;
+  accessibilityRating?: number;
+  recommendationRating?: number;
+  difficultyRating?: number;
+};
+
+type ChallengeCompletionRating = {
+  accessibility: number;
+  recommendation: number;
+  difficulty: number;
 };
 
 type CompletedMapActionRecord = MapActionCompletion & {
@@ -207,6 +216,7 @@ const registeredUsersStorageKey = "ole-registered-users";
 const globalChallengesStorageKey = "ole-challenges";
 const rememberedLoginStorageKey = "ole-remembered-login";
 const creatorBonusRate = 0.1;
+const minimumCurrentUserClearedDebt = 300;
 const excludedRankingUserNames = new Set(["강교빈"]);
 const mockChallengeCreators: Record<string, string> = {
   "challenge-1": "3학년 6반 김지효",
@@ -1111,6 +1121,13 @@ function groupProofDays(proofDays: ChallengeDayProof[]) {
   return groups;
 }
 
+function getChallengeChecklist(description: string) {
+  return description
+    .split("\n")
+    .map((item) => item.replace(/^\s*(?:□|☐|[-*•])\s*/, "").trim())
+    .filter(Boolean);
+}
+
 function getMapActionLabel(action: MapActionCompletion["action"]) {
   if (action === "deposit-cup") {
     return "다회용컵 보증금제";
@@ -1133,6 +1150,19 @@ function applyEcoMoneyReward(profile: UserProfile, amount: number): UserProfile 
     ecoDebt: nextEcoDebt,
     ecoMoney: nextEcoDebt > 0 ? 0 : profile.ecoMoney + remainingReward,
     clearedDebt: profile.clearedDebt + debtPayment,
+  };
+}
+
+function applyMinimumClearedDebt(profile: UserProfile): UserProfile {
+  const additionalPayment = Math.min(
+    profile.ecoDebt,
+    Math.max(0, minimumCurrentUserClearedDebt - profile.clearedDebt),
+  );
+
+  return {
+    ...profile,
+    ecoDebt: profile.ecoDebt - additionalPayment,
+    clearedDebt: profile.clearedDebt + additionalPayment,
   };
 }
 
@@ -1358,7 +1388,7 @@ function AuthScreen({
 
 function MissionCompleteCelebration() {
   return (
-    <div className="relative overflow-hidden rounded-[1rem] border border-[#f2d78a] bg-[linear-gradient(135deg,#fff8cf_0%,#f0ffd9_48%,#dff4ff_100%)] p-5 shadow-[0_8px_0_rgba(204,151,38,0.14)]">
+    <div className="relative overflow-hidden rounded-[1rem] border border-[#f2d78a] bg-[#f7f8dc] p-5 shadow-[0_8px_0_rgba(204,151,38,0.14)]">
       <div className="pointer-events-none absolute left-5 top-5 h-3 w-3 rounded-full bg-[#ff7a59]" />
       <div className="pointer-events-none absolute right-10 top-7 h-4 w-4 rotate-45 bg-[#ffd23f]" />
       <div className="pointer-events-none absolute bottom-7 left-10 h-3 w-8 -rotate-12 rounded-full bg-[#4db6ff]" />
@@ -1584,6 +1614,12 @@ export default function Home() {
   const [isChallengeChecklistLoading, setIsChallengeChecklistLoading] = useState(false);
   const [isChallengeRewardDetailsOpen, setIsChallengeRewardDetailsOpen] = useState(false);
   const [isChallengeLocationSelectionMode, setIsChallengeLocationSelectionMode] = useState(false);
+  const [ratingChallengeId, setRatingChallengeId] = useState<string | null>(null);
+  const [challengeCompletionRating, setChallengeCompletionRating] = useState<ChallengeCompletionRating>({
+    accessibility: 0,
+    recommendation: 0,
+    difficulty: 0,
+  });
   const [challengeRewardError, setChallengeRewardError] = useState("");
   const [isChallengeComposerOpen, setIsChallengeComposerOpen] = useState(false);
   const [isCheckinModalOpen, setIsCheckinModalOpen] = useState(false);
@@ -1609,13 +1645,13 @@ export default function Home() {
         : null;
 
     setCurrentUser(user);
-    setProfile({
+    setProfile(applyMinimumClearedDebt({
       ...storedProfile,
       name: getDisplayName(user, storedProfile.name),
       ecoDebt: storedProfile.ecoDebt ?? user.initialDebt,
       ecoMoney: storedProfile.ecoMoney ?? 0,
       school: getDisplaySchool(user, storedProfile.school),
-    });
+    }));
     setSelectedMission(selectedMission);
     setMissionDrawDate(storedAppState.missionDrawDate);
     setMissionReason("");
@@ -2677,7 +2713,34 @@ export default function Home() {
         ...current.filter((record) => record.id !== completedRecord.id),
       ]);
       setProfile((current) => applyEcoMoneyReward(current, completedRecord.reward));
+      setChallengeCompletionRating({ accessibility: 0, recommendation: 0, difficulty: 0 });
+      setRatingChallengeId(challengeId);
     }
+  };
+
+  const submitChallengeCompletionRating = () => {
+    if (
+      !ratingChallengeId ||
+      challengeCompletionRating.accessibility === 0 ||
+      challengeCompletionRating.recommendation === 0 ||
+      challengeCompletionRating.difficulty === 0
+    ) {
+      return;
+    }
+
+    setCompletedChallengeHistory((current) =>
+      current.map((record) =>
+        record.id === ratingChallengeId
+          ? {
+              ...record,
+              accessibilityRating: challengeCompletionRating.accessibility,
+              recommendationRating: challengeCompletionRating.recommendation,
+              difficultyRating: challengeCompletionRating.difficulty,
+            }
+          : record,
+      ),
+    );
+    setRatingChallengeId(null);
   };
 
   const renderMapSection = () => (
@@ -2731,11 +2794,6 @@ export default function Home() {
               <div className="border-l-4 border-[#8fcf66] bg-[#fffef8] px-4 py-3 text-base text-[#46604c]">예상 시간 {selectedMission.durationMinutes}분</div>
             </div>
 
-            <div className={isMissionDetailOpen ? "mt-3 border-t border-[#d9e6c8] pt-3 text-base leading-6 text-[#55735d]" : "hidden"}>
-              <p className="font-black text-[#24482f]">인증 방법</p>
-              <p className="mt-1">{selectedMission.proofGuide}</p>
-            </div>
-
             <div className={isMissionDetailOpen ? "mt-3 border-t border-[#d9e6c8] pt-3" : "hidden"}>
               <label className="block">
                 <span className="mb-2 block text-base font-black text-[#47614d]">사진 인증</span>
@@ -2754,7 +2812,6 @@ export default function Home() {
                   <div className="flex items-center justify-between gap-3">
                     <div>
                       <p className="text-base font-black text-[#47614d]">위치 인증</p>
-                      <p className="mt-1 text-xs leading-5 text-[#6c816f]">야외 미션이라 도로명 주소까지 함께 확인해요.</p>
                     </div>
                     <button type="button" onClick={verifyMissionLocation} className="shrink-0 whitespace-nowrap rounded-full bg-[#e8f4dc] px-4 py-2 text-sm font-black text-[#2c6a41]">
                       {missionVerification.locationStatus === "loading" ? "확인 중..." : "현재 위치 인증"}
@@ -2854,7 +2911,7 @@ export default function Home() {
                 </div>
                 <div className="mt-2 h-2.5 overflow-hidden rounded-full bg-[#dcead3] shadow-[inset_0_1px_2px_rgba(44,106,65,0.12)]">
                   <div
-                    className="h-full rounded-full bg-[linear-gradient(90deg,#79c85b_0%,#ffd76a_100%)]"
+                    className="h-full rounded-full bg-[#79c85b]"
                     style={{ width: `${completionRate}%` }}
                   />
                 </div>
@@ -3009,11 +3066,6 @@ export default function Home() {
                 <div className="border-l-4 border-[#8fcf66] bg-[#fffef8] px-4 py-3 text-base text-[#46604c]">예상 시간 {selectedMission.durationMinutes}분</div>
               </div>
 
-              <div className={isMissionDetailOpen ? "mt-3 border-t border-[#d9e6c8] pt-3 text-base leading-6 text-[#55735d]" : "hidden"}>
-                <p className="font-black text-[#24482f]">인증 방법</p>
-                <p className="mt-1">{selectedMission.proofGuide}</p>
-              </div>
-
               <div className={isMissionDetailOpen ? "mt-3 border-t border-[#d9e6c8] pt-3" : "hidden"}>
                 <label className="block">
                   <span className="mb-2 block text-base font-black text-[#47614d]">사진 인증</span>
@@ -3032,7 +3084,6 @@ export default function Home() {
                     <div className="flex items-center justify-between gap-3">
                       <div>
                         <p className="text-base font-black text-[#47614d]">위치 인증</p>
-                        <p className="mt-1 text-xs leading-5 text-[#6c816f]">야외 미션이라 도로명 주소까지 함께 확인해요.</p>
                       </div>
                       <button type="button" onClick={verifyMissionLocation} className="shrink-0 whitespace-nowrap rounded-full bg-[#e8f4dc] px-4 py-2 text-sm font-black text-[#2c6a41]">
                         {missionVerification.locationStatus === "loading" ? "확인 중..." : "현재 위치 인증"}
@@ -3118,6 +3169,7 @@ export default function Home() {
                   const activeDay = getChallengeActiveDay(challenge, todayKey);
                   const activeWeekIndex = Math.floor((activeDay - 1) / 7);
                   const proofDayGroups = groupProofDays(challenge.proofDays);
+                  const challengeChecklist = getChallengeChecklist(challenge.description);
 
                   return (
                     <article key={challenge.id} className="ole-card-flat p-5">
@@ -3154,6 +3206,18 @@ export default function Home() {
 
                       {challenge.progressOpen ? (
                         <div className="mt-5 space-y-5">
+                          <div className="rounded-[1rem] border border-[#cfe3bd] bg-[#f6fbea] p-4">
+                            <p className="text-sm font-black text-[#21452f]">해야 할 일 체크리스트</p>
+                            <ul className="mt-3 space-y-2">
+                              {challengeChecklist.map((item, index) => (
+                                <li key={`${challenge.id}-checklist-${index}`} className="flex items-start gap-3 text-sm font-bold leading-6 text-[#47614d]">
+                                  <span aria-hidden="true" className="mt-0.5 text-lg leading-5 text-[#5c9f45]">☐</span>
+                                  <span>{item}</span>
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+
                           {proofDayGroups.map((group, groupIndex) => {
                             const weekKey = `${challenge.id}:${group.label}`;
                             const isCurrentWeek = groupIndex === activeWeekIndex;
@@ -3237,8 +3301,10 @@ export default function Home() {
                         <button
                           type="button"
                           onClick={() => toggleChallengeLike(challenge.id)}
-                          className={`rounded-[0.8rem] px-4 py-2.5 text-sm font-black shadow-[0_3px_0_rgba(31,67,42,0.16)] ${
-                            likedChallenge ? "bg-[#f8d765] text-[#5d4513]" : "bg-[#245c37] text-white"
+                          className={`shrink-0 whitespace-nowrap rounded-[0.8rem] font-black shadow-[0_3px_0_rgba(31,67,42,0.16)] ${
+                            likedChallenge
+                              ? "bg-[#f8d765] px-2.5 py-2 text-xs text-[#5d4513]"
+                              : "bg-[#245c37] px-4 py-2.5 text-sm text-white"
                           }`}
                         >
                           {likedChallenge ? "좋아요 취소" : "챌린지 좋아요"}
@@ -3333,10 +3399,10 @@ export default function Home() {
                     <button
                       type="button"
                       onClick={() => toggleChallengeLike(challenge.id)}
-                      className={`rounded-[0.75rem] px-4 py-2.5 text-sm font-black ${
+                      className={`shrink-0 whitespace-nowrap rounded-[0.75rem] font-black ${
                         currentUserKey && challenge.likedBy.includes(currentUserKey)
-                          ? "bg-[#ffd9df] text-[#a23951]"
-                          : "border border-[#efc8d0] bg-white text-[#a23951]"
+                          ? "bg-[#ffd9df] px-2.5 py-2 text-xs text-[#a23951]"
+                          : "border border-[#efc8d0] bg-white px-4 py-2.5 text-sm text-[#a23951]"
                       }`}
                     >
                       {currentUserKey && challenge.likedBy.includes(currentUserKey) ? "♥ 좋아요 취소" : "♡ 좋아요"}
@@ -3547,9 +3613,7 @@ export default function Home() {
                           <p className="font-black text-[#2c6a41]">예상 보상 {challengeRewardDetails.reward} EM</p>
                           <p className="mt-1 leading-6 text-[#5d725e]">{challengeRewardDetails.summary}</p>
                         </>
-                      ) : (
-                        <p className="leading-6 text-[#5d725e]">기간과 인증 방식을 입력하면 기준표로 보상을 계산해요. 긴 챌린지는 70 EM을 넘어갈 수 있어요.</p>
-                      )}
+                      ) : null}
                     </div>
                   </div>
 
@@ -3604,6 +3668,70 @@ export default function Home() {
               </div>
             </div>
           ) : null}
+
+          {ratingChallengeId ? (
+            <div className="fixed inset-0 z-50 flex items-end justify-center bg-[#183522]/40 p-4 sm:items-center">
+              <div className="ole-card w-full max-w-md p-6">
+                <p className="text-sm font-bold text-[#5d725e]">챌린지 완료</p>
+                <h3 className="mt-1 text-[1.55rem] font-black text-[#21452f]">별점 평가를 남겨 주세요</h3>
+                <p className="mt-2 text-sm leading-6 text-[#647866]">
+                  오늘의 미션이 아닌, 방금 완료한 챌린지에 대한 평가예요.
+                </p>
+
+                <div className="mt-5 space-y-5">
+                  <div>
+                    <p className="text-sm font-black text-[#47614d]">접근성</p>
+                    <p className="mt-1 text-xs text-[#718274]">쉽게 참여하고 실천할 수 있었나요?</p>
+                    <div className="mt-2">
+                      <RatingPicker
+                        value={challengeCompletionRating.accessibility}
+                        onChange={(accessibility) =>
+                          setChallengeCompletionRating((current) => ({ ...current, accessibility }))
+                        }
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <p className="text-sm font-black text-[#47614d]">추천 정도</p>
+                    <p className="mt-1 text-xs text-[#718274]">친구에게 추천하고 싶은 정도예요.</p>
+                    <div className="mt-2">
+                      <RatingPicker
+                        value={challengeCompletionRating.recommendation}
+                        onChange={(recommendation) =>
+                          setChallengeCompletionRating((current) => ({ ...current, recommendation }))
+                        }
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <p className="text-sm font-black text-[#47614d]">체감 난이도</p>
+                    <p className="mt-1 text-xs text-[#718274]">별이 많을수록 어렵게 느낀 챌린지예요.</p>
+                    <div className="mt-2">
+                      <RatingPicker
+                        value={challengeCompletionRating.difficulty}
+                        onChange={(difficulty) =>
+                          setChallengeCompletionRating((current) => ({ ...current, difficulty }))
+                        }
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={submitChallengeCompletionRating}
+                  disabled={
+                    challengeCompletionRating.accessibility === 0 ||
+                    challengeCompletionRating.recommendation === 0 ||
+                    challengeCompletionRating.difficulty === 0
+                  }
+                  className="mt-6 w-full rounded-[0.8rem] bg-[#2a5d3b] px-5 py-4 text-base font-black text-white disabled:cursor-not-allowed disabled:bg-[#a9bea9]"
+                >
+                  평가 저장하기
+                </button>
+              </div>
+            </div>
+          ) : null}
         </section>
       );
     }
@@ -3623,17 +3751,16 @@ export default function Home() {
 
       return (
         <section className="ole-card space-y-4 p-6">
-          <section className="rounded-[1rem] bg-[linear-gradient(145deg,#205f3d_0%,#2f7b4d_55%,#ffd76a_100%)] p-6 text-white shadow-[0_8px_0_rgba(23,73,44,0.16)]">
-            <p className="text-sm font-black uppercase tracking-normal text-white/70">Ranking</p>
-            <h2 className="mt-3 text-[2rem] font-black tracking-normal">우리 반과 내 순위</h2>
+          <section className="rounded-[1rem] bg-[#245c37] p-6 text-white shadow-[0_8px_0_rgba(23,73,44,0.18)]">
+            <h2 className="text-[2rem] font-black tracking-normal">랭킹</h2>
             <div className="mt-4 grid grid-cols-2 gap-3">
-              <div className="rounded-[0.8rem] bg-white/18 p-4 shadow-[inset_0_-2px_0_rgba(255,255,255,0.20)]">
-                <p className="text-sm font-bold text-white/70">반 순위</p>
-                <p className="mt-2 text-3xl font-black">#{myClassRank}</p>
+              <div className="rounded-[0.8rem] bg-white/12 p-4 ring-1 ring-white/20">
+                <p className="text-sm font-bold text-white/75">반 순위</p>
+                <p className="mt-2 text-3xl font-black text-white">#{myClassRank}</p>
               </div>
-              <div className="rounded-[0.8rem] bg-white/18 p-4 shadow-[inset_0_-2px_0_rgba(255,255,255,0.20)]">
-                <p className="text-sm font-bold text-white/70">개인 순위</p>
-                <p className="mt-2 text-3xl font-black">#{myStudentRank}</p>
+              <div className="rounded-[0.8rem] bg-white/12 p-4 ring-1 ring-white/20">
+                <p className="text-sm font-bold text-white/75">개인 순위</p>
+                <p className="mt-2 text-3xl font-black text-white">#{myStudentRank}</p>
               </div>
             </div>
           </section>
@@ -3676,16 +3803,20 @@ export default function Home() {
           <div className="rounded-[0.95rem] bg-[#f5faef] p-5">
             <p className="text-sm font-bold text-[#5f745f]">{hasEcoDebt ? "남은 빚" : "보유 EM"}</p>
             <p className="mt-2 text-[1.9rem] font-black text-[#21452f]">
-              {(hasEcoDebt ? profile.ecoDebt : profile.ecoMoney).toLocaleString()} EM
+              {(hasEcoDebt ? profile.ecoDebt : profile.ecoMoney).toLocaleString()} <span className="text-sm">EM</span>
             </p>
           </div>
           <div className="rounded-[0.95rem] bg-[#eef7ea] p-5">
             <p className="text-sm font-bold text-[#5f745f]">차감한 빚</p>
-            <p className="mt-2 text-[1.9rem] font-black text-[#21452f]">{profile.clearedDebt.toLocaleString()} EM</p>
+            <p className="mt-2 text-[1.9rem] font-black text-[#21452f]">
+              {profile.clearedDebt.toLocaleString()} <span className="text-sm">EM</span>
+            </p>
           </div>
           <div className="rounded-[0.95rem] bg-[#edf4ff] p-5">
             <p className="text-sm font-bold text-[#5f745f]">예상 탄소발자국 절감</p>
-            <p className="mt-2 text-[1.9rem] font-black text-[#21452f]">{carbonFootprintSavedKg} kg</p>
+            <p className="mt-2 text-[1.9rem] font-black text-[#21452f]">
+              {carbonFootprintSavedKg} <span className="text-sm">kg</span>
+            </p>
           </div>
         </section>
 
