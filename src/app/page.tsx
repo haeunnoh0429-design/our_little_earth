@@ -125,6 +125,8 @@ type Challenge = {
   completed: boolean;
   progressOpen: boolean;
   proofDays: ChallengeDayProof[];
+  teamMemberNames?: string[];
+  confirmedMemberNames?: string[];
 };
 
 type ChallengeDraft = {
@@ -135,6 +137,7 @@ type ChallengeDraft = {
   difficulty: ChallengeDifficulty | "";
   proofMethods: ChallengeProofMethod[];
   durationDays: string;
+  teamMemberNames: string;
 };
 
 type MissionVerificationState = {
@@ -201,11 +204,17 @@ const DEFAULT_PROFILE: UserProfile = {
 
 const TAB_ITEMS: Array<{ id: TabId; label: string }> = [
   { id: "home", label: "홈" },
-  { id: "map", label: "지도" },
+  { id: "mission", label: "미션" },
   { id: "challenge", label: "챌린지" },
   { id: "ranking", label: "랭킹" },
   { id: "mypage", label: "마이" },
 ];
+
+const verifiedMissionCategories = [
+  { id: "bicycle", icon: "🚲", title: "자전거 미션", proof: "평균 속도로 인증", detail: "이동 시간과 거리를 기록해 평균 속도가 자전거 범위인지 확인해요." },
+  { id: "bus", icon: "🚌", title: "버스 미션", proof: "교통카드 NFC로 인증", detail: "교통카드 태그 기록으로 버스 이용을 확인해요." },
+  { id: "walk", icon: "🚶", title: "걷기 미션", proof: "만보기로 인증", detail: "기기의 걸음 수 기록으로 목표 달성을 확인해요." },
+] as const;
 
 const gradeOptions = [1, 2, 3];
 const classOptions = Array.from({ length: 6 }, (_, index) => index + 1);
@@ -429,6 +438,16 @@ function normalizeIdentity(form: StudentIdentity) {
     studentNumber: form.studentNumber.trim(),
     name: form.name.trim(),
   };
+}
+
+function getTextSimilarity(left: string, right: string) {
+  const tokenize = (value: string) =>
+    new Set(value.toLowerCase().replace(/[^\p{L}\p{N}\s]/gu, " ").split(/\s+/).filter((token) => token.length > 1));
+  const leftTokens = tokenize(left);
+  const rightTokens = tokenize(right);
+  if (leftTokens.size === 0 || rightTokens.size === 0) return 0;
+  const commonCount = [...leftTokens].filter((token) => rightTokens.has(token)).length;
+  return (2 * commonCount) / (leftTokens.size + rightTokens.size);
 }
 
 function getIdentityKey(form: StudentIdentity) {
@@ -1592,6 +1611,7 @@ export default function Home() {
   const [missionReason, setMissionReason] = useState("");
   const [isMissionLoading, setIsMissionLoading] = useState(false);
   const [isMissionDetailOpen, setIsMissionDetailOpen] = useState(true);
+  const [missionView, setMissionView] = useState<"daily" | "self">("daily");
   const [missionVerification, setMissionVerification] = useState<MissionVerificationState>(createEmptyMissionVerification);
   const [completedMissionHistory, setCompletedMissionHistory] = useState<CompletedMissionRecord[]>([]);
   const [dailyCheckinDraft, setDailyCheckinDraft] = useState<DailyCheckinDraft>(createEmptyDailyCheckinDraft);
@@ -1607,6 +1627,7 @@ export default function Home() {
     difficulty: "",
     proofMethods: [],
     durationDays: "",
+    teamMemberNames: "",
   });
   const [challengeRewardSuggestion, setChallengeRewardSuggestion] = useState<number | null>(null);
   const [challengeRewardReason, setChallengeRewardReason] = useState("");
@@ -2212,6 +2233,21 @@ export default function Home() {
     );
   };
 
+  const toggleTeamMemberConfirmation = (challengeId: string, memberName: string) => {
+    setChallenges((current) =>
+      current.map((challenge) => {
+        if (challenge.id !== challengeId) return challenge;
+        const confirmed = challenge.confirmedMemberNames ?? [];
+        return {
+          ...challenge,
+          confirmedMemberNames: confirmed.includes(memberName)
+            ? confirmed.filter((name) => name !== memberName)
+            : [...confirmed, memberName],
+        };
+      }),
+    );
+  };
+
   const requestChallengeChecklist = async () => {
     if (!challengeDraft.title.trim() || !challengeDraft.description.trim()) {
       setChallengeRewardError("챌린지 제목과 해야 할 일을 먼저 입력해 주세요.");
@@ -2242,6 +2278,21 @@ export default function Home() {
         !["easy", "medium", "hard"].includes(payload.difficulty)
       ) {
         throw new Error(payload.error ?? "체크리스트를 만들지 못했어요.");
+      }
+      const candidateText = [challengeDraft.title, ...(payload.checklist ?? [])].join(" ");
+      const duplicate = challenges
+        .map((challenge) => ({
+          challenge,
+          similarity: getTextSimilarity(candidateText, `${challenge.title} ${challenge.description}`),
+        }))
+        .sort((left, right) => right.similarity - left.similarity)[0];
+
+      if (duplicate && duplicate.similarity >= 0.7) {
+        setChallengeDraft((current) => ({ ...current, checklist: [], difficulty: "" }));
+        setChallengeRewardError(
+          `이미 있는 챌린지와 ${Math.round(duplicate.similarity * 100)}% 유사해 만들 수 없어요: ${duplicate.challenge.title}`,
+        );
+        return;
       }
       setChallengeDraft((current) => ({
         ...current,
@@ -2628,6 +2679,8 @@ export default function Home() {
         completed: false,
         progressOpen: false,
         proofDays: createProofDays(durationDays),
+        teamMemberNames: challengeDraft.teamMemberNames.split(/[,，\n]/).map((name) => name.trim()).filter(Boolean),
+        confirmedMemberNames: [],
       };
 
       setChallenges((current) => [newChallenge, ...current]);
@@ -2639,6 +2692,7 @@ export default function Home() {
         difficulty: "",
         proofMethods: [],
         durationDays: "",
+        teamMemberNames: "",
       });
       setChallengeRewardSuggestion(null);
       setChallengeRewardReason("");
@@ -2837,11 +2891,7 @@ export default function Home() {
           </article>
         ) : missionCompletedToday ? (
           <MissionCompleteCelebration />
-        ) : (
-          <div className="ole-soft border border-[#d9e6c8] p-5 text-base leading-7 text-[#667d6b]">
-            아직 뽑은 미션이 없어요. 아래 버튼으로 오늘의 미션을 받아보세요.
-          </div>
-        )}
+        ) : null}
 
         {missionReason && !missionCompletedToday ? <div className="border-l-4 border-[#ffd76a] bg-[#fff8de] px-4 py-4 text-sm leading-6 text-[#7a5a1d]">{missionReason}</div> : null}
 
@@ -3022,7 +3072,25 @@ export default function Home() {
             </div>
           ) : null}
 
-          {renderMissionSection()}
+          <section className="ole-card border-l-4 border-[#8fcf66] p-5">
+            <p className="text-sm font-bold text-[#66806b]">오늘의 친환경 조언</p>
+            <h2 className="mt-1 text-[1.35rem] font-black text-[#1e3826]">
+              가까운 거리는 걷고, 사용하지 않는 불은 꺼 보세요.
+            </h2>
+            <p className="mt-2 text-sm leading-6 text-[#64806a]">
+              일일 미션은 부담 없이 실천을 돕는 조언이에요. 인증과 보상이 있는 활동은 미션 탭에서 시작할 수 있어요.
+            </p>
+            <button
+              type="button"
+              onClick={() => {
+                setMissionView("daily");
+                setActiveTab("mission");
+              }}
+              className="mt-4 rounded-[0.8rem] bg-[#e4f3db] px-4 py-3 text-sm font-black text-[#2c6a41]"
+            >
+              미션 보러 가기
+            </button>
+          </section>
         </div>
       );
     }
@@ -3032,107 +3100,43 @@ export default function Home() {
     }
 
     if (activeTab === "mission") {
-      const needsGpsProof = requiresGpsProof(selectedMission);
-      const canCompleteMission =
-        selectedMission !== null &&
-        missionVerification.photoName.trim() !== "" &&
-        (!needsGpsProof || missionVerification.locationStatus === "granted");
-
       return (
-        <section className="ole-card space-y-5 p-6">
-          <div>
-            <p className="text-base font-bold text-[#66806b]">오늘의 미션</p>
-            <h2 className="mt-1 text-[1.9rem] font-black tracking-normal text-[#203826]">{missionTitle}</h2>
-            </div>
-
-          {selectedMission ? (
-            <article className={`ole-soft ${isMissionDetailOpen ? "p-5" : "p-3.5"}`}>
-              <div className="flex items-start justify-between gap-3">
-                <div className="min-w-0 flex-1">
-                  <h3 className={isMissionDetailOpen ? "mt-2 break-keep text-[1.6rem] font-black tracking-normal text-[#1f3f27]" : "mt-1 break-keep text-[1.05rem] font-black tracking-normal text-[#1f3f27]"}>{selectedMission.title}</h3>
-                  {isMissionDetailOpen ? <p className="mt-2 break-keep text-base leading-6 text-[#627563]">{selectedMission.summary}</p> : null}
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setIsMissionDetailOpen((current) => !current)}
-                  className="shrink-0 self-start px-0 py-0 text-[0.72rem] font-bold text-[#6a7f6d] underline underline-offset-2 [font-family:'Apple_SD_Gothic_Neo','Malgun_Gothic',Arial,sans-serif]"
-                >
-                  {isMissionDetailOpen ? "접기" : "펼치기"}
+        <div className="space-y-4">
+          <section className="ole-card p-5">
+            <p className="text-sm font-bold text-[#66806b]">검증 가능한 활동만</p>
+            <h1 className="mt-1 text-[1.9rem] font-black text-[#203826]">미션</h1>
+            <p className="mt-2 text-sm leading-6 text-[#647866]">기기나 기록으로 확실히 확인할 수 있는 활동이에요. 판단이 애매한 활동은 자율 챌린지로 참여해요.</p>
+            <div className="mt-4 grid grid-cols-2 gap-2 rounded-[0.9rem] bg-[#eef5e8] p-1.5">
+              {([["daily", "일일 미션"], ["self", "자율 미션"]] as const).map(([id, label]) => (
+                <button key={id} type="button" onClick={() => setMissionView(id)} className={`rounded-[0.75rem] px-3 py-3 text-sm font-black ${missionView === id ? "bg-white text-[#21452f] shadow-sm" : "text-[#71836f]"}`}>
+                  {label}
                 </button>
-              </div>
-
-              <div className={isMissionDetailOpen ? "mt-3 grid gap-2 sm:grid-cols-2" : "hidden"}>
-                <div className="border-l-4 border-[#8fcf66] bg-[#fffef8] px-4 py-3 text-base text-[#46604c]">{rewardAmountLabel} {selectedMission.ecoMoney} EM</div>
-                <div className="border-l-4 border-[#8fcf66] bg-[#fffef8] px-4 py-3 text-base text-[#46604c]">예상 시간 {selectedMission.durationMinutes}분</div>
-              </div>
-
-              <div className={isMissionDetailOpen ? "mt-3 border-t border-[#d9e6c8] pt-3" : "hidden"}>
-                <label className="block">
-                  <span className="mb-2 block text-base font-black text-[#47614d]">사진 인증</span>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={(event) => handleMissionPhotoChange(event.target.files?.[0]?.name ?? "")}
-                    className="block w-full text-sm text-[#47614d] file:mr-3 file:rounded-full file:border-0 file:bg-[#e8f4dc] file:px-4 file:py-2 file:text-sm file:font-black file:text-[#2c6a41]"
-                  />
-                </label>
-
-                {missionVerification.photoName ? <p className="mt-3 text-sm text-[#5d725e]">선택한 사진: {missionVerification.photoName}</p> : null}
-
-                {needsGpsProof ? (
-                  <div className="mt-3 ole-card-flat p-3">
-                    <div className="flex items-center justify-between gap-3">
-                      <div>
-                        <p className="text-base font-black text-[#47614d]">위치 인증</p>
-                      </div>
-                      <button type="button" onClick={verifyMissionLocation} className="shrink-0 whitespace-nowrap rounded-full bg-[#e8f4dc] px-4 py-2 text-sm font-black text-[#2c6a41]">
-                        {missionVerification.locationStatus === "loading" ? "확인 중..." : "현재 위치 인증"}
-                      </button>
-                    </div>
-
-                    {missionVerification.locationStatus === "granted" && missionVerification.address ? (
-                      <p className="mt-3 text-sm text-[#2c6a41]">위치 인증 완료: {missionVerification.address}</p>
-                    ) : null}
-
-                    {missionVerification.errorMessage ? <p className="mt-3 text-sm text-[#8a5830]">{missionVerification.errorMessage}</p> : null}
-                  </div>
-                ) : null}
-              </div>
-
-              <button
-                onClick={completeSelectedMission}
-                disabled={!canCompleteMission}
-                className={`${isMissionDetailOpen ? "mt-4 w-full rounded-[0.8rem] bg-[#2a5d3b] px-5 py-3 text-base font-black text-white transition hover:bg-[#214b30]" : "hidden"} disabled:cursor-not-allowed disabled:bg-[#a9bea9]`}
-              >
-                인증 완료하고 {rewardActionLabel}
-              </button>
-            </article>
-          ) : missionCompletedToday ? (
-            <MissionCompleteCelebration />
-          ) : (
-            <div className="ole-soft border border-[#d9e6c8] p-5 text-base leading-7 text-[#667d6b]">
-              아직 뽑은 미션이 없어요. 아래 버튼으로 오늘의 미션을 받아보세요.
+              ))}
             </div>
+          </section>
+
+          {missionView === "daily" ? renderMissionSection() : (
+            <section className="ole-card space-y-4 p-5">
+              <div>
+                <p className="text-sm font-bold text-[#66806b]">자율 미션</p>
+                <h2 className="mt-1 text-[1.5rem] font-black text-[#203826]">인증 방식을 골라 시작해요</h2>
+              </div>
+              {verifiedMissionCategories.map((category) => (
+                <article key={category.id} className="ole-card-flat border-l-4 border-[#79c85b] p-4">
+                  <div className="flex items-start gap-3">
+                    <span className="text-2xl" aria-hidden="true">{category.icon}</span>
+                    <div className="min-w-0 flex-1">
+                      <h3 className="text-lg font-black text-[#21452f]">{category.title}</h3>
+                      <p className="mt-1 text-sm font-black text-[#2c6a41]">{category.proof}</p>
+                      <p className="mt-2 text-sm leading-6 text-[#647866]">{category.detail}</p>
+                    </div>
+                  </div>
+                  <button type="button" className="mt-4 w-full rounded-[0.75rem] bg-[#2a5d3b] px-4 py-3 text-sm font-black text-white">이 미션 시작하기</button>
+                </article>
+              ))}
+            </section>
           )}
-
-          {missionReason && !missionCompletedToday ? <div className="border-l-4 border-[#ffd76a] bg-[#fff8de] px-4 py-4 text-sm leading-6 text-[#7a5a1d]">{missionReason}</div> : null}
-
-          {!missionCompletedToday ? (
-            <button
-              onClick={drawMission}
-              disabled={!canDrawMissionToday || isMissionLoading}
-              className="w-full rounded-[0.8rem] bg-[#d8eece] px-5 py-4 text-base font-black text-[#23442b] shadow-[0_4px_0_rgba(73,122,64,0.16)] disabled:cursor-not-allowed disabled:opacity-60 disabled:shadow-none"
-            >
-              {isMissionLoading
-                ? "미션 불러오는 중..."
-                : selectedMission
-                  ? "현재 미션 진행 중"
-                  : missionDrawDate === todayKey
-                    ? "오늘은 이미 미션을 뽑았어요"
-                    : "오늘의 미션 뽑기"}
-            </button>
-          ) : null}
-        </section>
+        </div>
       );
     }
 
@@ -3142,8 +3146,8 @@ export default function Home() {
           <section className="ole-sticker p-6">
             <p className="text-sm font-black uppercase tracking-normal text-[#4d7b50]">Challenge</p>
             <h2 className="mt-3 text-[2rem] font-black tracking-normal text-[#21452f]">챌린지</h2>
-            <p className="mt-3 text-base leading-7 text-[#456754]">
-              기간, 장소, 인증 기준이 정해진 활동만 만들 수 있어요. 참여한 친구는 하루에 한 번 인증해요.
+            <p className="mt-2 text-sm leading-6 text-[#5d725e]">
+              사진처럼 판정이 애매한 활동은 자율 챌린지로 진행해요. AI가 기존 활동과 70% 이상 비슷하다고 판단하면 중복 생성을 막아요.
             </p>
           </section>
 
@@ -3420,6 +3424,27 @@ export default function Home() {
                         인증 {challenge.proofMethods.map((method) => challengeProofMethodLabels[method]).join(", ")}
                       </span>
                     </div>
+                    {challenge.teamMemberNames && challenge.teamMemberNames.length > 0 ? (
+                      <div className="mt-4 rounded-[0.85rem] border border-[#d9e6c8] bg-[#fffef8] p-4">
+                        <p className="text-sm font-black text-[#21452f]">함께한 사람 전원 확인</p>
+                        <p className="mt-1 text-xs leading-5 text-[#6c816f]">각자 자신의 이름을 눌러야 최종 인증돼요.</p>
+                        <div className="mt-3 flex flex-wrap gap-2">
+                          {challenge.teamMemberNames.map((memberName) => {
+                            const confirmed = challenge.confirmedMemberNames?.includes(memberName) ?? false;
+                            return (
+                              <button
+                                key={memberName}
+                                type="button"
+                                onClick={() => toggleTeamMemberConfirmation(challenge.id, memberName)}
+                                className={`rounded-full px-3 py-2 text-sm font-black ${confirmed ? "bg-[#2c6a41] text-white" : "bg-[#eef7ea] text-[#2c6a41]"}`}
+                              >
+                                {confirmed ? "✓ " : ""}{memberName}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    ) : null}
 
                     <div className="mt-5">
                       <p className="text-sm font-black text-[#5d725e]">참여 정보</p>
@@ -3509,6 +3534,18 @@ export default function Home() {
                       placeholder="예: 급식 후 잔반 없이 먹고 식판 사진을 남겨요."
                       className="ole-field min-h-28 w-full px-4 py-4 text-base text-[#1f3828]"
                     />
+                  </label>
+                  <label className="block">
+                    <span className="mb-2 block text-sm font-black text-[#47614d]">함께하는 사람 이름</span>
+                    <input
+                      value={challengeDraft.teamMemberNames}
+                      onChange={(event) => handleDraftChange("teamMemberNames", event.target.value)}
+                      placeholder="예: 김하늘, 이초록 (혼자라면 비워 두기)"
+                      className="ole-field w-full px-4 py-4 text-base text-[#1f3828]"
+                    />
+                    <span className="mt-2 block text-xs leading-5 text-[#6c816f]">
+                      여러 명이 참여하면 입력한 사람 모두가 확인 버튼을 눌러야 최종 인증돼요.
+                    </span>
                   </label>
                   <button
                     type="button"
